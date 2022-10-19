@@ -1,0 +1,311 @@
+{% macro nav_menu(active_view, views_row1, views_row2) %}
+    <div class="navbar-nav nav-pills nav-justified flex-row">
+        {% for view in views_row1 %}
+            {{ nav_link(view, view == active_view) }}
+        {% endfor %}
+    </div>
+    <div class="navbar-nav nav-pills nav-justified flex-row">
+        {% for view in views_row2 %}
+            {{ nav_link(view, view == active_view) }}
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro nav_link(view, is_active) %}
+    <a class="nav-link {% if is_active %} active {% endif %}"
+       href="{{ url_for(view ~ '.index') }}">{{ view|title }}</a>
+{% endmacro %}
+
+{% macro flash_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'message' %}
+                    {% set category = 'info' %}
+                {% elif category == 'error' %}
+                    {% set category = 'danger' %}
+                {% endif %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %}
+
+{% macro render_table(result) %}
+{# Render a paginated list result in a table.
+    Column titles can be passed in via kwarg columns=[...] or via varargs.
+    To disable automatic id column rendering, pass kwarg hide_id=True.
+    Filter params can be appended to paging URLs via the kwarg filter_, e.g. filter_='&collection=CSAG&collection=DFFE'
+    Example usage:
+        {% call(project) render_table(projects, 'Name', 'Collections') %}
+            <td>{{ project.name }}</td>
+            <td>{{ project.collection_ids|join(', ') }}</td>
+        {% endcall %}
+#}
+    <table class="table table-hover mt-2">
+        <thead>
+            <tr>
+                {% if not kwargs.get('hide_id') %}
+                    <th scope="col">Id</th>
+                {% endif %}
+                {% for col in kwargs.get('columns') or varargs %}
+                    <th scope="col">{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in result['items'] %}
+                <tr>
+                    {% if not kwargs.get('hide_id') %}
+                        <th scope="row">{{ obj_link('', obj.id) }}</th>
+                    {% endif %}
+                    {% if caller %}
+                        {{ caller(obj) }}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-between mt-4">
+        <span class="mt-1">
+            {{ result.total }} items found.
+        </span>
+        {% if result.pages > 1 %}
+            {% set filter_ = kwargs.get('filter_') or '' %}
+            <div>
+                {% if result.page <= 1 %}
+                    {% set prev_disabled = 'disabled' %}
+                {% else %}
+                    {% set prev_disabled = '' %}
+                {% endif %}
+                <a href="{{ url_for('.index', page=1) }}{{ filter_ }}" title="first" class="btn btn-outline-dark {{ prev_disabled }}">
+                    <<
+                </a>
+                <a href="{{ url_for('.index', page=result.page - 1) }}{{ filter_ }}" title="previous" class="btn btn-outline-dark {{ prev_disabled }}">
+                    <
+                </a>
+                {% if result.page >= result.pages %}
+                    {% set next_disabled = 'disabled' %}
+                {% else %}
+                    {% set next_disabled = '' %}
+                {% endif %}
+                <a href="{{ url_for('.index', page=result.page + 1) }}{{ filter_ }}" title="next" class="btn btn-outline-dark {{ next_disabled }}">
+                    >
+                </a>
+                <a href="{{ url_for('.index', page=result.pages) }}{{ filter_ }}" title="last" class="btn btn-outline-dark {{ next_disabled }}">
+                    >>
+                </a>
+            </div>
+        {% endif %}
+        <span class="mt-1">
+            Page {{ result.page }} of {{ result.pages }}.
+        </span>
+    </div>
+{% endmacro %}
+
+{% macro render_tag_table(obj, tags, tag_view, untag_view) %}
+{# Render a paginated list of tag instances for a record or collection.
+    Use kwargs to specify field='Column heading' pairs.
+    Example usage:
+        {{ render_tag_table(collection, project_tags, '.tag_project', '.untag_project',
+           project='Project', comment='Comment') }}
+#}
+    {% set cols = kwargs.values()|list + ['User', 'Timestamp', ''] %}
+    {% set fields = kwargs.keys() %}
+    {% call(tag_instance) render_table(tags, columns=cols, hide_id=True) %}
+        {% for field in fields %}
+            <td>{{ tag_instance.data[field] }}</td>
+        {% endfor %}
+        <td>{{ obj_link('users', tag_instance.user_id, tag_instance.user_name) }}</td>
+        <td>{{ tag_instance.timestamp|timestamp }}</td>
+        <td class="text-end">
+            {{ render_item_delete_form(untag_view, 'tag', id=obj.id, tag_instance_id=tag_instance.id) }}
+        </td>
+    {% endcall %}
+    <div class="btn-toolbar justify-content-between mt-4">
+        <a href="{{ url_for(tag_view, id=obj.id) }}" class="btn btn-outline-success btn-action">
+            Tag
+        </a>
+    </div>
+{% endmacro %}
+
+{% macro render_audit_table(audit_records) %}
+{# Render a paginated list of audit records.
+    The callback is for filling in the content of the 'Detail' column for a given audit_record.
+#}
+    {% set orig_caller = caller %}
+    {% call(audit_record) render_table(audit_records, 'Table', 'Command', 'Detail', 'User', 'Client', 'Timestamp', hide_id=True) %}
+        <td>{{ audit_record.table }}</td>
+        <td>{{ audit_record.command }}</td>
+        <td>
+            {{ orig_caller(audit_record) }}
+        </td>
+        <td>{{ obj_link('users', audit_record.user_id, audit_record.user_name) }}</td>
+        <td>{{ obj_link('clients', audit_record.client_id) }}</td>
+        <td>{{ audit_record.timestamp|timestamp }}</td>
+    {% endcall %}
+{% endmacro %}
+
+{% macro render_buttons(obj, create=False, edit=False, delete=False, custom=[]) %}
+    <div class="btn-toolbar justify-content-between mt-4">
+        {% if create %}
+            <a href="{{ url_for('.create') }}" class="btn btn-outline-success btn-action">
+                Create
+            </a>
+        {% endif %}
+        {% if edit %}
+            <a href="{{ url_for('.edit', id=obj.id) }}" class="btn btn-outline-primary btn-action">
+                Edit
+            </a>
+        {% endif %}
+        {% for btn in custom %}
+            {{ caller(btn) }}
+        {% endfor %}
+        {% if delete %}
+            {{ render_button_prompt_form('.delete', obj.id, 'Delete', 'danger',
+                'Are you sure you want to delete %s? This cannot be undone!' % obj.id) }}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro render_button_prompt_form(target, obj_id, label, outline_style, message) %}
+    <form action="{{ url_for(target, id=obj_id) }}" method="post">
+        <button type="submit" class="btn btn-outline-{{ outline_style }} btn-action"
+                onclick="return confirm('{{ message }}')">
+            {{ label }}
+        </button>
+    </form>
+{% endmacro %}
+
+{% macro render_item_delete_form(target, item_desc) %}
+{# Render a table row delete button (small red X).
+   Use kwargs to pass params to the target view function.
+#}
+    <form action="{{ url_for(target, **kwargs) }}" method="post">
+        <button type="submit" class="btn btn-outline-danger btn-row-delete p-0"
+                onclick="return confirm('Are you sure you want to delete this {{ item_desc }}?')">
+            {{ '&#10060;'|safe }}
+        </button>
+    </form>
+{% endmacro %}
+
+{% macro render_info(obj) %}
+{# Render object info in a table.
+    To disable automatic id field rendering, pass kwarg hide_id=True.
+    Example usage:
+    {% call(prop) render_info(project, 'Name', 'Collections') %}
+        {% if prop == 'Name' %}
+            {{ project.name }}
+        {% elif prop == 'Collections' %}
+            {{ project.collection_ids|join(', ') }}
+        {% endif %}
+    {% endcall %}
+#}
+    <table class="table">
+        <tbody>
+            {% if not kwargs.get('hide_id') %}
+                <tr>
+                    <th scope="row">Id</th>
+                    <td>{{ obj.id }}</td>
+                </tr>
+            {% endif %}
+            {% for prop in varargs %}
+                <tr>
+                    <th scope="row">{{ prop }}</th>
+                    <td>{{ caller(prop) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% macro render_form(form, obj, col2_fields) %}
+{# Render a form and populate fields from obj, if provided.
+    To override the default submit target, pass submit_target=url.
+    To override the default cancel target, pass cancel_target=url.
+#}
+    {% set submit_target = kwargs.get('submit_target') or
+        (url_for('.edit', id=obj.id) if obj else url_for('.create'))
+    %}
+    {% set cancel_target = kwargs.get('cancel_target') or
+        (url_for('.view', id=obj.id) if obj else url_for('.index'))
+    %}
+    <form action="{{ submit_target }}" method="post">
+        {{ form.csrf_token }}
+        <div class="row">
+            <div class="col-5">
+                {% for field in form if field.id != 'csrf_token' and field.id not in col2_fields %}
+                    {{ render_field(field, obj) }}
+                {% endfor %}
+            </div>
+            <div class="col-7">
+                {% for field in form if field.id in col2_fields %}
+                    {{ render_field(field, obj) }}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-outline-primary btn-action">
+                Save
+            </button>
+            <a href="{{ cancel_target }}" class="btn btn-outline-secondary btn-action">
+                Cancel
+            </a>
+        </div>
+    </form>
+{% endmacro %}
+
+{% macro render_field(field, obj) %}
+    <div class="mt-4">
+        {{ field.label(class='form-label') }}
+        {% if obj and field.id == 'id' %}
+            {{ field(class='form-control', readonly='') }}
+        {% elif field.type == 'BooleanField' %}
+            <div class="form-check">
+                {{ field(class='form-check-input') }}
+            </div>
+        {% else %}
+            {% set classes = ['form-control'] %}
+            {% if field.type == 'JSONTextField' %}
+                {% set classes = classes + ['font-monospace'] %}
+            {% elif field.type in ('MultiCheckboxField', 'RadioField') %}
+                {% set classes = classes + ['list-unstyled'] %}
+            {% endif %}
+            {% if field.errors %}
+                {% set classes = classes + ['is-invalid'] %}
+            {% endif %}
+            {{ field(class=classes|join(' '), spellcheck='false') }}
+        {% endif %}
+        {% if field.description %}
+            <div class="form-text">{{ field.description }}</div>
+        {% endif %}
+        {% for error in field.errors %}
+            <div class="invalid-feedback">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro obj_link(view, obj_id, display_text=None) %}
+    {% if obj_id %}
+        {% set target = url_for(view ~ '.view', id=obj_id) %}
+        <a href="{{ target }}" class="text-decoration-none">
+            {{ display_text if display_text is not none else obj_id -}}
+        </a>
+    {%- endif %}
+{%- endmacro %}
+
+{% macro obj_links(view, obj_ids, newlines=False) %}
+    {% if newlines %}
+        {% set sep = '<br/>'|safe %}
+    {% else %}
+        {% set sep = ', ' %}
+    {% endif %}
+    {% for obj_id in obj_ids|sort %}
+        {{ obj_link(view, obj_id) }}{% if not loop.last %}{{ sep }}{% endif %}
+    {% endfor %}
+{% endmacro %}

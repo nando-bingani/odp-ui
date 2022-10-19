@@ -1,0 +1,12 @@
+.btn-action {
+    min-width: 75px;
+}
+
+.btn-row-delete {
+    height: 24px;
+    width: 24px;
+}
+
+pre {
+    white-space: pre-wrap;
+}
