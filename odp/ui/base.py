@@ -4,7 +4,6 @@ import redis
 from flask import Flask
 from flask_login import LoginManager
 
-from odp.client.system import ODPSystemClient
 from odp.client.ui import ODPUIClient
 from odp.config import config
 
@@ -14,7 +13,6 @@ TEMPLATE_DIR = Path(__file__).parent / 'templates'
 login_manager = LoginManager()
 
 odp_ui_client: ODPUIClient
-odp_system_client: ODPSystemClient
 
 
 def init_app(app: Flask):
@@ -34,15 +32,6 @@ def init_app(app: Flask):
             decode_responses=True,
         ),
         app=app,
-    )
-
-    global odp_system_client
-    odp_system_client = ODPSystemClient(
-        api_url=app.config['API_URL'],
-        hydra_url=config.HYDRA.PUBLIC.URL,
-        client_id=app.config['SYSTEM_CLIENT_ID'],
-        client_secret=app.config['SYSTEM_CLIENT_SECRET'],
-        scope=app.config['SYSTEM_CLIENT_SCOPE'],
     )
 
     api.init_app(app)
