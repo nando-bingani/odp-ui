@@ -4,8 +4,8 @@ import redis
 from flask import Flask
 from flask_login import LoginManager
 
-from odp.client.ui import ODPUIClient
 from odp.config import config
+from odp.ui.client import ODPUIClient
 
 STATIC_DIR = Path(__file__).parent / 'static'
 TEMPLATE_DIR = Path(__file__).parent / 'templates'
