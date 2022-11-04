@@ -5,6 +5,7 @@ from flask import Flask
 from flask_login import LoginManager
 
 from odp.config import config
+from odp.ui.base import api, forms, templates, views
 from odp.ui.client import ODPUIClient
 
 STATIC_DIR = Path(__file__).parent / 'static'
@@ -16,8 +17,6 @@ odp_ui_client: ODPUIClient
 
 
 def init_app(app: Flask):
-    from odp.ui import api, forms, templates
-
     global odp_ui_client
     odp_ui_client = ODPUIClient(
         api_url=app.config['API_URL'],
@@ -37,6 +36,7 @@ def init_app(app: Flask):
     api.init_app(app)
     forms.init_app(app)
     templates.init_app(app)
+    views.init_app(app)
     login_manager.init_app(app)
 
 
