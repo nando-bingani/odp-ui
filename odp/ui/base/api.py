@@ -36,7 +36,7 @@ def client(*scope: ODPScope, fallback_to_referrer=False):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated:
-                flash('Please log in to access that page.')
+                flash('Please log in to access that page.', category='info')
                 return redirect(url_for('home.index'))
 
             try:

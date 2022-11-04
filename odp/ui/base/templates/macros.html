@@ -21,7 +21,7 @@
         {% if messages %}
             {% for category, message in messages %}
                 {% if category == 'message' %}
-                    {% set category = 'info' %}
+                    {% set category = 'primary' %}
                 {% elif category == 'error' %}
                     {% set category = 'danger' %}
                 {% endif %}
