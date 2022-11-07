@@ -79,7 +79,11 @@ class ODPUIClient(ODPBaseClient):
         return self.oauth.hydra.authorize_redirect(redirect_uri, **kwargs)
 
     def login_callback(self):
-        """Cache the user object and user token, and log the user in locally."""
+        """Callback from Hydra after a successful login via the identity service.
+
+        Fetch and cache the token, user info and permissions, and log the user
+        in to the app.
+        """
         token = self.oauth.hydra.authorize_access_token()
         userinfo = token.pop('userinfo')
 
@@ -93,8 +97,12 @@ class ODPUIClient(ODPBaseClient):
             active=True,  # we'll only get to this point if the user is active
         )
 
+        token_data = self.get('/token/')
+        user_permissions = token_data['permissions']
+
         self.cache.hset(self._cache_key(user_id, 'token'), mapping=token)
         self.cache.set(self._cache_key(user_id, 'user'), json.dumps(asdict(localuser)))
+        self.cache.set(self._cache_key(user_id, 'permissions'), json.dumps(user_permissions))
 
         login_user(localuser)
 
@@ -125,6 +133,11 @@ class ODPUIClient(ODPBaseClient):
         """Return the cached user object."""
         if serialized_user := self.cache.get(self._cache_key(user_id, 'user')):
             return LocalUser(**json.loads(serialized_user))
+
+    def get_permissions(self, user_id):
+        """Return the cached user permissions."""
+        if serialized_permissions := self.cache.get(self._cache_key(user_id, 'permissions')):
+            return json.loads(serialized_permissions)
 
     def _cache_key(self, user_id, key):
         return f'{self.__class__.__name__}.{self.client_id}.{user_id}.{key}'

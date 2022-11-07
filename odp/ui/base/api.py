@@ -35,13 +35,14 @@ def client(*scope: ODPScope, fallback_to_referrer=False):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            from odp.ui.base import odp_ui_client
+
             if not current_user.is_authenticated:
                 flash('Please log in to access that page.', category='info')
                 return redirect(url_for('home.index'))
 
             try:
-                token_data = get('/token/')
-                g.user_permissions = token_data['permissions']
+                g.user_permissions = odp_ui_client.get_permissions(current_user.id)
                 if not any(s in g.user_permissions for s in scope):
                     flash('You do not have permission to access that page.', category='warning')
                     return redirect(request.referrer or url_for('home.index'))
