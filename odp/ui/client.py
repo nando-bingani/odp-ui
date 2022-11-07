@@ -75,7 +75,10 @@ class ODPUIClient(ODPBaseClient):
         return self.oauth.hydra.request(method, url, json=data, params=params)
 
     def login_redirect(self, redirect_uri, **kwargs):
-        """Return a redirect to the Hydra authorization endpoint."""
+        """Initiate login.
+
+        Return a redirect to the Hydra authorization endpoint.
+        """
         return self.oauth.hydra.authorize_redirect(redirect_uri, **kwargs)
 
     def login_callback(self):
@@ -107,7 +110,10 @@ class ODPUIClient(ODPBaseClient):
         login_user(localuser)
 
     def logout_redirect(self, redirect_uri):
-        """Return a redirect to the Hydra endsession endpoint."""
+        """Initiate logout.
+
+        Return a redirect to the Hydra endsession endpoint.
+        """
         if user_id := current_user.get_id():
             token = self.oauth.fetch_token('hydra')
             state_val = secrets.token_urlsafe()
@@ -122,7 +128,10 @@ class ODPUIClient(ODPBaseClient):
         return redirect(url_for('home.index'))
 
     def logout_callback(self):
-        """Log the user out."""
+        """Callback from Hydra after logging out via the identity service.
+
+        Log the user out of the app.
+        """
         if user_id := current_user.get_id():
             state_val = request.args.get('state')
             if state_val == self.cache.get(key := self._cache_key(user_id, 'state')):
