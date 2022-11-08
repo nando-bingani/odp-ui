@@ -41,7 +41,7 @@ class LocalUser:
 
 
 class ODPUIClient(ODPBaseClient):
-    """ODP client for a Flask app, providing signup, login and logout,
+    """ODP client for a Flask app, providing signup, login and logout routes,
     and API access with a logged in user's access token."""
 
     def __init__(
@@ -69,19 +69,33 @@ class ODPUIClient(ODPBaseClient):
             client_kwargs={'scope': ' '.join(scope)},
             server_metadata_url=f'{hydra_url}/.well-known/openid-configuration',
         )
+        app.add_url_rule('/oauth2/signup', endpoint='hydra.signup', view_func=self._signup)
+        app.add_url_rule('/oauth2/login', endpoint='hydra.login', view_func=self._login)
+        app.add_url_rule('/oauth2/logout', endpoint='hydra.logout', view_func=self._logout)
+        app.add_url_rule('/oauth2/logged_in', endpoint='hydra.logged_in', view_func=self._logged_in)
+        app.add_url_rule('/oauth2/logged_out', endpoint='hydra.logged_out', view_func=self._logged_out)
 
     def _send_request(self, method: str, url: str, data: dict, params: dict) -> requests.Response:
         """Send a request to the API with the user's access token."""
         return self.oauth.hydra.request(method, url, json=data, params=params)
 
-    def login_redirect(self, redirect_uri, **kwargs):
+    def _signup(self):
+        """Initiate signup.
+
+        Return a redirect to the Hydra authorization endpoint.
+        """
+        redirect_uri = url_for('hydra.logged_in', _external=True)
+        return self.oauth.hydra.authorize_redirect(redirect_uri, mode='signup')
+
+    def _login(self):
         """Initiate login.
 
         Return a redirect to the Hydra authorization endpoint.
         """
-        return self.oauth.hydra.authorize_redirect(redirect_uri, **kwargs)
+        redirect_uri = url_for('hydra.logged_in', _external=True)
+        return self.oauth.hydra.authorize_redirect(redirect_uri, mode='login')
 
-    def login_callback(self):
+    def _logged_in(self):
         """Callback from Hydra after a successful login via the identity service.
 
         Fetch and cache the token, user info and permissions, and log the user
@@ -109,11 +123,15 @@ class ODPUIClient(ODPBaseClient):
 
         login_user(localuser)
 
-    def logout_redirect(self, redirect_uri):
+        return redirect(url_for('home.index'))
+
+    def _logout(self):
         """Initiate logout.
 
         Return a redirect to the Hydra endsession endpoint.
         """
+        redirect_uri = url_for('hydra.logged_out', _external=True)
+
         if user_id := current_user.get_id():
             token = self.oauth.fetch_token('hydra')
             state_val = secrets.token_urlsafe()
@@ -127,7 +145,7 @@ class ODPUIClient(ODPBaseClient):
 
         return redirect(url_for('home.index'))
 
-    def logout_callback(self):
+    def _logged_out(self):
         """Callback from Hydra after logging out via the identity service.
 
         Log the user out of the app.
@@ -137,6 +155,8 @@ class ODPUIClient(ODPBaseClient):
             if state_val == self.cache.get(key := self._cache_key(user_id, 'state')):
                 logout_user()
                 self.cache.delete(key)
+
+        return redirect(url_for('home.index'))
 
     def get_user(self, user_id):
         """Return the cached user object."""

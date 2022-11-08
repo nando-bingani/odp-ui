@@ -5,7 +5,7 @@ from flask import Flask
 from flask_login import LoginManager
 
 from odp.config import config
-from odp.ui.base import api, forms, templates, views
+from odp.ui.base import api, forms, templates
 from odp.ui.client import ODPUIClient
 
 STATIC_DIR = Path(__file__).parent / 'static'
@@ -33,7 +33,6 @@ def init_app(app: Flask, *, is_odp_client: bool = True):
         )
 
         api.init_app(app)
-        views.init_app(app)
         login_manager = LoginManager(app)
 
         @login_manager.user_loader
