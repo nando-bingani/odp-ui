@@ -4,19 +4,19 @@ import redis
 from flask import Flask
 
 from odp.config import config
-from odp.ui.base import api, forms, templates
+from odp.ui.base import forms, templates
 from odp.ui.client import ODPUIClient
 
 STATIC_DIR = Path(__file__).parent / 'static'
 TEMPLATE_DIR = Path(__file__).parent / 'templates'
 
-odp_ui_client: ODPUIClient
+api: ODPUIClient
 
 
 def init_app(app: Flask, *, is_odp_client: bool = True):
     if is_odp_client:
-        global odp_ui_client
-        odp_ui_client = ODPUIClient(
+        global api
+        api = ODPUIClient(
             api_url=app.config['API_URL'],
             hydra_url=config.HYDRA.PUBLIC.URL,
             client_id=app.config['CLIENT_ID'],
@@ -30,7 +30,6 @@ def init_app(app: Flask, *, is_odp_client: bool = True):
             ),
             app=app,
         )
-        api.init_app(app)
 
     forms.init_app(app)
     templates.init_app(app)
