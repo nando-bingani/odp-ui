@@ -2,7 +2,6 @@ from pathlib import Path
 
 import redis
 from flask import Flask
-from flask_login import LoginManager
 
 from odp.config import config
 from odp.ui.base import api, forms, templates
@@ -31,13 +30,7 @@ def init_app(app: Flask, *, is_odp_client: bool = True):
             ),
             app=app,
         )
-
         api.init_app(app)
-        login_manager = LoginManager(app)
-
-        @login_manager.user_loader
-        def load_user(user_id):
-            return odp_ui_client.get_user(user_id)
 
     forms.init_app(app)
     templates.init_app(app)

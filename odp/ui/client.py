@@ -6,7 +6,7 @@ from typing import Optional
 import requests
 from authlib.integrations.flask_client import OAuth
 from flask import Flask, redirect, request, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
 from odp.client import ODPBaseClient
@@ -69,11 +69,18 @@ class ODPUIClient(ODPBaseClient):
             client_kwargs={'scope': ' '.join(scope)},
             server_metadata_url=f'{hydra_url}/.well-known/openid-configuration',
         )
+
         app.add_url_rule('/oauth2/signup', endpoint='hydra.signup', view_func=self._signup)
         app.add_url_rule('/oauth2/login', endpoint='hydra.login', view_func=self._login)
         app.add_url_rule('/oauth2/logout', endpoint='hydra.logout', view_func=self._logout)
         app.add_url_rule('/oauth2/logged_in', endpoint='hydra.logged_in', view_func=self._logged_in)
         app.add_url_rule('/oauth2/logged_out', endpoint='hydra.logged_out', view_func=self._logged_out)
+
+        login_manager = LoginManager(app)
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            return self._get_user(user_id)
 
     def _send_request(self, method: str, url: str, data: dict, params: dict) -> requests.Response:
         """Send a request to the API with the user's access token."""
@@ -158,7 +165,7 @@ class ODPUIClient(ODPBaseClient):
 
         return redirect(url_for('home.index'))
 
-    def get_user(self, user_id):
+    def _get_user(self, user_id):
         """Return the cached user object."""
         if serialized_user := self.cache.get(self._cache_key(user_id, 'user')):
             return LocalUser(**json.loads(serialized_user))
