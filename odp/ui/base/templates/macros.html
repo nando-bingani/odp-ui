@@ -149,6 +149,32 @@
     {% endcall %}
 {% endmacro %}
 
+{% macro render_button(button) %}
+{# Render a Button object. #}
+    {% if button.prompt %}
+        <form action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post">
+            <button type="submit" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
+                    onclick="return confirm('{{ button.prompt % button.prompt_args }}')" {{ 'disabled' if not button.enabled }}>
+                {{ button.label }}
+            </button>
+        </form>
+    {% else %}
+        <a href="{{ url_for(button.endpoint, id=button.object_id) }}"
+           class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action {{ 'disabled' if not button.enabled }}">
+            {{ button.label }}
+        </a>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_buttons_2(buttons) %}
+{# Render a row of Buttons. #}
+    <div class="btn-toolbar justify-content-between mt-4">
+        {% for button in buttons %}
+            {{ render_button(button) }}
+        {% endfor %}
+    </div>
+{% endmacro %}
+
 {% macro render_buttons(obj, create=False, edit=False, delete=False, custom=[]) %}
     <div class="btn-toolbar justify-content-between mt-4">
         {% if create %}
