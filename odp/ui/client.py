@@ -204,9 +204,9 @@ class ODPUIClient(ODPBaseClient):
         if user_id := current_user.get_id():
             self.cache.hset(self._cache_key(user_id, 'token'), mapping=token)
 
-    def view(self, *scope: ODPScope, fallback_to_referrer=False):
+    def view(self, scope: ODPScope, fallback_to_referrer=False):
         """Decorate a blueprint view function to enable client-side authorization
-        (requiring any of the given `scope` for API access) and API error handling.
+        (requiring `scope` for API access) and API error handling.
 
         If `fallback_to_referrer` is True, then after an unhandled API error the
         user lands back on the same page they were on. Otherwise (by default),
@@ -222,7 +222,7 @@ class ODPUIClient(ODPBaseClient):
 
                 try:
                     g.user_permissions = self._get_permissions(current_user.id)
-                    if not any(s in g.user_permissions for s in scope):
+                    if scope not in g.user_permissions:
                         flash('You do not have permission to access that page.', category='warning')
                         return redirect(request.referrer or url_for('home.index'))
 
