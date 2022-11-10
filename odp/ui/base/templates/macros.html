@@ -166,7 +166,7 @@
     {% endif %}
 {% endmacro %}
 
-{% macro render_buttons_2(buttons) %}
+{% macro render_buttons(buttons) %}
 {# Render a row of buttons.
     Each array item may be a Button object, or a string for custom rendering
     via a callback.
@@ -180,37 +180,6 @@
             {% endif %}
         {% endfor %}
     </div>
-{% endmacro %}
-
-{% macro render_buttons(obj, create=False, edit=False, delete=False, custom=[]) %}
-    <div class="btn-toolbar justify-content-between mt-4">
-        {% if create %}
-            <a href="{{ url_for('.create') }}" class="btn btn-outline-success btn-action">
-                Create
-            </a>
-        {% endif %}
-        {% if edit %}
-            <a href="{{ url_for('.edit', id=obj.id) }}" class="btn btn-outline-primary btn-action">
-                Edit
-            </a>
-        {% endif %}
-        {% for btn in custom %}
-            {{ caller(btn) }}
-        {% endfor %}
-        {% if delete %}
-            {{ render_button_prompt_form('.delete', obj.id, 'Delete', 'danger',
-                'Are you sure you want to delete %s? This cannot be undone!' % obj.id) }}
-        {% endif %}
-    </div>
-{% endmacro %}
-
-{% macro render_button_prompt_form(target, obj_id, label, outline_style, message) %}
-    <form action="{{ url_for(target, id=obj_id) }}" method="post">
-        <button type="submit" class="btn btn-outline-{{ outline_style }} btn-action"
-                onclick="return confirm('{{ message }}')">
-            {{ label }}
-        </button>
-    </form>
 {% endmacro %}
 
 {% macro render_item_delete_form(target, item_desc) %}
