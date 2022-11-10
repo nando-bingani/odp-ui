@@ -167,10 +167,17 @@
 {% endmacro %}
 
 {% macro render_buttons_2(buttons) %}
-{# Render a row of Buttons. #}
+{# Render a row of buttons.
+    Each array item may be a Button object, or a string for custom rendering
+    via a callback.
+#}
     <div class="btn-toolbar justify-content-between mt-4">
         {% for button in buttons %}
-            {{ render_button(button) }}
+            {% if button is string %}
+                {{ caller(button) }}
+            {% else %}
+                {{ render_button(button) }}
+            {% endif %}
         {% endfor %}
     </div>
 {% endmacro %}
