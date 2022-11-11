@@ -43,12 +43,8 @@ class LocalUser:
 
 
 class ODPUIClient(ODPBaseClient):
-    """ODP client for a Flask app, providing signup, login and logout routes,
-    and API access with a logged in user's access token.
-
-    The app must have a 'home.index' endpoint, and any blueprint which uses
-    the @view decorator must have an 'index' endpoint.
-    """
+    """ODP client for a Flask app, providing signup, login and logout,
+    and API access with a logged in user's access token."""
 
     def __init__(
             self,
@@ -204,14 +200,9 @@ class ODPUIClient(ODPBaseClient):
         if user_id := current_user.get_id():
             self.cache.hset(self._cache_key(user_id, 'token'), mapping=token)
 
-    def view(self, scope: ODPScope, fallback_to_referrer=False):
+    def view(self, scope: ODPScope):
         """Decorate a blueprint view function to enable client-side authorization
-        (requiring `scope` for API access) and API error handling.
-
-        If `fallback_to_referrer` is True, then after an unhandled API error the
-        user lands back on the same page they were on. Otherwise (by default),
-        they are redirected to the blueprint's 'index' endpoint.
-        """
+        (requiring `scope` for API access) and API error handling."""
 
         def decorator(f):
             @wraps(f)
@@ -237,11 +228,7 @@ class ODPUIClient(ODPBaseClient):
                         # avoid redirect loops for server errors
                         return redirect(url_for('home.index'))
 
-                    if fallback_to_referrer and request.referrer:
-                        return redirect(request.referrer)
-
-                    # fall back to the index page
-                    return redirect(url_for('.index'))
+                    return redirect(request.referrer or url_for('home.index'))
 
             return decorated_function
 
