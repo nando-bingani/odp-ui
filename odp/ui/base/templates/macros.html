@@ -106,11 +106,11 @@
     </div>
 {% endmacro %}
 
-{% macro render_tag_table(obj, tags, tag_view, untag_view) %}
+{% macro render_tag_table(obj, tags, tag_view, untag_view, enable_buttons) %}
 {# Render a paginated list of tag instances for a record or collection.
     Use kwargs to specify field='Column heading' pairs.
     Example usage:
-        {{ render_tag_table(collection, project_tags, '.tag_project', '.untag_project',
+        {{ render_tag_table(collection, project_tags, '.tag_project', '.untag_project', project_tag_enabled,
            project='Project', comment='Comment') }}
 #}
     {% set cols = kwargs.values()|list + ['User', 'Timestamp', ''] %}
@@ -126,7 +126,7 @@
         </td>
     {% endcall %}
     <div class="btn-toolbar justify-content-between mt-4">
-        <a href="{{ url_for(tag_view, id=obj.id) }}" class="btn btn-outline-success btn-action">
+        <a href="{{ url_for(tag_view, id=obj.id) }}" class="btn btn-outline-success btn-action {{ 'disabled' if not enable_buttons }}">
             Tag
         </a>
     </div>
