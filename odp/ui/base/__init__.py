@@ -6,6 +6,7 @@ from flask import Flask
 from odp.config import config
 from odp.ui.base import forms, templates
 from odp.ui.client import ODPUIClient
+from odp.version import VERSION
 
 STATIC_DIR = Path(__file__).parent / 'static'
 TEMPLATE_DIR = Path(__file__).parent / 'templates'
@@ -33,3 +34,5 @@ def init_app(app: Flask, *, is_odp_client: bool = True):
 
     forms.init_app(app)
     templates.init_app(app)
+
+    app.config.update(ODP_VERSION=VERSION)
