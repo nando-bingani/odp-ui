@@ -302,12 +302,21 @@
 {%- endmacro %}
 
 {% macro obj_links(view, obj_ids, newlines=False) %}
+{# Render a list of object links.
+    obj_ids may be a flat list of ids, or a mapping of keys to uuids.
+#}
     {% if newlines %}
         {% set sep = '<br/>'|safe %}
     {% else %}
         {% set sep = ', ' %}
     {% endif %}
-    {% for obj_id in obj_ids|sort %}
-        {{ obj_link(view, obj_id) }}{% if not loop.last %}{{ sep }}{% endif %}
-    {% endfor %}
+    {% if obj_ids is mapping %}
+        {% for obj_key, obj_id in obj_ids|dictsort %}
+            {{ obj_link(view, obj_id, obj_key) }}{% if not loop.last %}{{ sep }}{% endif %}
+        {% endfor %}
+    {% else %}
+        {% for obj_id in obj_ids|sort %}
+            {{ obj_link(view, obj_id) }}{% if not loop.last %}{{ sep }}{% endif %}
+        {% endfor %}
+    {% endif %}
 {% endmacro %}
