@@ -48,10 +48,8 @@
         {{ flash_messages() }}
     </section>
 
-    <main class="flex-grow-1 mx-4">
-        {% block main %}
-        {% endblock %}
-    </main>
+    {% block main %}
+    {% endblock %}
 
     <hr class="mt-4"/>
     <footer class="text-center pb-3 pt-0">
