@@ -2,6 +2,7 @@ from pathlib import Path
 
 import redis
 from flask import Flask
+from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from odp.client import ODPClient
@@ -20,14 +21,25 @@ cli: ODPClient
 """ODP client for client-authenticated API access."""
 
 
-def init_app(app: Flask, user_api: bool = False, client_api: bool = False):
+def init_app(
+        app: Flask,
+        *,
+        user_api: bool = False,
+        client_api: bool = False,
+        template_dir: Path,
+):
     """Base initialization for an ODP UI application.
 
     :param app: Flask app instance
     :param user_api: create an ODP client (`api`) for user-authenticated API access
     :param client_api: create an ODP client (`cli`) for client-authenticated API access
+    :param template_dir: the app's local template directory
     """
-    app.config.update(ODP_VERSION=VERSION)
+    app.config.update(
+        ODP_VERSION=VERSION,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SECURE=True,
+    )
 
     if user_api:
         global api
@@ -55,6 +67,12 @@ def init_app(app: Flask, user_api: bool = False, client_api: bool = False):
             client_secret=app.config['SI_CLIENT_SECRET'],
             scope=app.config['SI_CLIENT_SCOPE'],
         )
+
+    app.jinja_loader = ChoiceLoader([
+        FileSystemLoader(template_dir),
+        FileSystemLoader(TEMPLATE_DIR),
+    ])
+    app.static_folder = STATIC_DIR
 
     forms.init_app(app)
     templates.init_app(app)
