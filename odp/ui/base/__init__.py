@@ -2,6 +2,7 @@ from pathlib import Path
 
 import redis
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from odp.client import ODPClient
 from odp.config import config
@@ -19,15 +20,23 @@ cli: ODPClient
 """ODP client for client-authenticated API access."""
 
 
-def init_app(app: Flask, *, is_odp_client: bool = True):
-    if is_odp_client:
+def init_app(app: Flask, user_api: bool = False, client_api: bool = False):
+    """Base initialization for an ODP UI application.
+
+    :param app: Flask app instance
+    :param user_api: create an ODP client (`api`) for user-authenticated API access
+    :param client_api: create an ODP client (`cli`) for client-authenticated API access
+    """
+    app.config.update(ODP_VERSION=VERSION)
+
+    if user_api:
         global api
         api = ODPUIClient(
-            api_url=app.config['API_URL'],
+            api_url=config.ODP.API_URL,
             hydra_url=config.HYDRA.PUBLIC.URL,
-            client_id=app.config['CLIENT_ID'],
-            client_secret=app.config['CLIENT_SECRET'],
-            scope=app.config['CLIENT_SCOPE'],
+            client_id=app.config['UI_CLIENT_ID'],
+            client_secret=app.config['UI_CLIENT_SECRET'],
+            scope=app.config['UI_CLIENT_SCOPE'],
             cache=redis.Redis(
                 host=config.REDIS.HOST,
                 port=config.REDIS.PORT,
@@ -37,19 +46,18 @@ def init_app(app: Flask, *, is_odp_client: bool = True):
             app=app,
         )
 
-        # TODO: we might want to support using a distinct client, with its
-        #  own (limited) scope, for client-credentials access to the API
-        #  from a UI application
+    if client_api:
         global cli
         cli = ODPClient(
-            api_url=app.config['API_URL'],
+            api_url=config.ODP.API_URL,
             hydra_url=config.HYDRA.PUBLIC.URL,
-            client_id=app.config['CLIENT_ID'],
-            client_secret=app.config['CLIENT_SECRET'],
-            scope=app.config['CLIENT_SCOPE'],
+            client_id=app.config['SI_CLIENT_ID'],
+            client_secret=app.config['SI_CLIENT_SECRET'],
+            scope=app.config['SI_CLIENT_SCOPE'],
         )
 
     forms.init_app(app)
     templates.init_app(app)
 
-    app.config.update(ODP_VERSION=VERSION)
+    # trust the X-Forwarded-* headers set by the proxy server
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_prefix=1)
