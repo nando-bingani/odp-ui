@@ -63,9 +63,9 @@ def init_app(
         cli = ODPClient(
             api_url=config.ODP.API_URL,
             hydra_url=config.HYDRA.PUBLIC.URL,
-            client_id=app.config['SI_CLIENT_ID'],
-            client_secret=app.config['SI_CLIENT_SECRET'],
-            scope=app.config['SI_CLIENT_SCOPE'],
+            client_id=app.config['CI_CLIENT_ID'],
+            client_secret=app.config['CI_CLIENT_SECRET'],
+            scope=app.config['CI_CLIENT_SCOPE'],
         )
 
     app.jinja_loader = ChoiceLoader([
