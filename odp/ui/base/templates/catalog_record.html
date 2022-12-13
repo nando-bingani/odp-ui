@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import render_info %}
+
+{% set metadata = (record.metadata | selectattr('schema_id', '==', 'SAEON.DataCite4') | first).metadata %}
+{% set iso19115_metadata = record.metadata | selectattr('schema_id', '==', 'SAEON.ISO19115') | list %}
+{% if iso19115_metadata %}
+    {% set iso19115_metadata = (iso19115_metadata | first).metadata %}
+{% endif %}
+
+{% block web_title %}
+    {{ super() }} |
+    {% block heading %}
+        {{ metadata.titles[0].title }}
+    {% endblock %}
+{% endblock %}
+
+{% block main %}
+    <main class="flex-grow-1 m-4">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                    Digital Object Record
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#metadata" type="button" role="tab">
+                    DataCite Metadata
+                </button>
+            </li>
+            {% if iso19115_metadata %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#iso19115-metadata" type="button" role="tab">
+                        ISO19115 Metadata
+                    </button>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content">
+            <div id="info" class="tab-pane fade show active" role="tabpanel">
+                {% call(prop) render_info(record,
+                    'DOI',
+                    'Title',
+                    'Authors',
+                    'Contributors',
+                    'Publisher',
+                    'Abstract',
+                    'Methods',
+                    'Spatial coverage',
+                    'Temporal coverage',
+                    'Keywords',
+                    'License',
+                ) %}
+                    {% if prop == 'DOI' %}
+                        {{ record.doi if record.doi }}
+                    {% elif prop == 'Title' %}
+                        {{ metadata.titles[0].title }}
+                    {% elif prop == 'Authors' %}
+                        {% for creator in metadata.creators %}
+                            <p>{{ creator.name }}<br/>
+                                <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                            </p>
+                        {% endfor %}
+                    {% elif prop == 'Contributors' %}
+                        {% for contributor in metadata.contributors %}
+                            <p>{{ contributor.name }} ({{ contributor.contributorType }})<br/>
+                                <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                            </p>
+                        {% endfor %}
+                    {% elif prop == 'Publisher' %}
+                        {{ metadata.publisher }} ({{ metadata.publicationYear }})
+                    {% elif prop == 'Abstract' %}
+                        {{ metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
+                    {% elif prop == 'Methods' %}
+                        {{ metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
+                    {% elif prop == 'Spatial coverage' %}
+
+                    {% elif prop == 'Temporal coverage' %}
+
+                    {% elif prop == 'Keywords' %}
+                        {{ metadata.subjects | map(attribute='subject') | join(', ') }}
+                    {% elif prop == 'License' %}
+
+                    {% endif %}
+                {% endcall %}
+            </div>
+            <div id="metadata" class="tab-pane fade" role="tabpanel">
+                <pre class="m-3">
+                    {{- metadata|format_json -}}
+                </pre>
+            </div>
+            {% if iso19115_metadata %}
+                <div id="iso19115-metadata" class="tab-pane fade" role="tabpanel">
+                    <pre class="m-3">
+                        {{- iso19115_metadata|format_json -}}
+                    </pre>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

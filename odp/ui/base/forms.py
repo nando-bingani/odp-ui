@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from flask import Flask, session
-from wtforms import DateField, Form, SelectMultipleField, TextAreaField, ValidationError
+from wtforms import DateField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
 from wtforms.widgets import CheckboxInput, ListWidget
 
@@ -19,6 +19,10 @@ class BaseForm(Form):
         @property
         def csrf_context(self):
             return session
+
+
+class SearchForm(BaseForm):
+    q = StringField()
 
 
 class MultiCheckboxField(SelectMultipleField):

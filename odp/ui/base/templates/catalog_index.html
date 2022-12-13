@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import render_table, obj_link %}
+
+{% block main %}
+    <main class="flex-grow-1 mx-4">
+        <div class="container-fluid p-0">
+            <form action="{{ url_for('.index') }}" method="get">
+                <div class="row">
+                    <div class="col">
+                        {{ search_form.q(class='form-control font-monospace') }}
+                    </div>
+                    <div class="col-1">
+                        <button type="submit" class="btn btn-outline-primary btn-action">
+                            &#128270;
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="mt-4">
+            {% call(record) render_table(records, 'Identifier', 'Title', hide_id=True, filter_=filter_) %}
+                <th scope="row">{{ obj_link('catalog', record.doi or record.id) }}</th>
+                <td>
+                    {% set metadata = (record.metadata | selectattr('schema_id', '==', 'SAEON.DataCite4') | first).metadata %}
+                    {{ metadata.titles[0].title }}
+                </td>
+            {% endcall %}
+        </div>
+    </main>
+{% endblock %}
