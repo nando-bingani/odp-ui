@@ -37,6 +37,7 @@ def init_app(
     """
     app.config.update(
         ODP_VERSION=VERSION,
+        SESSION_COOKIE_NAME=f'{app.name}.session',
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=True,
     )
