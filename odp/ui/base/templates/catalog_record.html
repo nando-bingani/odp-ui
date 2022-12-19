@@ -75,7 +75,12 @@
                     {% elif prop == 'Spatial coverage' %}
 
                     {% elif prop == 'Temporal coverage' %}
-
+                        {% if record.temporal_start %}
+                            {{ record.temporal_start | date }}
+                            {% if record.temporal_end %}
+                                &ndash; {{ record.temporal_end | date }}
+                            {% endif %}
+                        {% endif %}
                     {% elif prop == 'Keywords' %}
                         {{ metadata.subjects | map(attribute='subject') | join(', ') }}
                     {% elif prop == 'License' %}

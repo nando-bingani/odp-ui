@@ -320,3 +320,33 @@
         {% endfor %}
     {% endif %}
 {% endmacro %}
+
+{% macro render_catalog_search_form(form, full=False) %}
+    <form action="{{ url_for('catalog.search') }}" method="post">
+        {{ form.csrf_token }}
+        <div class="row">
+            <div class="col">
+                {{ form.text_query(class='form-control font-monospace') }}
+            </div>
+            {% if full %}
+                <div class="col-2">
+                    {{ form.start_date(class='form-control') }}
+                </div>
+                <div class="col-2">
+                    {{ form.end_date(class='form-control') }}
+                </div>
+                <div class="col-1">
+                    <button type="submit" class="btn btn-outline-primary btn-action">
+                        &#128270;
+                    </button>
+                </div>
+            {% else %}
+                <div class="col-1">
+                    <button type="submit" class="btn btn-outline-primary">
+                        &#128270;
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+{% endmacro %}

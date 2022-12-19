@@ -20,7 +20,7 @@ def init_app(app: Flask):
 
     @app.template_filter()
     def date(value):
-        dt = datetime.strptime(value, '%Y-%m-%d')
+        dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y')
 
 

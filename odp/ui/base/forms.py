@@ -21,10 +21,6 @@ class BaseForm(Form):
             return session
 
 
-class SearchForm(BaseForm):
-    text_query = StringField()
-
-
 class MultiCheckboxField(SelectMultipleField):
     widget = ListWidget(prefix_label=False)
     option_widget = CheckboxInput()
@@ -53,3 +49,11 @@ def json_object(form, field):
             raise ValidationError('The value must be a JSON object.')
     except json.JSONDecodeError:
         raise ValidationError('Invalid JSON')
+
+
+class SearchForm(BaseForm):
+    text_query = StringField(
+        filters=[lambda s: s.strip() if s else s],
+    )
+    start_date = DateStringField()
+    end_date = DateStringField()
