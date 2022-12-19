@@ -9,20 +9,18 @@ bp = Blueprint('catalog', __name__)
 @bp.route('/')
 def index():
     page = request.args.get('page', 1)
-    text_q = request.args.get('q')
+    text_query = request.args.get('text_query')
 
-    api_filter = ''
-    ui_filter = ''
-    if text_q:
-        api_filter += f'&text_q={text_q}'
-        ui_filter += f'&q={text_q}'
+    filter_ = ''
+    if text_query:
+        filter_ += f'&text_query={text_query}'
 
     catalog_id = current_app.config['CATALOG_ID']
-    records = cli.get(f'/catalog/{catalog_id}/records?page={page}{api_filter}')
+    records = cli.get(f'/catalog/{catalog_id}/records?page={page}{filter_}')
     return render_template(
         'catalog_index.html',
         records=records,
-        filter_=ui_filter,
+        filter_=filter_,
         search_form=SearchForm(request.args),
     )
 

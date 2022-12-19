@@ -22,7 +22,7 @@ class BaseForm(Form):
 
 
 class SearchForm(BaseForm):
-    q = StringField()
+    text_query = StringField()
 
 
 class MultiCheckboxField(SelectMultipleField):

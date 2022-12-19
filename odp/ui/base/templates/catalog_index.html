@@ -7,7 +7,7 @@
             <form action="{{ url_for('.index') }}" method="get">
                 <div class="row">
                     <div class="col">
-                        {{ search_form.q(class='form-control font-monospace') }}
+                        {{ search_form.text_query(class='form-control font-monospace') }}
                     </div>
                     <div class="col-1">
                         <button type="submit" class="btn btn-outline-primary btn-action">
