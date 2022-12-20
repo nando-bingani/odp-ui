@@ -1,16 +1,13 @@
 {% extends 'base.html' %}
 {% from 'macros.html' import render_info %}
 
-{% set metadata = (record.metadata | selectattr('schema_id', '==', 'SAEON.DataCite4') | first).metadata %}
-{% set iso19115_metadata = record.metadata | selectattr('schema_id', '==', 'SAEON.ISO19115') | list %}
-{% if iso19115_metadata %}
-    {% set iso19115_metadata = (iso19115_metadata | first).metadata %}
-{% endif %}
+{% set datacite_metadata = record | select_datacite_metadata %}
+{% set iso19115_metadata = record | select_iso19115_metadata %}
 
 {% block web_title %}
     {{ super() }} |
     {% block heading %}
-        {{ metadata.titles[0].title }}
+        {{ datacite_metadata.titles[0].title }}
     {% endblock %}
 {% endblock %}
 
@@ -23,7 +20,7 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#metadata" type="button" role="tab">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#datacite-metadata" type="button" role="tab">
                     DataCite Metadata
                 </button>
             </li>
@@ -53,25 +50,25 @@
                     {% if prop == 'DOI' %}
                         {{ record.doi if record.doi }}
                     {% elif prop == 'Title' %}
-                        {{ metadata.titles[0].title }}
+                        {{ datacite_metadata.titles[0].title }}
                     {% elif prop == 'Authors' %}
-                        {% for creator in metadata.creators %}
+                        {% for creator in datacite_metadata.creators %}
                             <p>{{ creator.name }}<br/>
                                 <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
                             </p>
                         {% endfor %}
                     {% elif prop == 'Contributors' %}
-                        {% for contributor in metadata.contributors %}
+                        {% for contributor in datacite_metadata.contributors %}
                             <p>{{ contributor.name }} ({{ contributor.contributorType }})<br/>
                                 <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
                             </p>
                         {% endfor %}
                     {% elif prop == 'Publisher' %}
-                        {{ metadata.publisher }} ({{ metadata.publicationYear }})
+                        {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
                     {% elif prop == 'Abstract' %}
-                        {{ metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
+                        {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
                     {% elif prop == 'Methods' %}
-                        {{ metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
+                        {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
                     {% elif prop == 'Spatial coverage' %}
 
                     {% elif prop == 'Temporal coverage' %}
@@ -82,15 +79,15 @@
                             {% endif %}
                         {% endif %}
                     {% elif prop == 'Keywords' %}
-                        {{ metadata.subjects | map(attribute='subject') | join(', ') }}
+                        {{ datacite_metadata.subjects | map(attribute='subject') | join(', ') }}
                     {% elif prop == 'License' %}
 
                     {% endif %}
                 {% endcall %}
             </div>
-            <div id="metadata" class="tab-pane fade" role="tabpanel">
+            <div id="datacite-metadata" class="tab-pane fade" role="tabpanel">
                 <pre class="m-3">
-                    {{- metadata|format_json -}}
+                    {{- datacite_metadata|format_json -}}
                 </pre>
             </div>
             {% if iso19115_metadata %}

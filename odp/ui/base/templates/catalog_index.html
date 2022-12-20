@@ -8,10 +8,10 @@
         </div>
         <div class="mt-4">
             {% call(record) render_table(records, 'Identifier', 'Title', 'Temporal coverage', hide_id=True, filter_=filter_) %}
-                {% set metadata = (record.metadata | selectattr('schema_id', '==', 'SAEON.DataCite4') | first).metadata %}
+                {% set datacite_metadata = record | select_datacite_metadata %}
                 <th scope="row">{{ obj_link('catalog', record.doi or record.id) }}</th>
                 <td>
-                    {{ metadata.titles[0].title }}
+                    {{ datacite_metadata.titles[0].title }}
                 </td>
                 <td>
                     {% if record.temporal_start %}

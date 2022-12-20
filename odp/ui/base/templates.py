@@ -3,25 +3,45 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
 from flask import Flask
 
+from odp.const import ODPMetadataSchema
+
 
 def init_app(app: Flask):
     @app.template_filter()
-    def format_json(obj):
+    def format_json(obj: Any) -> str:
         return json.dumps(obj, indent=4, ensure_ascii=False)
 
     @app.template_filter()
-    def timestamp(value):
+    def timestamp(value: str) -> str:
         dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y, %H:%M %Z')
 
     @app.template_filter()
-    def date(value):
+    def date(value: str) -> str:
         dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y')
+
+    @app.template_filter()
+    def select_datacite_metadata(published_record: dict) -> dict:
+        return next(
+            metadata_record['metadata']
+            for metadata_record in published_record['metadata_records']
+            if metadata_record['schema_id'] == ODPMetadataSchema.SAEON_DATACITE4
+        )
+
+    @app.template_filter()
+    def select_iso19115_metadata(published_record: dict) -> Optional[dict]:
+        return next(
+            (metadata_record['metadata']
+             for metadata_record in published_record['metadata_records']
+             if metadata_record['schema_id'] == ODPMetadataSchema.SAEON_ISO19115),
+            None
+        )
 
 
 class ButtonTheme(str, Enum):
