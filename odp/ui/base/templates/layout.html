@@ -1,18 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <title>
         {% block web_title %}
         {% endblock %}
     </title>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="{% block favicon_url %}{{ url_for('static', filename='nrf-favicon.ico') }}{% endblock %}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.1.1/dist/spacelab/bootstrap.min.css" integrity="sha256-C75HwzKEq1CXuDyghK453vYoZTD8gkZI9LSgyffnBFc=" crossorigin="anonymous">
-</head>
 
+    <link rel="icon" href="
+        {%- block favicon_url -%}
+            {{ url_for('static', filename='nrf-favicon.ico') }}
+        {%- endblock -%}
+    ">
+
+    {% block styles %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+    {% endblock %}
+
+</head>
 <body>
+
 <div class="d-flex flex-column min-vh-100">
     {% block navbar %}
         <nav class="navbar navbar-dark {% block navbar_bg %}{% endblock %} p-3">
@@ -83,7 +93,12 @@
 </div>
 
 {% block scripts %}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha256-5aErhPlUPVujIxg3wvJGdWNAWqZqWCtvxACYX4XfSa0=" crossorigin="anonymous"></script>
+    {% from 'libraries.html' import bootstrap_js %}
+    {{ bootstrap_js() }}
+    <script>
+        const rootPath = {{ request.script_root | tojson }};
+    </script>
 {% endblock %}
+
 </body>
 </html>

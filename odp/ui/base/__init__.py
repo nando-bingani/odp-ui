@@ -11,9 +11,6 @@ from odp.ui.base import forms, templates
 from odp.ui.client import ODPUIClient
 from odp.version import VERSION
 
-STATIC_DIR = Path(__file__).parent / 'static'
-TEMPLATE_DIR = Path(__file__).parent / 'templates'
-
 api: ODPUIClient
 """ODP client for user-authenticated API access."""
 
@@ -69,11 +66,13 @@ def init_app(
             scope=app.config['CI_CLIENT_SCOPE'],
         )
 
+    base_dir = Path(__file__).parent
     app.jinja_loader = ChoiceLoader([
         FileSystemLoader(template_dir),
-        FileSystemLoader(TEMPLATE_DIR),
+        FileSystemLoader(base_dir / 'macros'),
+        FileSystemLoader(base_dir / 'templates'),
     ])
-    app.static_folder = STATIC_DIR
+    app.static_folder = base_dir / 'static'
 
     forms.init_app(app)
     templates.init_app(app)
