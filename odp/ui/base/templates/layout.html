@@ -24,33 +24,7 @@
 <body>
 
 <div class="d-flex flex-column min-vh-100">
-    {% block navbar %}
-        <nav class="navbar navbar-dark {% block navbar_bg %}{% endblock %} p-3">
-            <div class="container-fluid">
-                <div class="navbar-nav text-start">
-                    <a class="navbar-brand" href="{{ url_for('home.index') }}">
-                        {% block nav_title %}
-                        {% endblock %}
-                    </a>
-                    {% if current_user.is_authenticated %}
-                        <span class="navbar-text mt-1">Welcome, {{ current_user.name }}</span>
-                    {% endif %}
-                </div>
-                {% if current_user.is_authenticated %}
-                    <div class="flex-grow-1 mx-5 mt-1">
-                        {% block nav_menu %}
-                        {% endblock %}
-                    </div>
-                    <div class="navbar-nav text-end mx-5 mt-1">
-                        <span class="navbar-text">{{ current_user.email }}</span>
-                        <a class="nav-link" href="{{ url_for('hydra.logout') }}">Log out</a>
-                    </div>
-                {% endif %}
-                <a class="navbar-brand text-end" href="https://www.saeon.ac.za/" target="_blank">
-                    <img src="{{ url_for('static', filename='saeon-logo.png') }}" height="60">
-                </a>
-            </div>
-        </nav>
+    {% block header %}
     {% endblock %}
 
     <section class="d-flex flex-column align-self-center m-3">
@@ -93,7 +67,7 @@
 </div>
 
 {% block scripts %}
-    {% from 'libraries.html' import bootstrap_js %}
+    {% from 'lib.j2' import bootstrap_js %}
     {{ bootstrap_js() }}
     <script>
         const rootPath = {{ request.script_root | tojson }};
