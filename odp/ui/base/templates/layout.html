@@ -10,11 +10,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="icon" href="
-        {%- block favicon_url -%}
-            {{ url_for('static', filename='nrf-favicon.ico') }}
-        {%- endblock -%}
-    ">
+    {% block favicon %}
+        <link rel="icon" href="{{ url_for('static', filename='nrf-favicon.ico') }}">
+    {% endblock %}
 
     {% block styles %}
         <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
