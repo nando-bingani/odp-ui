@@ -1,59 +1,95 @@
-{% macro navbar(
-    user,
-    title='SAEON | Open Data Platform',
-    color='primary',
-    logo='saeon-logo.png',
-    logo_url='https://www.saeon.ac.za/'
+{% macro nav_logo(
+    file='saeon-logo.png',
+    url='https://www.saeon.ac.za/',
+    right=False
 ) %}
-    {% set dark = color in ('primary', 'dark') %}
-
-    <nav class="navbar navbar-expand-lg bg-{{ color }} {{ 'navbar-dark' if dark }} p-3">
-        <div class="container-fluid">
-            <div class="d-flex flex-column">
-                <a href="{{ url_for('home.index') }}" class="navbar-brand">
-                    {{ title }}
-                </a>
-                {% if user.is_authenticated %}
-                    <span class="navbar-text mt-1">Welcome, {{ user.name }}</span>
-                {% endif %}
-            </div>
-
-            <div class="flex-grow-1">
-                {% if caller %}
-                    {{ caller() }}
-                {% endif %}
-            </div>
-
-            <div class="d-flex flex-column align-items-end navbar-nav mx-5 mt-1">
-                {% if user.is_authenticated %}
-                    <span class="navbar-text">{{ user.email }}</span>
-                    <a class="nav-link pe-0" href="{{ url_for('hydra.logout') }}">Log out</a>
-                {% else %}
-                    <a class="nav-link pe-0" href="{{ url_for('hydra.login') }}">Log in</a>
-                {% endif %}
-            </div>
-
-            <a class="navbar-brand text-end" href="{{ logo_url }}" target="_blank">
-                <img src="{{ url_for('static', filename=logo) }}" height="60">
+    <div class="my-2 {{ 'text-end' if right }}">
+        {% if url %}
+            <a href="{{ url }}" target="_blank">
+                <img src="{{ url_for('static', filename=file) }}" height="55">
             </a>
-        </div>
-    </nav>
-{% endmacro %}
-
-{% macro navbar_menu(active_view, views_row1, views_row2) %}
-    <div class="navbar-nav nav-pills nav-justified flex-row">
-        {% for view in views_row1 %}
-            {{ nav_link(view, view == active_view) }}
-        {% endfor %}
-    </div>
-    <div class="navbar-nav nav-pills nav-justified flex-row">
-        {% for view in views_row2 %}
-            {{ nav_link(view, view == active_view) }}
-        {% endfor %}
+        {% else %}
+            <img src="{{ url_for('static', filename=file) }}" height="55">
+        {% endif %}
     </div>
 {% endmacro %}
 
-{% macro nav_link(view, is_active) %}
-    <a class="nav-link {% if is_active %} active {% endif %}"
-       href="{{ url_for(view ~ '.index') }}">{{ view|title }}</a>
+{% macro nav_title(
+    title='SAEON Open Data Platform',
+    endpoint='home.index',
+    user=None
+) %}
+    {% if endpoint %}
+        <a href="{{ url_for(endpoint) }}" class="navbar-brand m-0">
+            {{ title }}
+        </a>
+    {% else %}
+        <span class="navbar-brand m-0">
+            {{ title }}
+        </span>
+    {% endif %}
+    {% if user and user.is_authenticated %}
+        <span class="navbar-text mt-1">Welcome, {{ user.name }}</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro nav_menu(
+    wiki=True,
+    user=None,
+    right=True,
+    dark=False
+) %}
+    <div class="nav-item dropdown">
+        <a class="nav-link {{ 'text-end' if right }}" data-bs-toggle="dropdown" href="#" role="button">
+            <span class="navbar-toggler-icon"></span>
+        </a>
+        <ul class="dropdown-menu {{ 'dropdown-menu-end' if right }} {{ 'dropdown-menu-dark' if dark }}">
+            {% if user %}
+                {% if user.is_authenticated %}
+                    <li><a href="{{ url_for('hydra.logout') }}" class="dropdown-item">
+                        Log out {{ user.email }}
+                    </a></li>
+                {% else %}
+                    <li><a href="{{ url_for('hydra.login') }}" class="dropdown-item">
+                        Log in
+                    </a></li>
+                {% endif %}
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+            {% endif %}
+            {% if wiki %}
+                <li><a href="https://odpwiki.saeon.ac.za/" target="_blank" class="dropdown-item">
+                    ODP Wiki
+                </a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endmacro %}
+
+{% macro nav_views(title, current_view, dark=True) %}
+    {# Render a dropdown menu linking to view index pages.
+       Use kwargs to pass view='Name' pairs; _='' for a divider.
+    #}
+    <ul class="nav nav-pills">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle pt-1" data-bs-toggle="dropdown" href="#" role="button">
+                {{ title }}
+            </a>
+            <ul class="dropdown-menu {{ 'dropdown-menu-dark' if dark }}">
+                {% for view, name in kwargs.items() %}
+                    {% set active = current_view == view %}
+                    {% if view == '_' %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                    {% else %}
+                        <li><a class="dropdown-item {{ 'active' if active }}" href="{{ url_for(view + '.index') }}">
+                            {{ name }}
+                        </a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
 {% endmacro %}
