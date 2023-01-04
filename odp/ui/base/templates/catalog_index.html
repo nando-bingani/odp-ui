@@ -1,25 +1,29 @@
 {% extends 'base.html' %}
-{% from 'macros.html' import render_catalog_search_form, render_table, obj_link %}
+{% from 'catalog.j2' import search_bar %}
+{% from 'macros.html' import render_table, obj_link %}
 
 {% block main %}
     <main class="flex-grow-1 mx-4">
         <div class="container-fluid p-0">
-            {{ render_catalog_search_form(search_form, full=True) }}
+            {{ search_bar(search_form, placeholder='Enter search terms') }}
         </div>
         <div class="mt-4">
-            {% call(record) render_table(records, 'Identifier', 'Title', 'Temporal coverage', hide_id=True, filter_=filter_) %}
+            {% call(record) render_table(records,
+                    'Identifier', 'Title', 'Start date', 'End date',
+                    hide_id=True, filter_=filter_)
+            %}
                 {% set datacite_metadata = record | select_datacite_metadata %}
-                <th scope="row">{{ obj_link('catalog', record.doi or record.id) }}</th>
+                <th scope="row">
+                    {{ obj_link('catalog', record.doi or record.id) }}
+                </th>
                 <td>
                     {{ datacite_metadata.titles[0].title }}
                 </td>
                 <td>
-                    {% if record.temporal_start %}
-                        {{ record.temporal_start | date }}
-                        {% if record.temporal_end %}
-                            &ndash; {{ record.temporal_end | date }}
-                        {% endif %}
-                    {% endif %}
+                    {{ (record.temporal_start | date) if record.temporal_start }}
+                </td>
+                <td>
+                    {{ (record.temporal_end | date) if record.temporal_end }}
                 </td>
             {% endcall %}
         </div>

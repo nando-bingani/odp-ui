@@ -1,0 +1,39 @@
+{% macro search_box(form, placeholder) %}
+    <form action="{{ url_for('catalog.search') }}" method="post">
+        {{ form.csrf_token }}
+        <div class="bg-white rounded-pill p-1 px-3 border border-secondary">
+            <div class="input-group">
+                {{ form.q(
+                    class='form-control bg-transparent border-0 shadow-none',
+                    placeholder=placeholder,
+                    autofocus=''
+                ) }}
+                <button type="submit" class="btn p-1">
+                    &#128269;
+                </button>
+            </div>
+        </div>
+    </form>
+{% endmacro %}
+
+{% macro search_bar(form, placeholder) %}
+    <form action="{{ url_for('catalog.search') }}" method="post">
+        {{ form.csrf_token }}
+        <div class="row">
+            <div class="col">
+                {{ form.q(class='form-control', placeholder=placeholder) }}
+            </div>
+            <div class="col-2">
+                {{ form.after(class='form-control') }}
+            </div>
+            <div class="col-2">
+                {{ form.before(class='form-control') }}
+            </div>
+            <div class="col-1">
+                <button type="submit" class="btn btn-outline-primary btn-action">
+                    &#128270;
+                </button>
+            </div>
+        </div>
+    </form>
+{% endmacro %}

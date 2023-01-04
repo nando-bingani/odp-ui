@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>
         {% block web_title %}
         {% endblock %}
     </title>
-
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     {% block favicon %}
         <link rel="icon" href="{{ url_for('static', filename='nrf-favicon.ico') }}">
@@ -17,10 +16,9 @@
     {% block styles %}
         <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
     {% endblock %}
-
 </head>
-<body>
 
+<body>
 <div class="d-flex flex-column min-vh-100">
     {% block header %}
     {% endblock %}
@@ -43,25 +41,8 @@
         </main>
     {% endblock %}
 
-    <hr class="mt-4"/>
-    <footer class="text-center pb-3 pt-0">
-        <small>
-            ODP v{{config.ODP_VERSION}}
-        </small>
-        <br/>
-        <small>
-            Copyright &copy; <script>document.write(new Date().getFullYear())</script>
-            <a href="https://www.saeon.ac.za/" target="_blank" class="text-decoration-none">
-                SAEON
-            </a>
-        </small>
-        <br/>
-        <small>
-            <a href="https://www.nrf.ac.za/privacy-policy/" target="_blank" class="text-decoration-none">
-                NRF Privacy Policy
-            </a>
-        </small>
-    </footer>
+    {% block footer %}
+    {% endblock %}
 </div>
 
 {% block scripts %}

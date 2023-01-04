@@ -8,21 +8,28 @@ bp = Blueprint('catalog', __name__)
 
 @bp.route('/')
 def index():
+    catalog_id = current_app.config['CATALOG_ID']
+    text_query = request.args.get('q')
+    start_date = request.args.get('after')
+    end_date = request.args.get('before')
     page = request.args.get('page', 1)
-    text_query = request.args.get('text_query')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
+
+    records = cli.get(
+        f'/catalog/{catalog_id}/records',
+        text_query=text_query,
+        start_date=start_date,
+        end_date=end_date,
+        page=page,
+    )
 
     filter_ = ''
     if text_query:
-        filter_ += f'&text_query={text_query}'
+        filter_ += f'&q={text_query}'
     if start_date:
-        filter_ += f'&start_date={start_date}'
+        filter_ += f'&after={start_date}'
     if end_date:
-        filter_ += f'&end_date={end_date}'
+        filter_ += f'&before={end_date}'
 
-    catalog_id = current_app.config['CATALOG_ID']
-    records = cli.get(f'/catalog/{catalog_id}/records?page={page}{filter_}')
     return render_template(
         'catalog_index.html',
         records=records,
@@ -35,12 +42,12 @@ def index():
 def search():
     form = SearchForm(request.form)
     query = {}
-    if form.text_query.data:
-        query |= dict(text_query=form.text_query.data)
-    if form.start_date.data:
-        query |= dict(start_date=form.start_date.data)
-    if form.end_date.data:
-        query |= dict(end_date=form.end_date.data)
+    if form.q.data:
+        query |= dict(q=form.q.data)
+    if form.after.data:
+        query |= dict(after=form.after.data)
+    if form.before.data:
+        query |= dict(before=form.before.data)
 
     return redirect(url_for('.index', **query))
 

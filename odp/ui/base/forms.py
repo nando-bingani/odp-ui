@@ -52,8 +52,8 @@ def json_object(form, field):
 
 
 class SearchForm(BaseForm):
-    text_query = StringField(
+    q = StringField(
         filters=[lambda s: s.strip() if s else s],
     )
-    start_date = DateStringField()
-    end_date = DateStringField()
+    after = DateStringField()
+    before = DateStringField()

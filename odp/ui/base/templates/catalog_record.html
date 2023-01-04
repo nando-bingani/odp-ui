@@ -12,91 +12,150 @@
 {% endblock %}
 
 {% block main %}
-    <main class="flex-grow-1 m-4">
-        <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
-                    Digital Object Record
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#datacite-metadata" type="button" role="tab">
-                    DataCite Metadata
-                </button>
-            </li>
-            {% if iso19115_metadata %}
+    <main class="d-flex flex-grow-1 align-items-center justify-content-evenly">
+        <div class="container-md">
+            <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#iso19115-metadata" type="button" role="tab">
-                        ISO19115 Metadata
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                        Digital Object Record
                     </button>
                 </li>
-            {% endif %}
-        </ul>
-        <div class="tab-content">
-            <div id="info" class="tab-pane fade show active" role="tabpanel">
-                {% call(prop) render_info(record,
-                    'DOI',
-                    'Title',
-                    'Authors',
-                    'Contributors',
-                    'Publisher',
-                    'Abstract',
-                    'Methods',
-                    'Spatial coverage',
-                    'Temporal coverage',
-                    'Keywords',
-                    'License',
-                ) %}
-                    {% if prop == 'DOI' %}
-                        {{ record.doi if record.doi }}
-                    {% elif prop == 'Title' %}
-                        {{ datacite_metadata.titles[0].title }}
-                    {% elif prop == 'Authors' %}
-                        {% for creator in datacite_metadata.creators %}
-                            <p>{{ creator.name }}<br/>
-                                <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
-                            </p>
-                        {% endfor %}
-                    {% elif prop == 'Contributors' %}
-                        {% for contributor in datacite_metadata.contributors %}
-                            <p>{{ contributor.name }} ({{ contributor.contributorType }})<br/>
-                                <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
-                            </p>
-                        {% endfor %}
-                    {% elif prop == 'Publisher' %}
-                        {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
-                    {% elif prop == 'Abstract' %}
-                        {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
-                    {% elif prop == 'Methods' %}
-                        {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
-                    {% elif prop == 'Spatial coverage' %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#datacite-metadata" type="button" role="tab">
+                        DataCite Metadata
+                    </button>
+                </li>
+                {% if iso19115_metadata %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#iso19115-metadata" type="button" role="tab">
+                            ISO19115 Metadata
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+            <div class="tab-content">
+                <div id="info" class="tab-pane fade show active" role="tabpanel">
+                    {% call(prop) render_info(record,
+                        'Title',
+                        'Authors',
+                        'Contributors',
+                        'Abstract',
+                        'Methods',
+                        'Temporal extent',
+                        'Spatial extent',
+                        'Publisher',
+                        'DOI',
+                        'Record id',
+                        'Keywords',
+                        'License',
+                        hide_id=True
+                    ) %}
+                        {% if prop == 'Title' %}
+                            <strong>{{ datacite_metadata.titles[0].title }}</strong>
 
-                    {% elif prop == 'Temporal coverage' %}
-                        {% if record.temporal_start %}
-                            {{ record.temporal_start | date }}
-                            {% if record.temporal_end %}
-                                &ndash; {{ record.temporal_end | date }}
+                        {% elif prop == 'Authors' %}
+                            {% for creator in datacite_metadata.creators %}
+                                <p>{{ creator.name }}<br/>
+                                    <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                                </p>
+                            {% endfor %}
+
+                        {% elif prop == 'Contributors' %}
+                            {% for contributor in datacite_metadata.contributors %}
+                                <p>{{ contributor.name }} ({{ contributor.contributorType }})<br/>
+                                    <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                                </p>
+                            {% endfor %}
+
+                        {% elif prop == 'Abstract' %}
+                            {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
+
+                        {% elif prop == 'Methods' %}
+                            {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
+
+                        {% elif prop == 'Temporal extent' %}
+                            {% if record.temporal_start %}
+                                {{ record.temporal_start | date }}
+                                {% if record.temporal_end %}
+                                    &ndash; {{ record.temporal_end | date }}
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
-                    {% elif prop == 'Keywords' %}
-                        {{ datacite_metadata.subjects | map(attribute='subject') | join(', ') }}
-                    {% elif prop == 'License' %}
 
-                    {% endif %}
-                {% endcall %}
-            </div>
-            <div id="datacite-metadata" class="tab-pane fade" role="tabpanel">
+                        {% elif prop == 'Spatial extent' %}
+                            <div id="map"></div>
+
+                        {% elif prop == 'Publisher' %}
+                            {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
+
+                        {% elif prop == 'DOI' %}
+                            {{ record.doi if record.doi }}
+
+                        {% elif prop == 'Record id' %}
+                            {{ record.id }}
+
+                        {% elif prop == 'Keywords' %}
+                            {{ datacite_metadata.subjects | map(attribute='subject') | join(', ') }}
+
+                        {% elif prop == 'License' %}
+                            <a href="{{ datacite_metadata.rightsList[0].rightsURI }}" target="_blank">
+                                {{ datacite_metadata.rightsList[0].rights }}
+                            </a>
+
+                        {% endif %}
+                    {% endcall %}
+                </div>
+                <div id="datacite-metadata" class="tab-pane fade" role="tabpanel">
                 <pre class="m-3">
                     {{- datacite_metadata|format_json -}}
                 </pre>
-            </div>
-            {% if iso19115_metadata %}
-                <div id="iso19115-metadata" class="tab-pane fade" role="tabpanel">
+                </div>
+                {% if iso19115_metadata %}
+                    <div id="iso19115-metadata" class="tab-pane fade" role="tabpanel">
                     <pre class="m-3">
                         {{- iso19115_metadata|format_json -}}
                     </pre>
-                </div>
-            {% endif %}
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </main>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    {% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
+    {% if N is not none and E is not none and S is not none and W is not none %}
+        <script>
+            $('#map').height('300px');
+            const map = L.map('map', {
+                center: [{{ (N + S) / 2 }}, {{ (E + W) / 2 }}],
+                zoom: 4,
+                gestureHandling: true
+            });
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+            L.control.scale({
+                metric: true,
+                imperial: false
+            }).addTo(map);
+
+            {% if N == S and E == W %}
+                const marker = L.marker([{{ N }}, {{ E }}], {}).addTo(map);
+
+            {% else %}
+                const bounds = [[{{ N }}, {{ E }}], [{{ S }}, {{ W }}]];
+                L.rectangle(bounds, {
+                    color: 'rgb(217, 83, 79)',
+                    weight: 1
+                }).addTo(map);
+                map.fitBounds(bounds, {
+                    animate: false,
+                    maxZoom: 9
+                });
+            {% endif %}
+        </script>
+    {% endif %}
 {% endblock %}

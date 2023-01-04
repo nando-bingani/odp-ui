@@ -10,3 +10,11 @@
 pre {
     white-space: pre-wrap;
 }
+
+#map {
+}
+
+#map a {
+    color: black;
+    text-decoration: none;
+}
