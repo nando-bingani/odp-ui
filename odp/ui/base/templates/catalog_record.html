@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'macros.html' import render_info %}
+{% from 'content.j2' import render_info %}
 
 {% set datacite_metadata = record | select_datacite_metadata %}
 {% set iso19115_metadata = record | select_iso19115_metadata %}

@@ -1,21 +1,3 @@
-{% macro flash_messages() %}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'message' %}
-                    {% set category = 'primary' %}
-                {% elif category == 'error' %}
-                    {% set category = 'danger' %}
-                {% endif %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-{% endmacro %}
-
 {% macro render_table(result) %}
 {# Render a paginated list result in a table.
     Column titles can be passed in via kwarg columns=[...] or via varargs.

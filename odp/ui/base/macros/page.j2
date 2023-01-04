@@ -95,3 +95,51 @@
         </li>
     </ul>
 {% endmacro %}
+
+{% macro flash_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'message' %}
+                    {% set category = 'primary' %}
+                {% elif category == 'error' %}
+                    {% set category = 'danger' %}
+                {% endif %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %}
+
+{% macro footer(
+    color='transparent',
+    hr=True,
+    pad=4
+) %}
+    <footer class="text-center mt-4 pb-{{ pad }} bg-{{ color }}">
+        {% if hr %}
+            <hr class="m-0"/>
+        {% endif %}
+        <div class="mt-{{ pad }}"></div>
+        <small>
+            ODP v{{ config.ODP_VERSION }}
+        </small>
+        <br/>
+        <small>
+            Copyright &copy;
+            <script>document.write(new Date().getFullYear())</script>
+            <a href="https://www.saeon.ac.za/" target="_blank" class="text-decoration-none">
+                SAEON
+            </a>
+        </small>
+        <br/>
+        <small>
+            <a href="https://www.nrf.ac.za/privacy-policy/" target="_blank" class="text-decoration-none">
+                NRF Privacy Policy
+            </a>
+        </small>
+    </footer>
+{% endmacro %}
