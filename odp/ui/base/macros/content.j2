@@ -34,7 +34,7 @@
         </tbody>
     </table>
     <div class="d-flex mt-4">
-        <span class="mt-1" style="flex-basis:0; flex-grow:1">
+        <span class="mt-1 flex-grow-evenly">
             {{ result.total }} items found.
         </span>
         {% if result.pages > 1 %}
@@ -64,7 +64,7 @@
                 </a>
             </div>
         {% endif %}
-        <span class="mt-1 text-end" style="flex-basis:0; flex-grow:1">
+        <span class="mt-1 text-end flex-grow-evenly">
             Page {{ result.page }} of {{ result.pages }}.
         </span>
     </div>

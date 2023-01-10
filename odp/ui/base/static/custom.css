@@ -7,6 +7,11 @@
     width: 24px;
 }
 
+.flex-grow-evenly {
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
 pre {
     white-space: pre-wrap;
 }
