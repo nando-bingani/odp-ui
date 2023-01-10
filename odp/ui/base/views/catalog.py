@@ -15,7 +15,7 @@ def index():
     page = request.args.get('page', 1)
 
     records = cli.get(
-        f'/catalog/{catalog_id}/records',
+        f'/catalog/{catalog_id}/search',
         text_query=text_query,
         start_date=start_date,
         end_date=end_date,
