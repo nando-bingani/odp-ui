@@ -5,8 +5,8 @@ from flask import Flask
 from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from odp.client import ODPClient
 from odp.config import config
+from odp.lib.client import ODPClient
 from odp.ui.base import forms, templates
 from odp.ui.client import ODPUIClient
 from odp.version import VERSION

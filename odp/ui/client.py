@@ -10,8 +10,8 @@ from flask import Flask, flash, g, redirect, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
-from odp.client import ODPAPIError, ODPBaseClient
 from odp.const import ODPScope
+from odp.lib.client import ODPAPIError, ODPBaseClient
 
 
 @dataclass
