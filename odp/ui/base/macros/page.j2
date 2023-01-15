@@ -1,7 +1,7 @@
 {% macro nav_logo(
     file='saeon-logo.png',
     url='https://www.saeon.ac.za/',
-    right=False
+    right=false
 ) %}
     <div class="my-2 {{ 'text-end' if right }}">
         {% if url %}
@@ -15,12 +15,16 @@
 {% endmacro %}
 
 {% macro nav_title(
+    current_user,
+    active_view,
     title='SAEON Open Data Platform',
-    endpoint='home.index',
-    user=None
+    title_view='home'
 ) %}
-    {% if endpoint %}
-        <a href="{{ url_for(endpoint) }}" class="navbar-brand m-0">
+    {# Render the app title.
+        Pass view='Title' pairs via kwargs to enable rendering the active view title.
+    #}
+    {% if title_view %}
+        <a href="{{ url_for(title_view + '.index') }}" class="navbar-brand m-0">
             {{ title }}
         </a>
     {% else %}
@@ -28,39 +32,55 @@
             {{ title }}
         </span>
     {% endif %}
-    {% if user and user.is_authenticated %}
-        <span class="navbar-text pb-1">Welcome, {{ user.name }}</span>
+
+    {% if active_view in kwargs %}
+        <span class="navbar-text pb-1">{{ kwargs[active_view] }}</span>
+    {% elif active_view == title_view and current_user and current_user.is_authenticated %}
+        <span class="navbar-text pb-1">Welcome, {{ current_user.name }}</span>
     {% endif %}
 {% endmacro %}
 
 {% macro nav_menu(
-    wiki=True,
-    user=None,
-    right=True,
-    dark=False
-) %}
+    current_user,
+    active_view,
+    dark=false,
+    right=true,
+    wiki=true
+    ) %}
+    {# Render a hamburger menu, optionally with view index page links.
+        Pass view='Title' pairs via kwargs; _='' for a divider.
+    #}
     <div class="nav-item dropdown">
         <a class="nav-link {{ 'text-end' if right }}" data-bs-toggle="dropdown" href="#" role="button">
             <span class="navbar-toggler-icon"></span>
         </a>
-        <ul class="dropdown-menu {{ 'dropdown-menu-end' if right }} {{ 'dropdown-menu-dark' if dark }}">
-            {% if user %}
-                {% if user.is_authenticated %}
+
+        <ul class="dropdown-menu {{ 'dropdown-menu-dark' if dark }} {{ 'dropdown-menu-end' if right }}">
+            {% if current_user %}
+                {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('hydra.logout') }}" class="dropdown-item">
-                        Log out {{ user.email }}
+                        Log out {{ current_user.email }}
                     </a></li>
                 {% else %}
                     <li><a href="{{ url_for('hydra.login') }}" class="dropdown-item">
                         Log in
                     </a></li>
                 {% endif %}
+                {% if kwargs or wiki %}
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                {% endif %}
             {% endif %}
-            {% if user and wiki %}
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-            {% endif %}
+
+            {{ _nav_dropdown_links(**kwargs) }}
+
             {% if wiki %}
+                {% if kwargs %}
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                {% endif %}
                 <li><a href="https://odpwiki.saeon.ac.za/" target="_blank" class="dropdown-item">
                     ODP Wiki
                 </a></li>
@@ -69,31 +89,42 @@
     </div>
 {% endmacro %}
 
-{% macro nav_views(title, current_view, dark=True) %}
-    {# Render a dropdown menu linking to view index pages.
-       Use kwargs to pass view='Name' pairs; _='' for a divider.
+{% macro nav_dropdown(
+    menu_title,
+    active_view,
+    dark=false,
+    right=false
+) %}
+    {# Render a dropdown menu of view index page links.
+        Pass view='Title' pairs via kwargs; _='' for a divider.
     #}
     <ul class="nav nav-pills">
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle pb-1" data-bs-toggle="dropdown" href="#" role="button">
-                {{ title }}
+                {{ menu_title }}
             </a>
-            <ul class="dropdown-menu {{ 'dropdown-menu-dark' if dark }}">
-                {% for view, name in kwargs.items() %}
-                    {% set active = current_view == view %}
-                    {% if view == '_' %}
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                    {% else %}
-                        <li><a class="dropdown-item {{ 'active' if active }}" href="{{ url_for(view + '.index') }}">
-                            {{ name }}
-                        </a></li>
-                    {% endif %}
-                {% endfor %}
+            <ul class="dropdown-menu {{ 'dropdown-menu-dark' if dark }} {{ 'dropdown-menu-end' if right }}">
+                {{ _nav_dropdown_links(highlight=active_view, **kwargs) }}
             </ul>
         </li>
     </ul>
+{% endmacro %}
+
+{% macro _nav_dropdown_links(
+    highlight=none
+) %}
+    {% for view, title in kwargs.items() %}
+        {% if view == '_' %}
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+        {% else %}
+            <li><a href="{{ url_for(view + '.index') }}"
+                   class="dropdown-item {{ 'active' if highlight == view }}">
+                {{ title }}
+            </a></li>
+        {% endif %}
+    {% endfor %}
 {% endmacro %}
 
 {% macro flash_messages() %}
@@ -116,7 +147,7 @@
 
 {% macro footer(
     color='transparent',
-    hr=True,
+    hr=true,
     pad=4
 ) %}
     <footer class="text-center mt-4 pb-{{ pad }} bg-{{ color }}">
