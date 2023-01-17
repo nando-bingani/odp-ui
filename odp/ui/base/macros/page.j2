@@ -1,15 +1,15 @@
 {% macro nav_logo(
-    file='saeon-logo.png',
+    image='saeon-logo.png',
     url='https://www.saeon.ac.za/',
     right=false
 ) %}
     <div class="my-2 {{ 'text-end' if right }}">
         {% if url %}
             <a href="{{ url }}" target="_blank">
-                <img src="{{ url_for('static', filename=file) }}" height="55">
+                <img src="{{ url_for('static', filename='images/' + image) }}" height="55">
             </a>
         {% else %}
-            <img src="{{ url_for('static', filename=file) }}" height="55">
+            <img src="{{ url_for('static', filename='images/' + image) }}" height="55">
         {% endif %}
     </div>
 {% endmacro %}
