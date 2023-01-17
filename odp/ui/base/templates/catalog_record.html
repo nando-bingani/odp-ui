@@ -127,35 +127,7 @@
     {% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
     {% if N is not none and E is not none and S is not none and W is not none %}
         <script>
-            $('#map').height('300px');
-            const map = L.map('map', {
-                center: [{{ (N + S) / 2 }}, {{ (E + W) / 2 }}],
-                zoom: 4,
-                gestureHandling: true
-            });
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19
-            }).addTo(map);
-            L.control.scale({
-                metric: true,
-                imperial: false
-            }).addTo(map);
-
-            {% if N == S and E == W %}
-                const marker = L.marker([{{ N }}, {{ E }}], {}).addTo(map);
-
-            {% else %}
-                const bounds = [[{{ N }}, {{ E }}], [{{ S }}, {{ W }}]];
-                L.rectangle(bounds, {
-                    color: 'rgb(217, 83, 79)',
-                    weight: 1
-                }).addTo(map);
-                map.fitBounds(bounds, {
-                    animate: false,
-                    maxZoom: 9
-                });
-            {% endif %}
+            createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }});
         </script>
     {% endif %}
 {% endblock %}
