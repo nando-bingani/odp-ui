@@ -84,6 +84,10 @@ class ODPUIClient(ODPBaseClient):
         def load_user(user_id):
             return self._get_user(user_id)
 
+    @property
+    def token(self) -> dict:
+        return self.oauth.fetch_token('hydra')
+
     def _send_request(self, method: str, url: str, data: dict, params: dict) -> requests.Response:
         """Send a request to the API with the user's access token."""
         return self.oauth.hydra.request(method, url, json=data, params=params)
@@ -153,11 +157,10 @@ class ODPUIClient(ODPBaseClient):
         redirect_uri = url_for('hydra.logged_out', _external=True)
 
         if user_id := current_user.get_id():
-            token = self.oauth.fetch_token('hydra')
             state_val = secrets.token_urlsafe()
             self.cache.set(self._cache_key(user_id, 'state'), state_val, ex=10)
             url = f'{self.hydra_url}/oauth2/sessions/logout' \
-                  f'?id_token_hint={token.get("id_token")}' \
+                  f'?id_token_hint={self.token.get("id_token")}' \
                   f'&post_logout_redirect_uri={redirect_uri}' \
                   f'&state={state_val}'
 
