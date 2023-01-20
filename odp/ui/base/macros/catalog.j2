@@ -16,24 +16,53 @@
     </form>
 {% endmacro %}
 
-{% macro search_bar(form, placeholder) %}
+{% macro filter_panel(form, placeholder) %}
     <form action="{{ url_for('catalog.search') }}" method="post">
         {{ form.csrf_token }}
-        <div class="row">
-            <div class="col">
-                {{ form.q(class='form-control', placeholder=placeholder) }}
-            </div>
-            <div class="col-2">
-                {{ form.after(class='form-control') }}
-            </div>
-            <div class="col-2">
-                {{ form.before(class='form-control') }}
-            </div>
-            <div class="col-1">
-                <button type="submit" class="btn btn-outline-primary btn-action">
-                    &#128270;
+        <div class="form-control p-0 pe-2">
+            <div class="input-group">
+                {{ form.q(
+                    class='form-control bg-transparent border-0 shadow-none',
+                    placeholder=placeholder
+                ) }}
+                <button type="submit" class="btn p-1">
+                    &#128269;
                 </button>
             </div>
         </div>
+
+        <div class="my-4 d-flex">
+            {{ form.after(class='form-control me-2') }}
+            {{ form.before(class='form-control ms-2') }}
+        </div>
+
+        <button type="submit" class="btn btn-outline-primary btn-action">
+            Find
+        </button>
     </form>
+{% endmacro %}
+
+{% macro result_set(result) %}
+    {% for record in result['items'] %}
+        {% set metadata = record | select_datacite_metadata %}
+        {% set abstract = metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                {{ record.doi or '(No DOI)' }}
+            </div>
+
+            <div class="card-body">
+                <h5 class="card-title ">
+                    <a href="{{ url_for('catalog.view', id=record.doi or record.id) }}"
+                       class="text-decoration-none text-dark fw-bold">
+                        {{ metadata.titles[0].title }}
+                    </a>
+                </h5>
+                <p class="card-text">
+                    {{ abstract | truncate(500) }}
+                </p>
+            </div>
+        </div>
+    {% endfor %}
 {% endmacro %}
