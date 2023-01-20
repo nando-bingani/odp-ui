@@ -4,8 +4,8 @@
 {% block main %}
     <main class="flex-grow-1 mx-4">
         <div class="row">
-            <div class="col-3 mx-2">
-                {{ filter_panel(search_form, placeholder='Enter search terms') }}
+            <div class="col-3 mx-2 px-5">
+                {{ filter_panel(search_form) }}
             </div>
             <div class="col mx-2">
                 {{ result_set(records) }}
@@ -14,4 +14,11 @@
             </div>
         </div>
     </main>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        createFilterMap($('#n').val(), $('#e').val(), $('#s').val(), $('#w').val());
+    </script>
 {% endblock %}

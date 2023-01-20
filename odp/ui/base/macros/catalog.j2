@@ -19,11 +19,11 @@
 {% macro filter_panel(form, placeholder) %}
     <form action="{{ url_for('catalog.search') }}" method="post">
         {{ form.csrf_token }}
-        <div class="form-control p-0 pe-2">
+        <div class="form-control p-0 pe-2 mb-4">
             <div class="input-group">
                 {{ form.q(
                     class='form-control bg-transparent border-0 shadow-none',
-                    placeholder=placeholder
+                    placeholder='Enter search terms...'
                 ) }}
                 <button type="submit" class="btn p-1">
                     &#128269;
@@ -31,13 +31,21 @@
             </div>
         </div>
 
-        <div class="my-4 d-flex">
+        <p class="fw-bold mb-2">Filter by location</p>
+        <div id="map" class="mb-4"></div>
+        <input id="n" type="hidden" value="{{ form.n.data or '' }}">
+        <input id="e" type="hidden" value="{{ form.e.data or '' }}">
+        <input id="s" type="hidden" value="{{ form.s.data or '' }}">
+        <input id="w" type="hidden" value="{{ form.w.data or '' }}">
+
+        <p class="fw-bold mb-2">Filter by date range</p>
+        <div class="d-flex mb-4">
             {{ form.after(class='form-control me-2') }}
             {{ form.before(class='form-control ms-2') }}
         </div>
 
         <button type="submit" class="btn btn-outline-primary btn-action">
-            Find
+            Apply
         </button>
     </form>
 {% endmacro %}

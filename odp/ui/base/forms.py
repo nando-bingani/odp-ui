@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from flask import Flask, session
-from wtforms import DateField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
+from wtforms import DateField, FloatField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
 from wtforms.widgets import CheckboxInput, ListWidget
 
@@ -57,3 +57,7 @@ class SearchForm(BaseForm):
     )
     after = DateStringField()
     before = DateStringField()
+    n = FloatField()
+    e = FloatField()
+    s = FloatField()
+    w = FloatField()
