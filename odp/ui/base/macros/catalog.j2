@@ -16,7 +16,7 @@
     </form>
 {% endmacro %}
 
-{% macro filter_panel(form, placeholder) %}
+{% macro filter_panel(form) %}
     <form action="{{ url_for('catalog.search') }}" method="post">
         {{ form.csrf_token }}
         <div class="form-control p-0 pe-2 mb-4">
@@ -33,10 +33,10 @@
 
         <p class="fw-bold mb-2">Filter by location</p>
         <div id="map" class="mb-4"></div>
-        <input id="n" type="hidden" value="{{ form.n.data or '' }}">
-        <input id="e" type="hidden" value="{{ form.e.data or '' }}">
-        <input id="s" type="hidden" value="{{ form.s.data or '' }}">
-        <input id="w" type="hidden" value="{{ form.w.data or '' }}">
+
+        {% for dir in 'n', 'e', 's', 'w' %}
+            <input id="{{ dir }}" name="{{ dir }}" type="hidden" value="{{ form[dir].data or '' }}">
+        {% endfor %}
 
         <p class="fw-bold mb-2">Filter by date range</p>
         <div class="d-flex mb-4">
@@ -44,7 +44,7 @@
             {{ form.before(class='form-control ms-2') }}
         </div>
 
-        <button type="submit" class="btn btn-outline-primary btn-action">
+        <button type="submit" onclick="setBounds();" class="btn btn-outline-primary btn-action">
             Apply
         </button>
     </form>

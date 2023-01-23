@@ -10,6 +10,10 @@ bp = Blueprint('catalog', __name__)
 def index():
     catalog_id = current_app.config['CATALOG_ID']
     text_query = request.args.get('q')
+    north_bound = request.args.get('n')
+    east_bound = request.args.get('e')
+    south_bound = request.args.get('s')
+    west_bound = request.args.get('w')
     start_date = request.args.get('after')
     end_date = request.args.get('before')
     page = request.args.get('page', 1)
@@ -17,23 +21,35 @@ def index():
     records = cli.get(
         f'/catalog/{catalog_id}/search',
         text_query=text_query,
+        north_bound=north_bound,
+        east_bound=east_bound,
+        south_bound=south_bound,
+        west_bound=west_bound,
         start_date=start_date,
         end_date=end_date,
         page=page,
     )
 
-    filter_ = ''
+    query = ''
     if text_query:
-        filter_ += f'&q={text_query}'
+        query += f'&q={text_query}'
+    if north_bound:
+        query += f'&n={north_bound}'
+    if east_bound:
+        query += f'&e={east_bound}'
+    if south_bound:
+        query += f'&s={south_bound}'
+    if west_bound:
+        query += f'&w={west_bound}'
     if start_date:
-        filter_ += f'&after={start_date}'
+        query += f'&after={start_date}'
     if end_date:
-        filter_ += f'&before={end_date}'
+        query += f'&before={end_date}'
 
     return render_template(
         'catalog_index.html',
         records=records,
-        filter_=filter_,
+        query=query,
         search_form=SearchForm(request.args),
     )
 
@@ -41,14 +57,8 @@ def index():
 @bp.route('/search', methods=('POST',))
 def search():
     form = SearchForm(request.form)
-    query = {}
-    if form.q.data:
-        query |= dict(q=form.q.data)
-    if form.after.data:
-        query |= dict(after=form.after.data)
-    if form.before.data:
-        query |= dict(before=form.before.data)
-
+    query = form.data
+    query.pop('csrf_token')
     return redirect(url_for('.index', **query))
 
 

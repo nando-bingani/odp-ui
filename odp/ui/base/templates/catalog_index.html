@@ -10,7 +10,7 @@
             </div>
             <div class="col mx-2">
                 {{ result_set(records) }}
-                {{ pagination(records.total, records.page, records.pages, filter_) }}
+                {{ pagination(records.total, records.page, records.pages, query) }}
             </div>
             <div class="col-3 mx-2">
             </div>
@@ -21,6 +21,11 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        createFilterMap($('#n').val(), $('#e').val(), $('#s').val(), $('#w').val());
+        createFilterMap(
+            parseFloat($('#n').val()),
+            parseFloat($('#e').val()),
+            parseFloat($('#s').val()),
+            parseFloat($('#w').val())
+        );
     </script>
 {% endblock %}

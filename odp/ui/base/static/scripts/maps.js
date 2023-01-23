@@ -19,13 +19,15 @@ function createExtentMap(n, e, s, w) {
     }
 }
 
+var box; // the user-drawn box on the filter-by-location map
+
 function createFilterMap(n, e, s, w) {
     $('#map').height('300px');
-    const map = _initMap(n, e, s, w, true);
+    const map = _initMap(n, e, s, w);
 
-    var drawnItems = new L.FeatureGroup();
+    const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
-    var drawControl = new L.Control.Draw({
+    const drawControl = new L.Control.Draw({
         draw: {
             polyline: false,
             polygon: false,
@@ -38,10 +40,40 @@ function createFilterMap(n, e, s, w) {
         }
     });
     map.addControl(drawControl);
+
+    if (n && e && s && w) {
+        const bounds = [[n, e], [s, w]];
+        box = L.rectangle(bounds);
+        drawnItems.addLayer(box);
+        map.fitBounds(bounds, {
+            animate: false,
+            maxZoom: 9
+        });
+    }
+
     map.on(L.Draw.Event.CREATED, function (event) {
-        var layer = event.layer;
-        drawnItems.addLayer(layer);
+        box = event.layer;
+        drawnItems.addLayer(box);
     });
+
+    map.on(L.Draw.Event.DELETED, function (event) {
+        box = null;
+    });
+}
+
+function setBounds() {
+    if (box) {
+        const bounds = box.getBounds();
+        $('#n').val(bounds.getNorth());
+        $('#e').val(bounds.getEast());
+        $('#s').val(bounds.getSouth());
+        $('#w').val(bounds.getWest());
+    } else {
+        $('#n').val('');
+        $('#e').val('');
+        $('#s').val('');
+        $('#w').val('');
+    }
 }
 
 function _initMap(n, e, s, w) {
@@ -54,7 +86,10 @@ function _initMap(n, e, s, w) {
     const map = L.map('map', {
         center: [lat, lon],
         zoom: 3,
-        gestureHandling: true
+        gestureHandling: true,
+        gestureHandlingOptions: {
+            duration: 1500
+        }
     });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

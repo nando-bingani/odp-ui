@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, session
 from wtforms import DateField, FloatField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
+from wtforms.validators import optional
 from wtforms.widgets import CheckboxInput, ListWidget
 
 
@@ -55,8 +56,12 @@ class SearchForm(BaseForm):
     q = StringField(
         filters=[lambda s: s.strip() if s else s],
     )
-    after = DateStringField()
-    before = DateStringField()
+    after = DateStringField(
+        validators=[optional()],
+    )
+    before = DateStringField(
+        validators=[optional()],
+    )
     n = FloatField()
     e = FloatField()
     s = FloatField()
