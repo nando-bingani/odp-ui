@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% from 'catalog.j2' import result_set, filter_panel %}
+{% from 'content.j2' import pagination %}
 
 {% block main %}
     <main class="flex-grow-1 mx-4">
@@ -9,6 +10,7 @@
             </div>
             <div class="col mx-2">
                 {{ result_set(records) }}
+                {{ pagination(records.total, records.page, records.pages, filter_) }}
             </div>
             <div class="col-3 mx-2">
             </div>
