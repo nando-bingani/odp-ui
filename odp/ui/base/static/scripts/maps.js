@@ -1,16 +1,18 @@
+// the user-drawn box on the filter-by-location map
+var box;
+const boxColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--bs-info');
+
 function createExtentMap(n, e, s, w) {
     $('#map').height('300px');
     const map = _initMap(n, e, s, w);
 
     if (n === s && e === w) {
-        const marker = L.marker([n, e], {}).addTo(map);
+        L.marker([n, e]).addTo(map);
     } else {
         const bounds = [[n, e], [s, w]];
-        const color = getComputedStyle(document.documentElement)
-            .getPropertyValue('--bs-danger');
         L.rectangle(bounds, {
-            color: color,
-            weight: 1
+            color: boxColor
         }).addTo(map);
         map.fitBounds(bounds, {
             animate: false,
@@ -18,8 +20,6 @@ function createExtentMap(n, e, s, w) {
         });
     }
 }
-
-var box; // the user-drawn box on the filter-by-location map
 
 function createFilterMap(n, e, s, w) {
     $('#map').height('300px');
@@ -43,7 +43,9 @@ function createFilterMap(n, e, s, w) {
 
     if (n && e && s && w) {
         const bounds = [[n, e], [s, w]];
-        box = L.rectangle(bounds);
+        box = L.rectangle(bounds, {
+            color: boxColor
+        });
         drawnItems.addLayer(box);
         map.fitBounds(bounds, {
             animate: false,
