@@ -21,11 +21,6 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        createFilterMap(
-            parseFloat($('#n').val()),
-            parseFloat($('#e').val()),
-            parseFloat($('#s').val()),
-            parseFloat($('#w').val())
-        );
+        createFilterMap();
     </script>
 {% endblock %}

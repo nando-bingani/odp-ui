@@ -21,12 +21,16 @@ function createExtentMap(n, e, s, w) {
     }
 }
 
-function createFilterMap(n, e, s, w) {
+function createFilterMap() {
     $('#map').height('300px');
+
+    const n = parseFloat($('#n').val());
+    const e = parseFloat($('#e').val());
+    const s = parseFloat($('#s').val());
+    const w = parseFloat($('#w').val());
     const map = _initMap(n, e, s, w);
 
     const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
     const drawControl = new L.Control.Draw({
         draw: {
             polyline: false,
@@ -39,6 +43,7 @@ function createFilterMap(n, e, s, w) {
             featureGroup: drawnItems
         }
     });
+    map.addLayer(drawnItems);
     map.addControl(drawControl);
 
     if (n && e && s && w) {
