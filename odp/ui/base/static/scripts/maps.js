@@ -68,7 +68,7 @@ function createFilterMap() {
     });
 }
 
-function setBounds() {
+function setFilter() {
     if (box) {
         const bounds = box.getBounds();
         $('#n').val(bounds.getNorth());
@@ -81,6 +81,15 @@ function setBounds() {
         $('#s').val('');
         $('#w').val('');
     }
+}
+
+function clearFilter() {
+    $('#n').val('');
+    $('#e').val('');
+    $('#s').val('');
+    $('#w').val('');
+    $('#after').val('');
+    $('#before').val('');
 }
 
 function _initMap(n, e, s, w) {
