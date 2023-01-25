@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from flask import Flask, session
-from wtforms import DateField, FloatField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
+from wtforms import BooleanField, DateField, FloatField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
 from wtforms.validators import optional
 from wtforms.widgets import CheckboxInput, ListWidget
@@ -53,16 +53,12 @@ def json_object(form, field):
 
 
 class SearchForm(BaseForm):
-    q = StringField(
-        filters=[lambda s: s.strip() if s else s],
-    )
-    after = DateStringField(
-        validators=[optional()],
-    )
-    before = DateStringField(
-        validators=[optional()],
-    )
+    q = StringField(filters=[lambda s: s.strip() if s else s])
     n = FloatField()
     e = FloatField()
     s = FloatField()
     w = FloatField()
+    after = DateStringField(validators=[optional()])
+    before = DateStringField(validators=[optional()])
+    exclusive_region = BooleanField(label='Exclusive region')
+    exclusive_interval = BooleanField(label='Exclusive interval')

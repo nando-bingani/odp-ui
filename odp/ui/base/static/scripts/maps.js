@@ -90,6 +90,8 @@ function clearFilter() {
     $('#w').val('');
     $('#after').val('');
     $('#before').val('');
+    $('#exclusive_region').val('');
+    $('#exclusive_interval').val('');
 }
 
 function _initMap(n, e, s, w) {

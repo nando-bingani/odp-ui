@@ -16,6 +16,8 @@ def index():
     west_bound = request.args.get('w')
     start_date = request.args.get('after')
     end_date = request.args.get('before')
+    exclusive_region = request.args.get('exclusive_region')
+    exclusive_interval = request.args.get('exclusive_interval')
     page = request.args.get('page', 1)
 
     records = cli.get(
@@ -27,6 +29,8 @@ def index():
         west_bound=west_bound,
         start_date=start_date,
         end_date=end_date,
+        exclusive_region=exclusive_region,
+        exclusive_interval=exclusive_interval,
         page=page,
     )
 
@@ -45,6 +49,10 @@ def index():
         query += f'&after={start_date}'
     if end_date:
         query += f'&before={end_date}'
+    if exclusive_region:
+        query += '&exclusive_region=True'
+    if exclusive_interval:
+        query += '&exclusive_interval=True'
 
     return render_template(
         'catalog_index.html',
@@ -59,6 +67,10 @@ def search():
     form = SearchForm(request.form)
     query = form.data
     query.pop('csrf_token')
+    if not query['exclusive_region']:
+        query.pop('exclusive_region')
+    if not query['exclusive_interval']:
+        query.pop('exclusive_interval')
     return redirect(url_for('.index', **query))
 
 

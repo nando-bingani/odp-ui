@@ -31,17 +31,28 @@
             </div>
         </div>
 
-        <p class="fw-bold mb-2">Filter by location</p>
-        <div id="map" class="mb-4"></div>
+        <div class="mb-4">
+            <p class="fw-bold mb-2">Filter by location</p>
+            <div id="map"></div>
+            <small class="form-check">
+                {{ form.exclusive_region(class='form-check-input') }}
+                {{ form.exclusive_region.label(class='form-check-label') }}
+            </small>
+            {% for bound in 'n', 'e', 's', 'w' %}
+                {{ form[bound](type='hidden') }}
+            {% endfor %}
+        </div>
 
-        {% for dir in 'n', 'e', 's', 'w' %}
-            <input id="{{ dir }}" name="{{ dir }}" type="hidden" value="{{ form[dir].data or '' }}">
-        {% endfor %}
-
-        <p class="fw-bold mb-2">Filter by date range</p>
-        <div class="d-flex mb-4">
-            {{ form.after(class='form-control me-2') }}
-            {{ form.before(class='form-control ms-2') }}
+        <div class="mb-4">
+            <p class="fw-bold mb-2">Filter by date range</p>
+            <div class="d-flex">
+                {{ form.after(class='form-control me-2') }}
+                {{ form.before(class='form-control ms-2') }}
+            </div>
+            <small class="form-check">
+                {{ form.exclusive_interval(class='form-check-input') }}
+                {{ form.exclusive_interval.label(class='form-check-label') }}
+            </small>
         </div>
 
         <button type="submit" onclick="setFilter();" class="btn btn-outline-primary btn-action"
