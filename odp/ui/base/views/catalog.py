@@ -31,6 +31,7 @@ def index():
         end_date=end_date,
         exclusive_region=exclusive_region,
         exclusive_interval=exclusive_interval,
+        include_nonsearchable=False,
         page=page,
     )
 
