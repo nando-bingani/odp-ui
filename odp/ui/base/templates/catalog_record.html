@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% from 'content.j2' import render_info %}
 
-{% set metadata = record | select_datacite_metadata %}
+{% set datacite_metadata = record | select_datacite_metadata %}
+{% set iso19115_metadata = record | select_iso19115_metadata %}
 
 {% block web_title %}
     {{ super() }} |
     {% block heading %}
-        {{ metadata.titles[0].title }}
+        {{ datacite_metadata.titles[0].title }}
     {% endblock %}
 {% endblock %}
 
@@ -29,7 +30,8 @@
                         'Abstract',
                         'Methods',
                         'Temporal extent',
-                        'Spatial extent',
+                        'Geographic extent',
+                        'Vertical extent',
                         'Publisher',
                         'DOI',
                         'Keywords',
@@ -38,27 +40,27 @@
                         hide_id=True
                     ) %}
                         {% if prop == 'Title' %}
-                            <strong>{{ metadata.titles[0].title }}</strong>
+                            <strong>{{ datacite_metadata.titles[0].title }}</strong>
 
                         {% elif prop == 'Authors' %}
-                            {% for creator in metadata.creators %}
+                            {% for creator in datacite_metadata.creators %}
                                 <p>{{ creator.name }}<br/>
                                     <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
                                 </p>
                             {% endfor %}
 
                         {% elif prop == 'Contributors' %}
-                            {% for contributor in metadata.contributors %}
+                            {% for contributor in datacite_metadata.contributors %}
                                 <p>{{ contributor.contributorType | datacite_enum }}: {{ contributor.name }}<br/>
                                     <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
                                 </p>
                             {% endfor %}
 
                         {% elif prop == 'Abstract' %}
-                            {{ metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
+                            {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first }}
 
                         {% elif prop == 'Methods' %}
-                            {{ metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
+                            {{ datacite_metadata.descriptions | selectattr('descriptionType', '==', 'Methods') | map(attribute='description') | first }}
 
                         {% elif prop == 'Temporal extent' %}
                             {% if record.temporal_start %}
@@ -68,26 +70,33 @@
                                 {% endif %}
                             {% endif %}
 
-                        {% elif prop == 'Spatial extent' %}
+                        {% elif prop == 'Geographic extent' %}
                             <div id="map"></div>
 
+                        {% elif prop == 'Vertical extent' %}
+                            {% if iso19115_metadata and iso19115_metadata.extent.verticalElement %}
+                                {% set vert = iso19115_metadata.extent.verticalElement %}
+                                Max: {{ vert.maximumValue }} {{ vert.unitOfMeasure }} <br/>
+                                Min: {{ vert.minimumValue }} {{ vert.unitOfMeasure }}
+                            {% endif %}
+
                         {% elif prop == 'Publisher' %}
-                            {{ metadata.publisher }} ({{ metadata.publicationYear }})
+                            {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
 
                         {% elif prop == 'DOI' %}
                             {{ record.doi if record.doi }}
 
                         {% elif prop == 'Keywords' %}
-                            {{ metadata.subjects | map(attribute='subject') | join(', ') }}
+                            {{ datacite_metadata.subjects | map(attribute='subject') | join(', ') }}
 
                         {% elif prop == 'License' %}
-                            <a href="{{ metadata.rightsList[0].rightsURI }}" target="_blank">
-                                {{ metadata.rightsList[0].rights }}
+                            <a href="{{ datacite_metadata.rightsList[0].rightsURI }}" target="_blank">
+                                {{ datacite_metadata.rightsList[0].rights }}
                             </a>
 
                         {% elif prop == 'Data' %}
-                            {% if metadata.immutableResource %}
-                                <a href="{{ metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
+                            {% if datacite_metadata.immutableResource %}
+                                <a href="{{ datacite_metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
                                     Download
                                 </a>
                             {% else %}
