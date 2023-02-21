@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -42,6 +43,10 @@ def init_app(app: Flask):
              if metadata_record['schema_id'] == ODPMetadataSchema.SAEON_ISO19115),
             None
         )
+
+    @app.template_filter()
+    def datacite_enum(value: str) -> str:
+        return ' '.join(re.findall('[A-Z][a-z]*', value))
 
 
 class ButtonTheme(str, Enum):

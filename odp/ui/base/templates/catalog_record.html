@@ -48,7 +48,7 @@
 
                         {% elif prop == 'Contributors' %}
                             {% for contributor in metadata.contributors %}
-                                <p>{{ contributor.name }} ({{ contributor.contributorType }})<br/>
+                                <p>{{ contributor.contributorType | datacite_enum }}: {{ contributor.name }}<br/>
                                     <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
                                 </p>
                             {% endfor %}
