@@ -34,6 +34,7 @@
                         'DOI',
                         'Keywords',
                         'License',
+                        'Data',
                         hide_id=True
                     ) %}
                         {% if prop == 'Title' %}
@@ -83,6 +84,15 @@
                             <a href="{{ metadata.rightsList[0].rightsURI }}" target="_blank">
                                 {{ metadata.rightsList[0].rights }}
                             </a>
+
+                        {% elif prop == 'Data' %}
+                            {% if metadata.immutableResource %}
+                                <a href="{{ metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
+                                    Download
+                                </a>
+                            {% else %}
+                                n/a
+                            {% endif %}
 
                         {% endif %}
                     {% endcall %}
