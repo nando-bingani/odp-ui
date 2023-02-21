@@ -4,6 +4,8 @@
 {% set datacite_metadata = record | select_datacite_metadata %}
 {% set iso19115_metadata = record | select_iso19115_metadata %}
 
+{% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
+
 {% block web_title %}
     {{ super() }} |
     {% block heading %}
@@ -72,6 +74,24 @@
 
                         {% elif prop == 'Geographic extent' %}
                             <div id="map"></div>
+                            {% for place in datacite_metadata.geoLocations | map(attribute='geoLocationPlace') %}
+                                <p class="mt-3">
+                                    {{ place }}
+                                </p>
+                            {% endfor %}
+                            {% if N is not none and E is not none and S is not none and W is not none %}
+                                <p class="mt-3">
+                                    {% if N == S and E == W %}
+                                        Lat: {{ N }}<br/>
+                                        Lon: {{ E }}
+                                    {% else %}
+                                        North: {{ N }}<br/>
+                                        South: {{ S }}<br/>
+                                        West: {{ W }}<br/>
+                                        East: {{ E }}
+                                    {% endif %}
+                                </p>
+                            {% endif %}
 
                         {% elif prop == 'Vertical extent' %}
                             {% if iso19115_metadata and iso19115_metadata.extent.verticalElement %}
@@ -113,8 +133,6 @@
 
 {% block scripts %}
     {{ super() }}
-
-    {% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
     {% if N is not none and E is not none and S is not none and W is not none %}
         <script>
             createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }});
