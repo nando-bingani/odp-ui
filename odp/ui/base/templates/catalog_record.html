@@ -32,7 +32,6 @@
                         'Spatial extent',
                         'Publisher',
                         'DOI',
-                        'Record id',
                         'Keywords',
                         'License',
                         hide_id=True
@@ -76,9 +75,6 @@
 
                         {% elif prop == 'DOI' %}
                             {{ record.doi if record.doi }}
-
-                        {% elif prop == 'Record id' %}
-                            {{ record.id }}
 
                         {% elif prop == 'Keywords' %}
                             {{ metadata.subjects | map(attribute='subject') | join(', ') }}
