@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block main %}
-    <main class="d-flex flex-grow-1">
+    <main class="d-flex flex-grow-1 m-3">
         <div class="container-md">
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -47,14 +47,14 @@
                         {% elif prop == 'Authors' %}
                             {% for creator in datacite_metadata.creators %}
                                 <p>{{ creator.name }}<br/>
-                                    <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                                    <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') | safe }}</small>
                                 </p>
                             {% endfor %}
 
                         {% elif prop == 'Contributors' %}
                             {% for contributor in datacite_metadata.contributors %}
                                 <p>{{ contributor.contributorType | datacite_enum }}: {{ contributor.name }}<br/>
-                                    <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') }}</small>
+                                    <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') | safe }}</small>
                                 </p>
                             {% endfor %}
 
@@ -107,7 +107,7 @@
                             {{ record.doi if record.doi }}
 
                         {% elif prop == 'Keywords' %}
-                            {{ datacite_metadata.subjects | map(attribute='subject') | join(', ') }}
+                            {{ record.keywords | join(', ') }}
 
                         {% elif prop == 'License' %}
                             <a href="{{ datacite_metadata.rightsList[0].rightsURI }}" target="_blank">
