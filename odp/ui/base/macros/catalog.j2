@@ -34,7 +34,7 @@
         <div class="mb-4">
             <p class="fw-bold mb-2">Filter by location</p>
             <div id="map"></div>
-            <small class="form-check">
+            <small class="form-check mt-2">
                 {{ form.exclusive_region(class='form-check-input') }}
                 {{ form.exclusive_region.label(class='form-check-label') }}
             </small>
@@ -45,10 +45,10 @@
 
         <div class="mb-4">
             <p class="fw-bold mb-2">Filter by date range</p>
-            <div class="d-flex">
-                {{ form.after(class='form-control me-2') }}
-                {{ form.before(class='form-control ms-2') }}
-            </div>
+            {{ form.after.label(class='form-label') }}
+            {{ form.after(class='form-control mb-2') }}
+            {{ form.before.label(class='form-label') }}
+            {{ form.before(class='form-control mb-2') }}
             <small class="form-check">
                 {{ form.exclusive_interval(class='form-check-input') }}
                 {{ form.exclusive_interval.label(class='form-check-label') }}
