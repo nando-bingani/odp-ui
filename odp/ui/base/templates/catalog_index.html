@@ -3,13 +3,13 @@
 {% from 'content.j2' import pagination %}
 
 {% block main %}
-    <main class="flex-grow-1">
+    <main class="flex-grow-1 m-3">
         <div class="container-xl">
             <div class="row">
-                <div class="col-3">
+                <div class="col-3 mx-2">
                     {{ filter_panel(search_form) }}
                 </div>
-                <div class="col ms-4">
+                <div class="col mx-2">
                     {{ result_set(records) }}
                     {{ pagination(records.total, records.page, records.pages, query) }}
                 </div>
