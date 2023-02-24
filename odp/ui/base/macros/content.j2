@@ -163,13 +163,14 @@
 
 {% macro render_info(obj) %}
 {# Render object info in a table.
+    Property labels can be passed in via kwarg properties=[...] or via varargs.
     To disable automatic id field rendering, pass kwarg hide_id=True.
     Example usage:
-    {% call(prop) render_info(project, 'Name', 'Collections') %}
+    {% call(prop) render_info(collection, 'Name', 'Provider') %}
         {% if prop == 'Name' %}
-            {{ project.name }}
-        {% elif prop == 'Collections' %}
-            {{ project.collection_ids|join(', ') }}
+            {{ collection.name }}
+        {% elif prop == 'Provider' %}
+            {{ obj_link('providers', collection.provider_id, collection.provider_key) }}
         {% endif %}
     {% endcall %}
 #}
@@ -181,7 +182,7 @@
                     <td>{{ obj.id }}</td>
                 </tr>
             {% endif %}
-            {% for prop in varargs %}
+            {% for prop in kwargs.get('properties') or varargs %}
                 <tr>
                     <th scope="row">{{ prop }}</th>
                     <td>{{ caller(prop) }}</td>
