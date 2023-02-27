@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'catalog.j2' import result_set, filter_panel %}
+{% from 'catalog.j2' import result_set, filter_panel, filtered_search_proxy %}
 {% from 'content.j2' import pagination %}
 
 {% block main %}
@@ -10,6 +10,7 @@
                     {{ filter_panel(search_form) }}
                 </div>
                 <div class="col mx-2">
+                    {{ filtered_search_proxy(search_form) }}
                     {{ result_set(records) }}
                     {{ pagination(records.total, records.page, records.pages, query) }}
                 </div>
@@ -22,5 +23,6 @@
     {{ super() }}
     <script>
         createFilterMap();
+        initFilteredSearchProxy();
     </script>
 {% endblock %}

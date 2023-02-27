@@ -68,6 +68,20 @@ function createFilterMap() {
     });
 }
 
+function initFilteredSearchProxy() {
+    $('#q-proxy').keydown(function(e) {
+        if (e.which === 13) {
+            $('#q-proxy-btn').click();
+        }
+    });
+}
+
+function execFilteredSearchProxy() {
+    var q = $('#q-proxy').val();
+    $('#q').val(q);
+    $('#apply-filter').click();
+}
+
 function setFilter() {
     if (box) {
         const bounds = box.getBounds();
