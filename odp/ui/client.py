@@ -6,12 +6,12 @@ from typing import Optional
 
 import requests
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, flash, g, redirect, request, url_for
+from flask import Flask, Response, flash, g, redirect, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
 from odp.const import ODPScope
-from odp.lib.client import ODPAPIError, ODPBaseClient
+from odp.lib.client import ODPAPIError, ODPBaseClient, ODPClient
 
 
 @dataclass
@@ -42,8 +42,34 @@ class LocalUser:
         return self.id
 
 
-class ODPUIClient(ODPBaseClient):
-    """ODP client for a Flask app, providing signup, login and logout,
+class ODPAnonClient(ODPClient):
+    """An ODP client for Flask apps, providing anonymous access to the ODP API."""
+
+    @staticmethod
+    def view():
+        """Decorator for a blueprint view function, providing API error handling."""
+
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                try:
+                    # call the view function and return its response
+                    return f(*args, **kwargs)
+
+                except ODPAPIError as e:
+                    if response := _handle_error(e):
+                        return response
+
+                    # return home to avoid redirect loops
+                    return redirect(url_for('home.index'))
+
+            return decorated_function
+
+        return decorator
+
+
+class ODPUserClient(ODPBaseClient):
+    """An ODP client for Flask apps, providing signup, login and logout,
     and API access with a logged in user's access token."""
 
     def __init__(
@@ -220,7 +246,7 @@ class ODPUIClient(ODPBaseClient):
                         flash('You do not have permission to access that page.', category='warning')
                         return redirect(request.referrer or url_for('home.index'))
 
-                    # call the view function
+                    # call the view function and return its response
                     return f(*args, **kwargs)
 
                 except ODPAPIError as e:
@@ -238,37 +264,41 @@ class ODPUIClient(ODPBaseClient):
         return decorator
 
     @staticmethod
-    def handle_error(e: ODPAPIError):
-        """For authentication and authorization errors we bail out and return
-        an appropriate redirect. For any other kind of error, we just display
-        the error message and let the caller decide what to do."""
+    def handle_error(e: ODPAPIError) -> Response | None:
+        return _handle_error(e)
 
-        if e.status_code == 401:
-            flash('Your session has expired. Please log in again to continue.', category='error')
-            return redirect(url_for('hydra.logout'))
 
-        if e.status_code == 403:
-            flash('You do not have permission to access that page.', category='warning')
-            return redirect(request.referrer or url_for('home.index'))
+def _handle_error(e: ODPAPIError) -> Response | None:
+    """For authentication and authorization errors we bail out and return
+    an appropriate redirect. For any other kind of error, we just display
+    the error message and let the caller decide what to do."""
 
-        if e.status_code == 503:
-            flash('Service unavailable. Please try again in a few minutes.', category='error')
-            return
+    if e.status_code == 401:
+        flash('Your session has expired. Please log in again to continue.', category='error')
+        return redirect(url_for('hydra.logout'))
 
-        try:
-            detail = e.error_detail['detail']
-            if e.status_code == 422 and isinstance(detail, list):
-                # duplicate validation errors are returned when multiple
-                # server-side dependencies validate the same input; we
-                # eliminate duplicates by packing them into a dict
-                errors = {
-                    error['loc'][1]: error['msg']
-                    for error in detail
-                }
-                for field, msg in errors.items():
-                    flash(f'{field}: {msg}', category='error')
-            else:
-                flash(detail, category='error')
+    if e.status_code == 403:
+        flash('You do not have permission to access that page.', category='warning')
+        return redirect(request.referrer or url_for('home.index'))
 
-        except (TypeError, KeyError, IndexError):
-            flash(e.error_detail, category='error')
+    if e.status_code == 503:
+        flash('Service unavailable. Please try again in a few minutes.', category='error')
+        return
+
+    try:
+        detail = e.error_detail['detail']
+        if e.status_code == 422 and isinstance(detail, list):
+            # duplicate validation errors are returned when multiple
+            # server-side dependencies validate the same input; we
+            # eliminate duplicates by packing them into a dict
+            errors = {
+                error['loc'][1]: error['msg']
+                for error in detail
+            }
+            for field, msg in errors.items():
+                flash(f'{field}: {msg}', category='error')
+        else:
+            flash(detail, category='error')
+
+    except (TypeError, KeyError, IndexError):
+        flash(e.error_detail, category='error')

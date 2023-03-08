@@ -7,6 +7,7 @@ bp = Blueprint('catalog', __name__)
 
 
 @bp.route('/')
+@cli.view()
 def index():
     catalog_id = current_app.config['CATALOG_ID']
     text_query = request.args.get('q')
@@ -76,6 +77,7 @@ def search():
 
 
 @bp.route('/<path:id>')
+@cli.view()
 def view(id):
     catalog_id = current_app.config['CATALOG_ID']
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')

@@ -6,15 +6,14 @@ from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from odp.config import config
-from odp.lib.client import ODPClient
 from odp.ui.base import forms, templates
-from odp.ui.client import ODPUIClient
+from odp.ui.client import ODPAnonClient, ODPUserClient
 from odp.version import VERSION
 
-api: ODPUIClient
+api: ODPUserClient
 """ODP client for user-authenticated API access."""
 
-cli: ODPClient
+cli: ODPAnonClient
 """ODP client for client-authenticated API access."""
 
 
@@ -41,7 +40,7 @@ def init_app(
 
     if user_api:
         global api
-        api = ODPUIClient(
+        api = ODPUserClient(
             api_url=config.ODP.API_URL,
             hydra_url=config.HYDRA.PUBLIC.URL,
             client_id=app.config['UI_CLIENT_ID'],
@@ -58,7 +57,7 @@ def init_app(
 
     if client_api:
         global cli
-        cli = ODPClient(
+        cli = ODPAnonClient(
             api_url=config.ODP.API_URL,
             hydra_url=config.HYDRA.PUBLIC.URL,
             client_id=app.config['CI_CLIENT_ID'],
