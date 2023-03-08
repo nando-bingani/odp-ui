@@ -137,7 +137,7 @@
                                 <a href="{{ datacite_metadata.rightsList[0].rightsURI }}" target="_blank">
                                     {{ datacite_metadata.rightsList[0].rights }}
                                 </a>
-                                {% if datacite_metadata.immutableResource %}
+                                {% if datacite_metadata.immutableResource and datacite_metadata.immutableResource.resourceDownload %}
                                     <a href="{{ datacite_metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
                                         Download
                                     </a>
