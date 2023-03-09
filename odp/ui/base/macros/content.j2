@@ -64,7 +64,7 @@
                         <a class="page-link shadow-none text-primary" data-bs-toggle="dropdown" href="#" role="button">
                             {{ page }}
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu overflow-auto" style="max-height:62vh">
                             {% for num in range(1, pages + 1) %}
                                 {% set active = 'active' if num == page %}
                                 <li><a class="dropdown-item {{ active }}" href="{{ url_for('.index', page=num) }}{{ query }}">
