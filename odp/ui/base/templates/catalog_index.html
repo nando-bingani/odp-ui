@@ -2,6 +2,17 @@
 {% from 'catalog.j2' import result_set, filter_panel, filtered_search_proxy %}
 {% from 'content.j2' import pagination %}
 
+{% set pagination %}
+    {{ pagination(
+        query,
+        records.page,
+        records.pages,
+        records.total,
+        items_singular='dataset',
+        items_plural='datasets'
+    ) }}
+{% endset %}
+
 {% block main %}
     <main class="flex-grow-1 m-3">
         <div class="container-xl">
@@ -11,8 +22,11 @@
                 </div>
                 <div class="col mx-2">
                     {{ filtered_search_proxy(search_form) }}
+                    {{ pagination }}
                     {{ result_set(records) }}
-                    {{ pagination(records.total, records.page, records.pages, query) }}
+                    {% if records.total > 0 %}
+                        {{ pagination }}
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -33,43 +33,63 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ pagination(result.total, result.page, result.pages, kwargs.get('filter_') or '') }}
+    {{ pagination(kwargs.get('filter_') or '', result.page, result.pages, result.total) }}
 {% endmacro %}
 
-{% macro pagination(total, page, pages, filter_) %}
-    <div class="d-flex mt-4">
-        <span class="mt-1 flex-grow-evenly">
-            {{ total }} items found.
+{% macro pagination(
+    query,
+    page,
+    pages,
+    total,
+    items_singular='item',
+    items_plural='items'
+) %}
+    <div class="d-flex my-4 mx-3">
+        <span class="mt-2 fw-bold flex-grow-evenly">
+            {{ total }} {{ items_singular if total == 1 else items_plural }} found
         </span>
+
         {% if pages > 1 %}
-            <div>
-                {% if page <= 1 %}
-                    {% set prev_disabled = 'disabled' %}
-                {% else %}
-                    {% set prev_disabled = '' %}
-                {% endif %}
-                <a href="{{ url_for('.index', page=1) }}{{ filter_ }}" title="first" class="btn btn-outline-dark {{ prev_disabled }}">
-                    <<
-                </a>
-                <a href="{{ url_for('.index', page=page - 1) }}{{ filter_ }}" title="previous" class="btn btn-outline-dark {{ prev_disabled }}">
-                    <
-                </a>
-                {% if page >= pages %}
-                    {% set next_disabled = 'disabled' %}
-                {% else %}
-                    {% set next_disabled = '' %}
-                {% endif %}
-                <a href="{{ url_for('.index', page=page + 1) }}{{ filter_ }}" title="next" class="btn btn-outline-dark {{ next_disabled }}">
-                    >
-                </a>
-                <a href="{{ url_for('.index', page=pages) }}{{ filter_ }}" title="last" class="btn btn-outline-dark {{ next_disabled }}">
-                    >>
-                </a>
-            </div>
+            <nav>
+                <ul class="pagination">
+                    {% set disabled = 'disabled' if page <= 1 %}
+                    {% set color = 'secondary' if disabled else 'primary' %}
+                    <li class="page-item {{ disabled }}">
+                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for('.index', page=page - 1) }}{{ query }}">
+                            &laquo;
+                        </a>
+                    </li>
+
+                    <li class="page-item dropdown">
+                        <a class="page-link shadow-none text-primary" data-bs-toggle="dropdown" href="#" role="button">
+                            {{ page }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for num in range(1, pages + 1) %}
+                                {% set active = 'active' if num == page %}
+                                <li><a class="dropdown-item {{ active }}" href="{{ url_for('.index', page=num) }}{{ query }}">
+                                    {{ num }}
+                                </a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+
+                    {% set disabled = 'disabled' if page >= pages %}
+                    {% set color = 'secondary' if disabled else 'primary' %}
+                    <li class="page-item {{ disabled }}">
+                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for('.index', page=page + 1) }}{{ query }}">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         {% endif %}
-        <span class="mt-1 text-end flex-grow-evenly">
-            Page {{ page }} of {{ pages }}.
-        </span>
+
+        {% if total > 0 %}
+            <span class="mt-2 text-end flex-grow-evenly">
+                Page {{ page }} of {{ pages }}
+            </span>
+        {% endif %}
     </div>
 {% endmacro %}
 
