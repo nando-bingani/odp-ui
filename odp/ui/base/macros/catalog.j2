@@ -60,7 +60,9 @@
         {% endif %}
 
         <div class="mb-4">
-            <p class="fw-bold mb-2">Filter by location</p>
+            <p class="fw-bold mb-2">
+                Filter by location
+            </p>
             <div id="map"></div>
             <small class="form-check mt-2">
                 {{ form.exclusive_region(class='form-check-input') }}
@@ -72,7 +74,9 @@
         </div>
 
         <div class="mb-4">
-            <p class="fw-bold mb-2">Filter by date range</p>
+            <p class="fw-bold mb-2">
+                Filter by date range
+            </p>
             {{ form.after.label(class='form-label') }}
             {{ form.after(class='form-control mb-2') }}
             {{ form.before.label(class='form-label') }}
@@ -95,10 +99,40 @@
     </form>
 {% endmacro %}
 
-{% macro result_set(
-    result
+{% macro facet_panel(
+    facets,
+    facet_dict,
+    query,
+    endpoint='.index'
 ) %}
-    {% for record in result['items'] %}
+    <div class="accordion mt-5">
+        {% for facet in facets %}
+            <div class="accordion-item my-5">
+                <h5 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#facet-{{ loop.index }}">
+                        {{ facet }}
+                    </button>
+                </h5>
+                <div id="facet-{{ loop.index }}" class="accordion-collapse collapse show">
+                    <div class="accordion-body overflow-auto" style="max-height:72vh">
+                        {% for value, count in facet_dict[facet] %}
+                            <p class="card-text">
+                                <a href="{{ url_for(endpoint, facet=facet, value=value) }}{{ query }}" class="text-underline-hover">
+                                    {{ value -}}
+                                </a><span>: {{ count }}</span>
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro record_list(
+    records
+) %}
+    {% for record in records %}
         {% set metadata = record | select_datacite_metadata %}
         {% set abstract = metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first %}
 

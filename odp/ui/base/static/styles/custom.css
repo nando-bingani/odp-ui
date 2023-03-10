@@ -27,3 +27,11 @@ pre {
     color: black;
     text-decoration: none;
 }
+
+.text-underline-hover {
+    text-decoration: none;
+}
+
+.text-underline-hover:hover {
+    text-decoration: underline;
+}

@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% from 'catalog.j2' import result_set, filter_panel, filtered_search_proxy %}
+{% from 'catalog.j2' import record_list, facet_panel, filter_panel, filtered_search_proxy %}
 {% from 'content.j2' import pagination %}
 
 {% set pagination %}
     {{ pagination(
         query,
-        records.page,
-        records.pages,
-        records.total,
+        result.page,
+        result.pages,
+        result.total,
         items_singular='dataset',
         items_plural='datasets'
     ) }}
@@ -18,13 +18,14 @@
         <div class="container-xl">
             <div class="row">
                 <div class="col-3 mx-2">
-                    {{ filter_panel(search_form) }}
+                    {{ filter_panel(form) }}
+                    {{ facet_panel(facets, result.facets, query) }}
                 </div>
                 <div class="col mx-2">
-                    {{ filtered_search_proxy(search_form) }}
+                    {{ filtered_search_proxy(form) }}
                     {{ pagination }}
-                    {{ result_set(records) }}
-                    {% if records.total > 0 %}
+                    {{ record_list(result['items']) }}
+                    {% if result.total > 0 %}
                         {{ pagination }}
                     {% endif %}
                 </div>

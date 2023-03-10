@@ -21,7 +21,7 @@ def index():
     exclusive_interval = request.args.get('exclusive_interval')
     page = request.args.get('page', 1)
 
-    records = cli.get(
+    result = cli.get(
         f'/catalog/{catalog_id}/search',
         text_query=text_query,
         north_bound=north_bound,
@@ -58,9 +58,10 @@ def index():
 
     return render_template(
         'catalog_index.html',
-        records=records,
+        form=SearchForm(request.args),
         query=query,
-        search_form=SearchForm(request.args),
+        result=result,
+        facets=current_app.config['CATALOG_FACETS'],
     )
 
 
