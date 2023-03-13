@@ -123,10 +123,9 @@ function _initMap(n, e, s, w) {
             duration: 1500
         }
     });
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
-    }).addTo(map);
+    L.tileLayer.provider(
+        'Esri.WorldStreetMap'
+    ).addTo(map);
     L.control.scale({
         metric: true,
         imperial: false
