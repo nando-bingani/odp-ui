@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 
 from flask import Flask, session
@@ -62,3 +63,13 @@ class SearchForm(BaseForm):
     before = DateStringField(validators=[optional()], label='End date')
     exclusive_region = BooleanField(label='Exclusive region')
     exclusive_interval = BooleanField(label='Exclusive interval')
+
+    @classmethod
+    def add_facets(cls, *facets: str) -> None:
+        """Add facet fields to the search form."""
+        for facet in facets:
+            setattr(cls, cls.facet_fieldname(facet), StringField())
+
+    @staticmethod
+    def facet_fieldname(facet: str) -> str:
+        return 'facet_' + re.sub(r'\W', '_', facet).lower()

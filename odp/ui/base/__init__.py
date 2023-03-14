@@ -6,7 +6,7 @@ from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from odp.config import config
-from odp.ui.base import forms, templates
+from odp.ui.base import forms, templates, views
 from odp.ui.client import ODPAnonClient, ODPUserClient
 from odp.version import VERSION
 
@@ -75,6 +75,7 @@ def init_app(
 
     forms.init_app(app)
     templates.init_app(app)
+    views.init_app(app)
 
     # trust the X-Forwarded-* headers set by the proxy server
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_prefix=1)

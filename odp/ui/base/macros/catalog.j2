@@ -38,8 +38,16 @@
 
 {% macro filter_panel(
     form,
-    show_search=false
+    facet_fields,
+    result_facets,
+    show_search=false,
+    endpoint='.index'
 ) %}
+    {# Render filtering and faceting panel.
+       Query params can be passed via kwargs.
+    #}
+    {% set _ = kwargs.pop('page', none) %}
+
     <form action="{{ url_for('catalog.search') }}" method="post">
         {{ form.csrf_token }}
 
@@ -88,38 +96,51 @@
         </div>
 
         <button type="submit" onclick="setFilter();" class="btn btn-outline-primary btn-action"
-                title="Apply filters", id="apply-filter">
+                title="Apply filters" id="apply-filter">
             Apply
         </button>
 
         <button type="submit" onclick="clearFilter();" class="btn btn-outline-primary btn-action"
-                title="Clear all filters">
+                title="Clear filters">
             Clear
         </button>
-    </form>
-{% endmacro %}
 
-{% macro facet_panel(
-    facets,
-    facet_dict,
-    query,
-    endpoint='.index'
-) %}
+        {% for facet_field in facet_fields.values() %}
+            {{ form[facet_field](type='hidden') }}
+        {% endfor %}
+    </form>
+
     <div class="accordion mt-5">
-        {% for facet in facets %}
+        {% for facet_title, facet_field in facet_fields.items() %}
+            {% set facet_id = 'facet-' + loop.index|string %}
+
             <div class="accordion-item my-5">
                 <h5 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#facet-{{ loop.index }}">
-                        {{ facet }}
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#{{ facet_id }}">
+                        {{ facet_title }}
                     </button>
                 </h5>
-                <div id="facet-{{ loop.index }}" class="accordion-collapse collapse show">
+
+                <div id="{{ facet_id }}" class="accordion-collapse collapse show">
                     <div class="accordion-body overflow-auto" style="max-height:72vh">
-                        {% for value, count in facet_dict[facet] %}
+                        {% for facet_value, count in result_facets[facet_title] %}
                             <p class="card-text">
-                                <a href="{{ url_for(endpoint, facet=facet, value=value) }}{{ query }}" class="text-underline-hover">
-                                    {{ value -}}
-                                </a><span>: {{ count }}</span>
+                                {% set query = dict(kwargs) %}
+
+                                {% if query.get(facet_field) == facet_value %}
+                                    {% set _ = query.pop(facet_field) %}
+                                    <span class="fw-bold">{{ facet_value }}: {{ count }}</span>
+                                    <a href="{{ url_for(endpoint, **query) }}" class="text-decoration-none fs-5">
+                                        &#10005;
+                                    </a>
+
+                                {% else %}
+                                    {% set _ = query.update({facet_field: facet_value}) %}
+                                    <a href="{{ url_for(endpoint, **query) }}" class="text-underline-hover">
+                                        {{ facet_value -}}
+                                    </a><span>: {{ count }}</span>
+
+                                {% endif %}
                             </p>
                         {% endfor %}
                     </div>

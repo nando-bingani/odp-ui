@@ -4,12 +4,12 @@
 
 {% set pagination %}
     {{ pagination(
-        query,
         result.page,
         result.pages,
         result.total,
         items_singular='dataset',
-        items_plural='datasets'
+        items_plural='datasets',
+        **dict(request.args)
     ) }}
 {% endset %}
 
@@ -18,10 +18,9 @@
         <div class="container-xl">
             <div class="row">
                 <div class="col-3 mx-2">
-                    {{ filter_panel(form) }}
-                    {{ facet_panel(facets, result.facets, query) }}
+                    {{ filter_panel(form, facet_fields, result.facets, **dict(request.args)) }}
                 </div>
-                <div class="col mx-2">
+                <div class="col mx-3">
                     {{ filtered_search_proxy(form) }}
                     {{ pagination }}
                     {{ record_list(result['items']) }}

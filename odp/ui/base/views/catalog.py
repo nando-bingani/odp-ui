@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
 from odp.ui.base import cli
@@ -10,6 +12,8 @@ bp = Blueprint('catalog', __name__)
 @cli.view()
 def index():
     catalog_id = current_app.config['CATALOG_ID']
+    facets = current_app.config['CATALOG_FACETS']
+
     text_query = request.args.get('q')
     north_bound = request.args.get('n')
     east_bound = request.args.get('e')
@@ -21,9 +25,20 @@ def index():
     exclusive_interval = request.args.get('exclusive_interval')
     page = request.args.get('page', 1)
 
+    facet_api_query = {}
+    facet_ui_query = {}
+    facet_fields = {}
+    for facet_title in facets:
+        facet_field = SearchForm.facet_fieldname(facet_title)
+        facet_fields[facet_title] = facet_field
+        if facet_value := request.args.get(facet_field):
+            facet_api_query[facet_title] = facet_value
+            facet_ui_query[facet_field] = facet_value
+
     result = cli.get(
         f'/catalog/{catalog_id}/search',
         text_query=text_query,
+        facet_query=json.dumps(facet_api_query),
         north_bound=north_bound,
         east_bound=east_bound,
         south_bound=south_bound,
@@ -36,32 +51,11 @@ def index():
         page=page,
     )
 
-    query = ''
-    if text_query:
-        query += f'&q={text_query}'
-    if north_bound:
-        query += f'&n={north_bound}'
-    if east_bound:
-        query += f'&e={east_bound}'
-    if south_bound:
-        query += f'&s={south_bound}'
-    if west_bound:
-        query += f'&w={west_bound}'
-    if start_date:
-        query += f'&after={start_date}'
-    if end_date:
-        query += f'&before={end_date}'
-    if exclusive_region:
-        query += '&exclusive_region=True'
-    if exclusive_interval:
-        query += '&exclusive_interval=True'
-
     return render_template(
         'catalog_index.html',
         form=SearchForm(request.args),
-        query=query,
         result=result,
-        facets=current_app.config['CATALOG_FACETS'],
+        facet_fields=facet_fields,
     )
 
 
@@ -74,6 +68,12 @@ def search():
         query.pop('exclusive_region')
     if not query['exclusive_interval']:
         query.pop('exclusive_interval')
+
+    facets = current_app.config['CATALOG_FACETS']
+    for facet_title in facets:
+        if not query[facet_field := SearchForm.facet_fieldname(facet_title)]:
+            query.pop(facet_field)
+
     return redirect(url_for('.index', **query))
 
 
