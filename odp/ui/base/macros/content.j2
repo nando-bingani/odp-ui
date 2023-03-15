@@ -1,21 +1,26 @@
 {% macro render_table(result) %}
 {# Render a paginated list result in a table.
-    Column titles can be passed in via kwarg columns=[...] or via varargs.
-    To disable automatic id column rendering, pass kwarg hide_id=True.
-    Filter params can be appended to paging URLs via the kwarg filter_, e.g. filter_='&collection=CSAG&collection=DFFE'
+    Column titles can be passed in via columns=[...] or varargs.
+    To disable automatic id column rendering, pass hide_id=true.
+    Additional query params to append to paging URLs can be passed in via query='&...' or kwargs.
+    query should be used when values are repeatable, e.g. query='&collection=CSAG&collection=DFFE'
     Example usage:
-        {% call(project) render_table(projects, 'Name', 'Collections') %}
-            <td>{{ project.name }}</td>
-            <td>{{ project.collection_ids|join(', ') }}</td>
+        {% call(catalog) render_table(catalogs, 'URL', 'Published records') %}
+            <td>{{ catalog.url }}</td>
+            <td>{{ catalog.record_count }}</td>
         {% endcall %}
 #}
+    {% set columns = kwargs.pop('columns', none) or varargs %}
+    {% set hide_id = kwargs.pop('hide_id', false) %}
+    {% set query = kwargs.pop('query', '') %}
+
     <table class="table table-hover mt-2">
         <thead>
             <tr>
-                {% if not kwargs.get('hide_id') %}
+                {% if not hide_id %}
                     <th scope="col">Id</th>
                 {% endif %}
-                {% for col in kwargs.get('columns') or varargs %}
+                {% for col in columns %}
                     <th scope="col">{{ col }}</th>
                 {% endfor %}
             </tr>
@@ -23,7 +28,7 @@
         <tbody>
             {% for obj in result['items'] %}
                 <tr>
-                    {% if not kwargs.get('hide_id') %}
+                    {% if not hide_id %}
                         <th scope="row">{{ obj_link('', obj.id) }}</th>
                     {% endif %}
                     {% if caller %}
@@ -33,7 +38,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ pagination(kwargs.get('filter_') or '', result.page, result.pages, result.total) }}
+    {{ pagination(result.page, result.pages, result.total, query=query, **kwargs) }}
 {% endmacro %}
 
 {% macro pagination(
@@ -42,12 +47,19 @@
     total,
     items_singular='item',
     items_plural='items',
-    endpoint='.index'
+    endpoint='.index',
+    query=''
 ) %}
-    {# Render pagination info and links.
-       Pass additional query params via kwargs.
-    #}
+{# Render pagination info and links.
+    Additional query params to append to paging URLs can be passed in via query='&...' or kwargs.
+    If kwargs includes 'page' it is ignored.
+#}
     {% set _ = kwargs.pop('page', none) %}
+    {% for param, value in dict(kwargs).items() %}
+        {% if value == '' %}
+            {% set _ = kwargs.pop(param) %}
+        {% endif %}
+    {% endfor %}
 
     <div class="d-flex my-4 mx-3">
         <span class="mt-2 fw-bold flex-grow-evenly">
@@ -60,7 +72,7 @@
                     {% set disabled = 'disabled' if page <= 1 %}
                     {% set color = 'secondary' if disabled else 'info' %}
                     <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}">
+                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}{{ query }}">
                             &laquo;
                         </a>
                     </li>
@@ -72,7 +84,7 @@
                         <ul class="dropdown-menu overflow-auto" style="max-height:62vh">
                             {% for num in range(1, pages + 1) %}
                                 {% set active = 'active' if num == page %}
-                                <li><a class="dropdown-item {{ active }}" href="{{ url_for(endpoint, page=num, **kwargs) }}">
+                                <li><a class="dropdown-item {{ active }}" href="{{ url_for(endpoint, page=num, **kwargs) }}{{ query }}">
                                     {{ num }}
                                 </a></li>
                             {% endfor %}
@@ -82,7 +94,7 @@
                     {% set disabled = 'disabled' if page >= pages %}
                     {% set color = 'secondary' if disabled else 'info' %}
                     <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}">
+                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}{{ query }}">
                             &raquo;
                         </a>
                     </li>
