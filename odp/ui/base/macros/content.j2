@@ -70,15 +70,14 @@
             <nav>
                 <ul class="pagination">
                     {% set disabled = 'disabled' if page <= 1 %}
-                    {% set color = 'secondary' if disabled else 'info' %}
                     <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}{{ query }}">
+                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}{{ query }}">
                             &laquo;
                         </a>
                     </li>
 
                     <li class="page-item dropdown">
-                        <a class="page-link shadow-none text-info" data-bs-toggle="dropdown" href="#" role="button">
+                        <a class="page-link shadow-none" data-bs-toggle="dropdown" href="#" role="button">
                             {{ page }}
                         </a>
                         <ul class="dropdown-menu overflow-auto" style="max-height:62vh">
@@ -92,9 +91,8 @@
                     </li>
 
                     {% set disabled = 'disabled' if page >= pages %}
-                    {% set color = 'secondary' if disabled else 'info' %}
                     <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none text-{{ color }}" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}{{ query }}">
+                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}{{ query }}">
                             &raquo;
                         </a>
                     </li>
