@@ -129,7 +129,7 @@
 
                                 {% if query.get(facet_field) == facet_value %}
                                     {% set _ = query.pop(facet_field) %}
-                                    <span class="fw-bold">{{ facet_value }}: {{ count }}</span>
+                                    <span class="fw-bold">{{ facet_value }} ({{ count }})</span>
                                     <a href="{{ url_for(endpoint, **query) }}" class="text-decoration-none fs-5">
                                         &#10005;
                                     </a>
@@ -137,8 +137,9 @@
                                 {% else %}
                                     {% set _ = query.update({facet_field: facet_value}) %}
                                     <a href="{{ url_for(endpoint, **query) }}" class="text-underline-hover">
-                                        {{ facet_value -}}
-                                    </a><span>: {{ count }}</span>
+                                        {{ facet_value }}
+                                    </a>
+                                    <span>({{ count }})</span>
 
                                 {% endif %}
                             </p>
