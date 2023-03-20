@@ -123,7 +123,7 @@
 
                 <div id="{{ facet_id }}" class="accordion-collapse collapse show">
                     <div class="accordion-body overflow-auto" style="max-height:72vh">
-                        {% for facet_value, count in result_facets[facet_title] %}
+                        {% for facet_value, count in result_facets[facet_title] | sort %}
                             <p class="card-text">
                                 {% set query = dict(kwargs) %}
 
