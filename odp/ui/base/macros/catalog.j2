@@ -190,7 +190,8 @@
 
 
 {% macro render_metadata(
-    record
+    record,
+    terms_of_use
 ) %}
     {% set datacite_metadata = record | select_datacite_metadata %}  {# always present #}
     {% set iso19115_metadata = record | select_iso19115_metadata %}  {# might be null #}
@@ -328,14 +329,52 @@
                             {{ datacite_metadata.rightsList[0].rights }}
                         </a>
                         {% if datacite_metadata.immutableResource and datacite_metadata.immutableResource.resourceDownload %}
-                            <a href="{{ datacite_metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
-                                Download
-                            </a>
+                            {{ download_button(
+                                datacite_metadata.immutableResource.resourceDownload.downloadURL,
+                                terms_of_use
+                            ) }}
                         {% endif %}
                     </div>
 
                 {% endif %}
             {% endcall %}
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro download_button(
+    download_url,
+    terms_of_use
+) %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#download-popup">
+        Download
+    </button>
+
+    <div class="modal fade" id="download-popup" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Terms of use</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ terms_of_use }}
+                </div>
+                <div class="modal-footer">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="accept-terms-of-use"
+                               onchange="$('#download-btn').prop('disabled', !this.checked)">
+                        <label class="form-check-label" for="accept-terms-of-use">
+                            I agree to the terms of use
+                        </label>
+                    </div>
+                    <button id="download-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal" disabled
+                            onclick="window.open('{{ download_url }}')">
+                        Download
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 {% endmacro %}

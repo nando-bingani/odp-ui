@@ -81,8 +81,12 @@ def search():
 @cli.view()
 def view(id):
     catalog_id = current_app.config['CATALOG_ID']
+    terms_of_use = current_app.config['CATALOG_TERMS_OF_USE']
+
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')
+
     return render_template(
         'catalog_record.html',
         record=record,
+        terms_of_use=terms_of_use,
     )
