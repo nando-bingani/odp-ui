@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'catalog.j2' import record_list, facet_panel, filter_panel, filtered_search_proxy %}
+{% from 'catalog.j2' import result_list, facet_panel, filter_panel, filtered_search_proxy %}
 {% from 'content.j2' import pagination %}
 
 {% set pagination %}
@@ -23,7 +23,7 @@
                 <div class="col mx-3">
                     {{ filtered_search_proxy(form) }}
                     {{ pagination }}
-                    {{ record_list(result['items']) }}
+                    {{ result_list(result['items']) }}
                     {% if result.total > 0 %}
                         {{ pagination }}
                     {% endif %}
