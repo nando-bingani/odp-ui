@@ -1,3 +1,6 @@
+{% from 'content.j2' import render_info %}
+
+
 {% macro search_box(
     form,
     placeholder='Search the ODP catalogue'
@@ -19,6 +22,7 @@
     </form>
 {% endmacro %}
 
+
 {% macro filtered_search_proxy(
     form
 ) %}
@@ -35,6 +39,7 @@
         </div>
     </div>
 {% endmacro %}
+
 
 {% macro filter_panel(
     form,
@@ -151,6 +156,7 @@
     </div>
 {% endmacro %}
 
+
 {% macro record_list(
     records
 ) %}
@@ -180,4 +186,156 @@
             </div>
         </div>
     {% endfor %}
+{% endmacro %}
+
+
+{% macro render_metadata(
+    record
+) %}
+    {% set datacite_metadata = record | select_datacite_metadata %}  {# always present #}
+    {% set iso19115_metadata = record | select_iso19115_metadata %}  {# might be null #}
+    {% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            {#<button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">#}
+            <div class="nav-link active">
+                {% if record.doi %}
+                    DOI:
+                    <span class="user-select-all">
+                        {{- record.doi -}}
+                    </span>
+                {% else %}
+                    No DOI
+                {% endif %}
+            </div>
+            {#</button>#}
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="info" class="tab-pane fade show active" role="tabpanel">
+            {% set props = ['Title'] %}
+
+            {% if iso19115_metadata and iso19115_metadata.descriptiveKeywords %}
+                {% set theme = iso19115_metadata.descriptiveKeywords |
+                               selectattr('keywordType', '==', 'theme') |
+                               map(attribute='keyword') | first %}
+                {% if theme %}
+                    {% set props = props + ['Project'] %}
+                {% endif %}
+            {% endif %}
+
+            {% set props = props + ['Authors', 'Publisher', 'Contributors'] %}
+
+            {% set abstract = datacite_metadata.descriptions |
+                              selectattr('descriptionType', '==', 'Abstract') |
+                              map(attribute='description') | first %}
+            {% if abstract %}
+                {% set props = props + ['Abstract'] %}
+            {% endif %}
+
+            {% set methods = datacite_metadata.descriptions |
+                             selectattr('descriptionType', '==', 'Methods') |
+                             map(attribute='description') | first %}
+            {% if methods %}
+                {% set props = props + ['Methods'] %}
+            {% endif %}
+
+            {% set props = props + ['Data', 'Temporal extent', 'Geographic extent'] %}
+
+            {% set vertical -%}
+                {% if iso19115_metadata and iso19115_metadata.extent.verticalElement %}
+                    {% set vert = iso19115_metadata.extent.verticalElement %}
+                    Max: {{ vert.maximumValue }} {{ vert.unitOfMeasure }} <br/>
+                    Min: {{ vert.minimumValue }} {{ vert.unitOfMeasure }}
+                {% endif %}
+            {%- endset %}
+            {% if vertical %}
+                {% set props = props + ['Vertical extent'] %}
+            {% endif %}
+
+            {% set props = props + ['Keywords'] %}
+
+            {% call(prop) render_info(record, properties=props, hide_id=True) %}
+                {% if prop == 'Title' %}
+                    <strong>{{ datacite_metadata.titles[0].title }}</strong>
+
+                {% elif prop == 'Project' %}
+                    {{ theme }}
+
+                {% elif prop == 'Authors' %}
+                    {% for creator in datacite_metadata.creators %}
+                        <p>{{ creator.name }}<br/>
+                            <small>{{ creator.affiliation | map(attribute='affiliation') | join('<br/>') | safe }}</small>
+                        </p>
+                    {% endfor %}
+
+                {% elif prop == 'Contributors' %}
+                    {% for contributor in datacite_metadata.contributors %}
+                        <p>{{ contributor.contributorType | datacite_enum }}: {{ contributor.name }}<br/>
+                            <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') | safe }}</small>
+                        </p>
+                    {% endfor %}
+
+                {% elif prop == 'Abstract' %}
+                    {{ abstract }}
+
+                {% elif prop == 'Methods' %}
+                    {{ methods }}
+
+                {% elif prop == 'Temporal extent' %}
+                    {% if record.temporal_start %}
+                        {{ record.temporal_start | date }}
+                        {% if record.temporal_end %}
+                            &ndash; {{ record.temporal_end | date }}
+                        {% endif %}
+                    {% endif %}
+
+                {% elif prop == 'Geographic extent' %}
+                    <div id="map"></div>
+                    {% for place in datacite_metadata.geoLocations | map(attribute='geoLocationPlace') %}
+                        <p class="mt-3">
+                            {{ place }}
+                        </p>
+                    {% endfor %}
+                    {% if N is not none and E is not none and S is not none and W is not none %}
+                        <p class="mt-3">
+                            {% if N == S and E == W %}
+                                Lat: {{ N }}<br/>
+                                Lon: {{ E }}
+                            {% else %}
+                                North: {{ N }}<br/>
+                                South: {{ S }}<br/>
+                                West: {{ W }}<br/>
+                                East: {{ E }}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+
+                {% elif prop == 'Vertical extent' %}
+                    {{ vertical }}
+
+                {% elif prop == 'Publisher' %}
+                    {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
+
+                {% elif prop == 'Keywords' %}
+                    {{ record.keywords | join(', ') }}
+
+                {% elif prop == 'Data' %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ datacite_metadata.rightsList[0].rightsURI }}" target="_blank">
+                            {{ datacite_metadata.rightsList[0].rights }}
+                        </a>
+                        {% if datacite_metadata.immutableResource and datacite_metadata.immutableResource.resourceDownload %}
+                            <a href="{{ datacite_metadata.immutableResource.resourceDownload.downloadURL }}" class="btn btn-primary">
+                                Download
+                            </a>
+                        {% endif %}
+                    </div>
+
+                {% endif %}
+            {% endcall %}
+        </div>
+    </div>
 {% endmacro %}
