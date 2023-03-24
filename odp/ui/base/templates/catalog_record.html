@@ -18,9 +18,18 @@
         <div class="container-md">
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
-                        {{ record.doi or 'No DOI' }}
-                    </button>
+<!--                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">-->
+                    <div class="nav-link active">
+                        {% if record.doi %}
+                            DOI:
+                            <span class="user-select-all">
+                                {{- record.doi -}}
+                            </span>
+                        {% else %}
+                            No DOI
+                        {% endif %}
+                    </div>
+<!--                </button>-->
                 </li>
             </ul>
             <div class="tab-content">

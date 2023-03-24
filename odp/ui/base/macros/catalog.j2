@@ -160,7 +160,11 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                {{ record.doi or '(No DOI)' }}
+                {% if record.doi %}
+                    DOI: {{ record.doi }}
+                {% else %}
+                    (No DOI)
+                {% endif %}
             </div>
 
             <div class="card-body">
