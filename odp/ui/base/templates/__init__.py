@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from flask import Flask
 
-from odp.const import ODPMetadataSchema
+from odp.const import DOI_REGEX, ODPMetadataSchema
 
 
 def init_app(app: Flask):
@@ -47,6 +47,12 @@ def init_app(app: Flask):
     @app.template_filter()
     def datacite_enum(value: str) -> str:
         return ' '.join(re.findall('[A-Z][a-z]*', value))
+
+    @app.template_filter()
+    def doi(value: str) -> str | None:
+        """Pull a DOI out of `value`."""
+        if match := re.search(DOI_REGEX[1:], value):
+            return match.group(0)
 
 
 class ButtonTheme(str, Enum):

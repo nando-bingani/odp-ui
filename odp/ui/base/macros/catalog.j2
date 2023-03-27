@@ -258,6 +258,32 @@
 
             {% set props = props + ['Keywords'] %}
 
+            {% set related_ids -%}
+                {% if datacite_metadata.relatedIdentifiers %}
+                    <ul class="list-unstyled">
+                        {% for related_id in datacite_metadata.relatedIdentifiers | sort(attribute='relationType') %}
+                            {% set relation_type = related_id.relationType | datacite_enum %}
+                            <li>
+                                {% if related_id.relatedIdentifierType == 'DOI' %}
+                                    <a href="{{ url_for('catalog.view', id=related_id.relatedIdentifier | doi) }}">
+                                        {{ relation_type }}
+                                    </a>
+                                {% elif related_id.relatedIdentifierType == 'URL' %}
+                                    <a href="{{ related_id.relatedIdentifier }}" target="_blank">
+                                        {{ relation_type }}
+                                    </a>
+                                {% else %}
+                                    {{ relation_type }}: {{ related_id.relatedIdentifier }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {%- endset %}
+            {% if related_ids %}
+                {% set props = props + ['Related resources'] %}
+            {% endif %}
+
             {% call(prop) render_info(record, properties=props, hide_id=True) %}
                 {% if prop == 'Title' %}
                     <strong>{{ datacite_metadata.titles[0].title }}</strong>
@@ -335,6 +361,9 @@
                             ) }}
                         {% endif %}
                     </div>
+
+                {% elif prop == 'Related resources' %}
+                    {{ related_ids }}
 
                 {% endif %}
             {% endcall %}
