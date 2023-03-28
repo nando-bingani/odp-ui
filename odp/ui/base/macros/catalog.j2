@@ -265,9 +265,16 @@
                             {% set relation_type = related_id.relationType | datacite_enum %}
                             <li>
                                 {% if related_id.relatedIdentifierType == 'DOI' %}
-                                    <a href="{{ url_for('catalog.view', id=related_id.relatedIdentifier | doi) }}">
-                                        {{ relation_type }}
-                                    </a>
+                                    {% set doi = related_id.relatedIdentifier | doi %}
+                                    {% if doi.startswith('10.15493') %}
+                                        <a href="{{ url_for('catalog.view', id=doi) }}">
+                                            {{ relation_type }}
+                                        </a>
+                                    {% else %}
+                                        <a href="https://doi.org/{{ doi }}" target="_blank">
+                                            {{ relation_type }}
+                                        </a>
+                                    {% endif %}
                                 {% elif related_id.relatedIdentifierType == 'URL' %}
                                     <a href="{{ related_id.relatedIdentifier }}" target="_blank">
                                         {{ relation_type }}
