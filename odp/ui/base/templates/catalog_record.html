@@ -25,4 +25,9 @@
             createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }});
         </script>
     {% endif %}
+    {% if record.doi %}
+        <script>
+            formatCitation('{{ record.doi }}', 'APA')
+        </script>
+    {% endif %}
 {% endblock %}

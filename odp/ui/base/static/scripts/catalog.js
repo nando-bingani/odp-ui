@@ -69,7 +69,7 @@ function createFilterMap() {
 }
 
 function initFilteredSearchProxy() {
-    $('#q-proxy').keydown(function(e) {
+    $('#q-proxy').keydown(function (e) {
         if (e.which === 13) {
             $('#q-proxy-btn').click();
         }
@@ -106,6 +106,19 @@ function clearFilter() {
     $('#before').val('');
     $('#exclusive_region').val('');
     $('#exclusive_interval').val('');
+}
+
+function formatCitation(doi, style) {
+    $.ajax({
+        url: `https://doi.org/${doi}`,
+        dataType: 'text',
+        headers: {
+            Accept: `text/x-bibliography; locale=en-GB; style=${style}`
+        },
+        success: function (result) {
+            $('#citation').html(result);
+        }
+    });
 }
 
 function _initMap(n, e, s, w) {
