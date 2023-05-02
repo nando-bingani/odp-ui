@@ -108,6 +108,11 @@ function clearFilter() {
     $('#exclusive_interval').val('');
 }
 
+function initCitation(defaultStyle) {
+    const style = localStorage.getItem('citation-style');
+    $('#citation-style').val(style || defaultStyle);
+}
+
 function formatCitation(doi) {
     const style = $('#citation-style').val();
     $.ajax({
@@ -118,6 +123,7 @@ function formatCitation(doi) {
         },
         success: function (result) {
             $('#citation').html(result);
+            localStorage.setItem('citation-style', style);
         }
     });
 }
