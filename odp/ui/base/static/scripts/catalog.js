@@ -1,7 +1,33 @@
 // the user-drawn box on the filter-by-location map
-var box;
+let box;
 const boxColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--bs-info');
+
+function _initMap(n, e, s, w) {
+    let lat = -33;
+    let lon = 23;
+    if (n && e && s && w) {
+        lat = (n + s) / 2;
+        lon = (e + w) / 2;
+    }
+    const map = L.map('map', {
+        center: [lat, lon],
+        zoom: 3,
+        gestureHandling: true,
+        gestureHandlingOptions: {
+            duration: 1500
+        }
+    });
+    L.tileLayer.provider(
+        'Esri.WorldStreetMap'
+    ).addTo(map);
+    L.control.scale({
+        metric: true,
+        imperial: false
+    }).addTo(map);
+
+    return map;
+}
 
 function createExtentMap(n, e, s, w) {
     $('#map').height('300px');
@@ -140,30 +166,4 @@ function copyCitation() {
             tooltip.hide();
         }, 3000);
     });
-}
-
-function _initMap(n, e, s, w) {
-    let lat = -33;
-    let lon = 23;
-    if (n && e && s && w) {
-        lat = (n + s) / 2;
-        lon = (e + w) / 2;
-    }
-    const map = L.map('map', {
-        center: [lat, lon],
-        zoom: 3,
-        gestureHandling: true,
-        gestureHandlingOptions: {
-            duration: 1500
-        }
-    });
-    L.tileLayer.provider(
-        'Esri.WorldStreetMap'
-    ).addTo(map);
-    L.control.scale({
-        metric: true,
-        imperial: false
-    }).addTo(map);
-
-    return map;
 }
