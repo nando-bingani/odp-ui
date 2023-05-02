@@ -108,7 +108,8 @@ function clearFilter() {
     $('#exclusive_interval').val('');
 }
 
-function formatCitation(doi, style) {
+function formatCitation(doi) {
+    const style = $('#citation-style').val();
     $.ajax({
         url: `https://doi.org/${doi}`,
         dataType: 'text',
@@ -118,6 +119,20 @@ function formatCitation(doi, style) {
         success: function (result) {
             $('#citation').html(result);
         }
+    });
+}
+
+function copyCitation() {
+    const text = $('#citation').text();
+    navigator.clipboard.writeText(text).then(function () {
+        const tooltip = new bootstrap.Tooltip($('#copy-citation-btn'), {
+            title: 'Copied!',
+            trigger: 'manual'
+        });
+        tooltip.show();
+        setTimeout(function () {
+            tooltip.hide();
+        }, 3000);
     });
 }
 

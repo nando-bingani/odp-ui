@@ -27,7 +27,7 @@
     {% endif %}
     {% if record.doi %}
         <script>
-            formatCitation('{{ record.doi }}', 'APA')
+            formatCitation('{{ record.doi }}');
         </script>
     {% endif %}
 {% endblock %}

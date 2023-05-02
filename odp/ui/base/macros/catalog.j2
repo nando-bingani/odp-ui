@@ -447,7 +447,7 @@
                             </label>
                         </div>
                         <div class="col">
-                            <select id="citation-style" class="form-control" onchange="formatCitation('{{ doi }}', this.value)">
+                            <select id="citation-style" class="form-control" onchange="formatCitation('{{ doi }}')">
                                 <option value="apa" selected>APA</option>
                                 <option value="bibtex">BibTeX</option>
                                 <option value="chicago-author-date">Chicago</option>
@@ -458,7 +458,7 @@
                             </select>
                         </div>
                         <div class="col-auto">
-                            <button type="button" class="btn btn-primary" disabled>
+                            <button id="copy-citation-btn" type="button" class="btn btn-primary" onclick="copyCitation()">
                                 Copy to clipboard
                             </button>
                         </div>
