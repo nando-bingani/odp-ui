@@ -23,6 +23,7 @@ def index():
     end_date = request.args.get('before')
     exclusive_region = request.args.get('exclusive_region')
     exclusive_interval = request.args.get('exclusive_interval')
+    sort = request.args.get('sort')
     page = request.args.get('page', 1)
 
     facet_api_query = {}
@@ -47,6 +48,7 @@ def index():
         end_date=end_date,
         exclusive_region=exclusive_region,
         exclusive_interval=exclusive_interval,
+        sort=sort,
         page=page,
     )
 

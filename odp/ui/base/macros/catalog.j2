@@ -26,16 +26,35 @@
 {% macro filtered_search_proxy(
     form
 ) %}
-    <div class="form-control p-1 pe-2 mb-4">
-        <div class="input-group">
-            {{ form.q(
-                id='q-proxy',
-                class='form-control bg-transparent border-0 shadow-none',
-                placeholder='Enter search terms...'
-            ) }}
-            <button id="q-proxy-btn" onclick="execFilteredSearchProxy();" class="btn p-1">
-                &#128269;
-            </button>
+    {# Render search box and sort selector.
+       This is a 'proxy' to the filter panel,
+       which holds the actual form data.
+    #}
+    <div class="d-flex">
+        <div class="flex-grow-1 me-3">
+            <div class="form-control p-1 pe-2">
+                <div class="input-group">
+                    {{ form.q(
+                        id='q-proxy',
+                        class='form-control bg-transparent border-0 shadow-none',
+                        placeholder='Enter search terms...'
+                    ) }}
+                    <button id="q-proxy-btn" onclick="execFilteredSearchProxy();" class="btn p-1">
+                        &#128269;
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="form-control p-1 pe-0">
+                <div class="input-group">
+                    {{ form.sort(
+                        id='sort-proxy',
+                        class='form-select bg-transparent border-0 shadow-none',
+                        onchange='execFilteredSearchProxy();'
+                    ) }}
+                </div>
+            </div>
         </div>
     </div>
 {% endmacro %}
@@ -71,6 +90,8 @@
         {% else %}
             {{ form.q(type='hidden') }}
         {% endif %}
+
+        <input id="sort" name="sort" type="hidden" value="">
 
         <div class="mb-4">
             <p class="fw-bold mb-2">

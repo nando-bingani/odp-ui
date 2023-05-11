@@ -103,8 +103,10 @@ function initFilteredSearchProxy() {
 }
 
 function execFilteredSearchProxy() {
-    var q = $('#q-proxy').val();
+    const q = $('#q-proxy').val();
+    const sort = $('#sort-proxy').val();
     $('#q').val(q);
+    $('#sort').val(sort);
     $('#apply-filter').click();
 }
 

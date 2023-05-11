@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 
 from flask import Flask, session
-from wtforms import BooleanField, DateField, FloatField, Form, SelectMultipleField, StringField, TextAreaField, ValidationError
+from wtforms import BooleanField, DateField, FloatField, Form, SelectField, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
 from wtforms.validators import optional
 from wtforms.widgets import CheckboxInput, ListWidget
@@ -63,6 +63,10 @@ class SearchForm(BaseForm):
     before = DateStringField(validators=[optional()], label='End date')
     exclusive_region = BooleanField(label='Exclusive region')
     exclusive_interval = BooleanField(label='Exclusive interval')
+    sort = SelectField(choices=[
+        ('timestamp desc', 'Last updated'),
+        ('rank desc', 'Relevance'),
+    ])
 
     @classmethod
     def add_facets(cls, *facets: str) -> None:
