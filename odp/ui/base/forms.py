@@ -64,8 +64,8 @@ class SearchForm(BaseForm):
     exclusive_region = BooleanField(label='Exclusive region')
     exclusive_interval = BooleanField(label='Exclusive interval')
     sort = SelectField(choices=[
-        ('timestamp desc', 'Last updated'),
         ('rank desc', 'Relevance'),
+        ('timestamp desc', 'Last updated'),
     ])
 
     @classmethod

@@ -94,12 +94,15 @@ function createFilterMap() {
     });
 }
 
-function initFilteredSearchProxy() {
+function initFilteredSearchProxy(defaultSort) {
     $('#q-proxy').keydown(function (e) {
         if (e.which === 13) {
             $('#q-proxy-btn').click();
         }
     });
+    const sort = $('#sort-proxy').val();
+    $('#sort').val(sort || defaultSort);
+    $('#sort-proxy').val(sort || defaultSort);
 }
 
 function execFilteredSearchProxy() {
