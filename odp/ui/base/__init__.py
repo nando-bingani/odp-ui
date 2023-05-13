@@ -32,6 +32,7 @@ def init_app(
     :param template_dir: the app's local template directory
     """
     app.config.update(
+        ODP_ADMIN_URL=config.ODP.ADMIN_URL,
         ODP_VERSION=VERSION,
         SESSION_COOKIE_NAME=f'{app.name}.session',
         SESSION_COOKIE_SAMESITE='Lax',

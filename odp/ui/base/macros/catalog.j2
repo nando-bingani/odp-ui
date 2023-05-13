@@ -212,7 +212,7 @@
 
 {% macro render_metadata(
     record,
-    terms_of_use
+    current_user
 ) %}
     {% set datacite_metadata = record | select_datacite_metadata %}  {# always present #}
     {% set iso19115_metadata = record | select_iso19115_metadata %}  {# might be null #}
@@ -233,6 +233,13 @@
             </div>
             {#</button>#}
         </li>
+        {% if current_user.is_authenticated and 'odp.record:read' in g.user_permissions %}
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{{ config.ODP_ADMIN_URL }}/records/{{ record.id }}" target="_blank">
+                    Edit
+                </a>
+            </li>
+        {% endif %}
     </ul>
 
     <div class="tab-content">
@@ -388,8 +395,7 @@
                             {% endif %}
                             {% if datacite_metadata.immutableResource and datacite_metadata.immutableResource.resourceDownload %}
                                 {{ download_button(
-                                    datacite_metadata.immutableResource.resourceDownload.downloadURL,
-                                    terms_of_use
+                                    datacite_metadata.immutableResource.resourceDownload.downloadURL
                                 ) }}
                             {% endif %}
                         </div>
@@ -406,8 +412,7 @@
 
 
 {% macro download_button(
-    download_url,
-    terms_of_use
+    download_url
 ) %}
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#download-popup">
         Download
@@ -421,7 +426,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    {{ terms_of_use }}
+                    {{ config.CATALOG_TERMS_OF_USE }}
                 </div>
                 <div class="modal-footer">
                     <div class="form-check">

@@ -263,6 +263,23 @@ class ODPUserClient(ODPBaseClient):
 
         return decorator
 
+    def user(self):
+        """Simplified view decorator that can be used in conjunction with
+        `@cli.view()` to populate g.user_permissions if the user is logged in."""
+
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                if current_user.is_authenticated:
+                    g.user_permissions = self._get_permissions(current_user.id)
+
+                # call the view function and return its response
+                return f(*args, **kwargs)
+
+            return decorated_function
+
+        return decorator
+
     @staticmethod
     def handle_error(e: ODPAPIError) -> Response | None:
         return _handle_error(e)

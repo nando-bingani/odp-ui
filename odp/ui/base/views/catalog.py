@@ -2,7 +2,7 @@ import json
 
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
-from odp.ui.base import cli
+from odp.ui.base import api, cli
 from odp.ui.base.forms import SearchForm
 
 bp = Blueprint('catalog', __name__)
@@ -80,14 +80,13 @@ def search():
 
 @bp.route('/<path:id>')
 @cli.view()
+@api.user()
 def view(id):
     catalog_id = current_app.config['CATALOG_ID']
-    terms_of_use = current_app.config['CATALOG_TERMS_OF_USE']
 
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')
 
     return render_template(
         'catalog_record.html',
         record=record,
-        terms_of_use=terms_of_use,
     )
