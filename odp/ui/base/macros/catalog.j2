@@ -382,7 +382,7 @@
                     {{ datacite_metadata.publisher }} ({{ datacite_metadata.publicationYear }})
 
                 {% elif prop == 'Keywords' %}
-                    {{ record.keywords | join(', ') }}
+                    {{ record.keywords | sort | join(', ') }}
 
                 {% elif prop == 'Data' %}
                     <div class="d-flex justify-content-between">
