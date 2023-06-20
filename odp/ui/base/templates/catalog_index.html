@@ -3,14 +3,16 @@
 {% from 'content.j2' import pagination %}
 
 {% set pagination %}
-    {{ pagination(
-        result.page,
-        result.pages,
-        result.total,
-        items_singular='dataset',
-        items_plural='datasets',
-        **dict(request.args)
-    ) }}
+    <div class="my-4 mx-3">
+        {{ pagination(
+            result.page,
+            result.pages,
+            result.total,
+            items_singular='dataset',
+            items_plural='datasets',
+            **dict(request.args)
+        ) }}
+    </div>
 {% endset %}
 
 {% block main %}

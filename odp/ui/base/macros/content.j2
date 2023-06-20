@@ -14,6 +14,16 @@
     {% set hide_id = kwargs.pop('hide_id', false) %}
     {% set query = kwargs.pop('query', '') %}
 
+    {% set pagination %}
+        <div class="mt-4 mx-2">
+            {{ pagination(result.page, result.pages, result.total, query=query, **kwargs) }}
+        </div>
+    {% endset %}
+
+    {% if result.pages > 1 %}
+        {{ pagination }}
+    {% endif %}
+
     <table class="table table-hover mt-2">
         <thead>
             <tr>
@@ -38,7 +48,9 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ pagination(result.page, result.pages, result.total, query=query, **kwargs) }}
+
+    {{ pagination }}
+
 {% endmacro %}
 
 {% macro pagination(
@@ -61,7 +73,7 @@
         {% endif %}
     {% endfor %}
 
-    <div class="d-flex my-4 mx-3">
+    <div class="d-flex">
         <span class="mt-2 fw-bold flex-grow-evenly">
             {{ total }} {{ items_singular if total == 1 else items_plural }} found
         </span>
