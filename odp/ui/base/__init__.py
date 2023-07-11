@@ -5,6 +5,7 @@ from flask import Flask
 from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import odp.logfile
 from odp.config import config
 from odp.ui.base import forms, templates, views
 from odp.ui.client import ODPAnonClient, ODPUserClient
@@ -31,6 +32,8 @@ def init_app(
     :param client_api: create an ODP client (`cli`) for client-authenticated API access
     :param template_dir: the app's local template directory
     """
+    odp.logfile.initialize()
+
     app.config.update(
         ODP_ADMIN_URL=config.ODP.ADMIN_URL,
         ODP_VERSION=VERSION,

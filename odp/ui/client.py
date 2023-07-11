@@ -1,4 +1,5 @@
 import json
+import logging
 import secrets
 from dataclasses import asdict, dataclass
 from functools import wraps
@@ -12,6 +13,8 @@ from redis import Redis
 
 from odp.const import ODPScope
 from odp.lib.client import ODPAPIError, ODPBaseClient, ODPClient
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -222,12 +225,20 @@ class ODPUserClient(ODPBaseClient):
         return f'{self.__class__.__name__}.{self.client_id}.{user_id}.{key}'
 
     def _fetch_token(self, hydra):
+        # logger.debug('_fetch_token')
         if user_id := current_user.get_id():
-            return self.cache.hgetall(self._cache_key(user_id, 'token'))
+            token = self.cache.hgetall(self._cache_key(user_id, 'token'))
+            # logger.debug('token.access_token = %s', token['access_token'])
+            # logger.debug('token.refresh_token = %s', token['refresh_token'])
+            return token
 
     def _update_token(self, hydra, token, refresh_token=None, access_token=None):
+        # logger.debug(f'_update_token({refresh_token=}, {access_token=})')
         if user_id := current_user.get_id():
+            # logger.debug('token.access_token = %s', token['access_token'])
+            # logger.debug('token.refresh_token = %s', token['refresh_token'])
             self.cache.hset(self._cache_key(user_id, 'token'), mapping=token)
+            self.oauth.hydra.token = token
 
     def view(self, scope: ODPScope):
         """Decorate a blueprint view function to enable client-side authorization
