@@ -30,6 +30,9 @@
 
     {% block main %}
         <main class="flex-grow-1 mx-4">
+            {% block content_nav %}
+            {% endblock %}
+
             <p class="h3">
                 {% block heading %}
                 {% endblock %}
