@@ -35,3 +35,19 @@ pre {
 .text-underline-hover:hover {
     text-decoration: underline;
 }
+
+.mims-logo-color {
+    color: #3E8A93;
+}
+
+.mims-bg-color-light {
+    background-color: #72C6D0;
+}
+
+.mims-bg-color-mid {
+    background-color: #408A93;
+}
+
+.mims-bg-color-dark {
+    background-color: #357B83;
+}
