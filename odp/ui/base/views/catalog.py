@@ -50,6 +50,7 @@ def index():
         exclusive_interval=exclusive_interval,
         sort=sort,
         page=page,
+        size=25,
     )
 
     return render_template(
