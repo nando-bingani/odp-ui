@@ -314,7 +314,7 @@
                         {% for related_id in datacite_metadata.relatedIdentifiers | sort(attribute='relationType') %}
                             {% set relation_type = related_id.relationType | datacite_enum | lower %}
                             <li>
-                                This dataset <b>{{ relation_type }}</b>
+                                This digital object <b>{{ relation_type }}</b>
                                 {% if related_id.relatedIdentifierType == 'DOI' %}
                                     {% set doi = related_id.relatedIdentifier | doi %}
                                     {% if doi.startswith('10.15493') %}
