@@ -12,6 +12,7 @@ from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
 from odp.const import ODPScope
+from odp.lib.cache import Cache
 from odp.lib.client import ODPAPIError, ODPBaseClient, ODPClient
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,17 @@ class LocalUser:
 
 class ODPAnonClient(ODPClient):
     """An ODP client for Flask apps, providing anonymous access to the ODP API."""
+
+    def __init__(
+            self,
+            api_url: str,
+            hydra_url: str,
+            client_id: str,
+            client_secret: str,
+            scope: list[str],
+    ) -> None:
+        super().__init__(api_url, hydra_url, client_id, client_secret, scope)
+        self.cache = Cache(client_id)
 
     @staticmethod
     def view():
