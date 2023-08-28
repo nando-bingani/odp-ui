@@ -4,6 +4,7 @@ from random import randint
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
 from odp.const import ODPMetadataSchema
+from odp.lib.client import ODPAPIError
 from odp.ui.base import api, cli
 from odp.ui.base.forms import SearchForm
 
@@ -11,22 +12,28 @@ bp = Blueprint('catalog', __name__)
 
 
 @bp.app_template_filter()
-def doi_title(doi: str) -> str | None:
+def doi_title(doi: str) -> str:
     """Get the title for the given DOI."""
     if cached_title := cli.cache.get(doi, 'title'):
         return cached_title
 
     catalog_id = current_app.config['CATALOG_ID']
-    title = cli.get(
-        f'/catalog/{catalog_id}/getvalue/{doi}',
-        schema_id=ODPMetadataSchema.SAEON_DATACITE4,
-        json_pointer='/titles/0/title',
-    )
-    # titles rarely change, but we must expire them in case they ever do;
-    # keep for between 7 and 14 days, so a large set of child record titles doesn't expire all at once
-    cli.cache.set(doi, 'title', value=title, expiry=randint(604800, 1209600))
+    try:
+        if title := cli.get(
+                f'/catalog/{catalog_id}/getvalue/{doi}',
+                schema_id=ODPMetadataSchema.SAEON_DATACITE4,
+                json_pointer='/titles/0/title',
+        ):
+            # titles rarely change, but we must expire them in case they ever do;
+            # keep for between 7 and 14 days, so a large set of child record titles doesn't expire all at once
+            cli.cache.set(doi, 'title', value=title, expiry=randint(604800, 1209600))
 
-    return title
+            return title
+
+    except ODPAPIError:
+        pass
+
+    return ''
 
 
 @bp.route('/')
