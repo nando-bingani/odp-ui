@@ -321,7 +321,7 @@
                         {% set child_records = datacite_metadata.relatedIdentifiers | selectattr('relationType', '==', 'HasPart') | sort(attribute='relatedIdentifier') %}
                         {% if child_records %}
                             <li>
-                                This digital object <b>has parts</b>:
+                                This is a collection of the following digital objects:
                                 <ul>
                                     {% for related_id in child_records %}
                                         <li>
