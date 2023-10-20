@@ -20,6 +20,12 @@
 
 <body>
 <div class="d-flex flex-column min-vh-100">
+    {% if config.ODP_ENV != 'production' %}
+        <strong class="text-bg-danger text-center sticky-top">
+            Please note that this is a {{ config.ODP_ENV }} site.
+        </strong>
+    {% endif %}
+
     {% block header %}
     {% endblock %}
 

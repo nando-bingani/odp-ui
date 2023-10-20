@@ -36,6 +36,7 @@ def init_app(
 
     app.config.update(
         ODP_ADMIN_URL=config.ODP.ADMIN_URL,
+        ODP_ENV=config.ODP.ENV.value,
         ODP_VERSION=VERSION,
         SESSION_COOKIE_NAME=f'{app.name}.session',
         SESSION_COOKIE_SAMESITE='Lax',
