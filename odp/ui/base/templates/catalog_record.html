@@ -19,16 +19,25 @@
 
 {% block scripts %}
     {{ super() }}
+
     {% set N, E, S, W = record.spatial_north, record.spatial_east, record.spatial_south, record.spatial_west %}
     {% if N is not none and E is not none and S is not none and W is not none %}
         <script>
             createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }});
         </script>
     {% endif %}
+
     {% if record.doi %}
         <script>
             initCitation('apa');
             formatCitation('{{ record.doi }}');
+        </script>
+    {% endif %}
+
+    {% set schemaorg_metadata = record | select_schemaorg_metadata %}
+    {% if schemaorg_metadata %}
+        <script type="application/ld+json">
+            {{ schemaorg_metadata | format_json | safe }}
         </script>
     {% endif %}
 {% endblock %}

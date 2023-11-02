@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from functools import partial
-from typing import Any, Optional
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from flask import Flask
 
-from odp.const import DOI_REGEX, ODPMetadataSchema
+from odp.const import DOI_REGEX
 
 
 def init_app(app: Flask):
@@ -26,23 +26,6 @@ def init_app(app: Flask):
     def date(value: str) -> str:
         dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y')
-
-    @app.template_filter()
-    def select_datacite_metadata(published_record: dict) -> dict:
-        return next(
-            metadata_record['metadata']
-            for metadata_record in published_record['metadata_records']
-            if metadata_record['schema_id'] == ODPMetadataSchema.SAEON_DATACITE4
-        )
-
-    @app.template_filter()
-    def select_iso19115_metadata(published_record: dict) -> Optional[dict]:
-        return next(
-            (metadata_record['metadata']
-             for metadata_record in published_record['metadata_records']
-             if metadata_record['schema_id'] == ODPMetadataSchema.SAEON_ISO19115),
-            None
-        )
 
     @app.template_filter()
     def datacite_enum(value: str) -> str:

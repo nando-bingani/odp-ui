@@ -1,5 +1,6 @@
 import json
 from random import randint
+from typing import Optional
 
 from flask import Blueprint, abort, current_app, make_response, redirect, render_template, request, url_for
 
@@ -34,6 +35,33 @@ def doi_title(doi: str) -> str:
         pass
 
     return ''
+
+
+def _select_metadata(record: dict, schema_id: ODPMetadataSchema) -> Optional[dict]:
+    return next(
+        (metadata_record['metadata']
+         for metadata_record in record['metadata_records']
+         if metadata_record['schema_id'] == schema_id),
+        None
+    )
+
+
+@bp.app_template_filter()
+def select_datacite_metadata(record: dict) -> dict:
+    """Select the DataCite metadata dict."""
+    return _select_metadata(record, ODPMetadataSchema.SAEON_DATACITE4)
+
+
+@bp.app_template_filter()
+def select_iso19115_metadata(record: dict) -> Optional[dict]:
+    """Select the ISO19115 metadata dict, if present."""
+    return _select_metadata(record, ODPMetadataSchema.SAEON_ISO19115)
+
+
+@bp.app_template_filter()
+def select_schemaorg_metadata(record: dict) -> Optional[dict]:
+    """Select the schema.org (JSON-LD) metadata dict, if present."""
+    return _select_metadata(record, ODPMetadataSchema.SCHEMAORG_DATASET)
 
 
 @bp.route('/')
