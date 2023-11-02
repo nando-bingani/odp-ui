@@ -1,7 +1,7 @@
 import json
 from random import randint
 
-from flask import Blueprint, current_app, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, make_response, redirect, render_template, request, url_for
 
 from odp.const import ODPMetadataSchema
 from odp.lib.client import ODPAPIError
@@ -123,3 +123,19 @@ def view(id):
         'catalog_record.html',
         record=record, sdg_vocab=sdg_vocab,
     )
+
+
+@bp.route('/sitemap.xml')
+@cli.view()
+def sitemap():
+    catalog_id = current_app.config['CATALOG_ID']
+
+    catalog = cli.get(f'/catalog/{catalog_id}')
+    try:
+        sitemap_xml = catalog['data']['sitemap.xml']
+    except (KeyError, TypeError):
+        abort(404)
+
+    response = make_response(sitemap_xml)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
