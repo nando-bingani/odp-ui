@@ -13,22 +13,33 @@ from odp.const import DOI_REGEX
 
 
 def init_app(app: Flask):
+    """Set up common template filters."""
+
     @app.template_filter()
     def format_json(obj: Any) -> str:
+        """Return nicely formatted JSON."""
         return json.dumps(obj, indent=4, ensure_ascii=False)
 
     @app.template_filter()
     def timestamp(value: str) -> str:
+        """Return a nicely formatted timestamp from an ISO 8601 datetime string."""
+        if not value:
+            return ''
         dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y, %H:%M %Z')
 
     @app.template_filter()
     def date(value: str) -> str:
+        """Return a nicely formatted date from an ISO 8601 datetime string."""
+        if not value:
+            return ''
         dt = datetime.fromisoformat(value).astimezone(ZoneInfo('Africa/Johannesburg'))
         return dt.strftime('%d %b %Y')
 
     @app.template_filter()
     def datacite_enum(value: str) -> str:
+        """Format a DataCite enum value as a title string.
+        e.g. 'IsDescribedBy' becomes 'Is Described By'"""
         return ' '.join(re.findall('[A-Z][a-z]*', value))
 
     @app.template_filter()
