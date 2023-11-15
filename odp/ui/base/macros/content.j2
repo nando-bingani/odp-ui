@@ -1,15 +1,18 @@
+{% from 'controls.j2' import pagination %}
+
+
 {% macro render_table(result) %}
-{# Render a paginated list result in a table.
-    Column titles can be passed in via columns=[...] or varargs.
-    To disable automatic id column rendering, pass hide_id=true.
-    Additional query params to append to paging URLs can be passed in via query='&...' or kwargs.
-    query should be used when values are repeatable, e.g. query='&collection=CSAG&collection=DFFE'
-    Example usage:
-        {% call(catalog) render_table(catalogs, 'URL', 'Published records') %}
-            <td>{{ catalog.url }}</td>
-            <td>{{ catalog.record_count }}</td>
-        {% endcall %}
-#}
+    {# Render a paginated list result in a table.
+        Column titles can be passed in via columns=[...] or varargs.
+        To disable automatic id column rendering, pass hide_id=true.
+        Additional query params to append to paging URLs can be passed in via query='&...' or kwargs.
+        query should be used when values are repeatable, e.g. query='&collection=CSAG&collection=DFFE'
+        Example usage:
+            {% call(catalog) render_table(catalogs, 'URL', 'Published records') %}
+                <td>{{ catalog.url }}</td>
+                <td>{{ catalog.record_count }}</td>
+            {% endcall %}
+    #}
     {% set columns = kwargs.pop('columns', none) or varargs %}
     {% set hide_id = kwargs.pop('hide_id', false) %}
     {% set query = kwargs.pop('query', '') %}
@@ -53,80 +56,14 @@
 
 {% endmacro %}
 
-{% macro pagination(
-    page,
-    pages,
-    total,
-    items_singular='item',
-    items_plural='items',
-    endpoint='.index',
-    query=''
-) %}
-{# Render pagination info and links.
-    Additional query params to append to paging URLs can be passed in via query='&...' or kwargs.
-    If kwargs includes 'page' it is ignored.
-#}
-    {% set _ = kwargs.pop('page', none) %}
-    {% for param, value in dict(kwargs).items() %}
-        {% if value == '' %}
-            {% set _ = kwargs.pop(param) %}
-        {% endif %}
-    {% endfor %}
-
-    <div class="d-flex">
-        <span class="mt-2 fw-bold flex-grow-evenly">
-            {{ total }} {{ items_singular if total == 1 else items_plural }} found
-        </span>
-
-        {% if pages > 1 %}
-            <nav>
-                <ul class="pagination">
-                    {% set disabled = 'disabled' if page <= 1 %}
-                    <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}{{ query }}">
-                            &laquo;
-                        </a>
-                    </li>
-
-                    <li class="page-item dropdown">
-                        <a class="page-link shadow-none" data-bs-toggle="dropdown" href="#" role="button">
-                            {{ page }}
-                        </a>
-                        <ul class="dropdown-menu overflow-auto" style="max-height:62vh">
-                            {% for num in range(1, pages + 1) %}
-                                {% set active = 'active' if num == page %}
-                                <li><a class="dropdown-item {{ active }}" href="{{ url_for(endpoint, page=num, **kwargs) }}{{ query }}">
-                                    {{ num }}
-                                </a></li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-
-                    {% set disabled = 'disabled' if page >= pages %}
-                    <li class="page-item {{ disabled }}">
-                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}{{ query }}">
-                            &raquo;
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        {% endif %}
-
-        {% if total > 0 %}
-            <span class="mt-2 text-end flex-grow-evenly">
-                Page {{ page }} of {{ pages }}
-            </span>
-        {% endif %}
-    </div>
-{% endmacro %}
 
 {% macro render_tag_table(obj, tags, tag_view, untag_view, enable_buttons) %}
-{# Render a paginated list of tag instances for a record or collection.
-    Use kwargs to specify field='Column heading' pairs.
-    Example usage:
-        {{ render_tag_table(collection, project_tags, '.tag_project', '.untag_project', project_tag_enabled,
-           project='Project', comment='Comment') }}
-#}
+    {# Render a paginated list of tag instances for a record or collection.
+        Use kwargs to specify field='Column heading' pairs.
+        Example usage:
+            {{ render_tag_table(collection, project_tags, '.tag_project', '.untag_project', project_tag_enabled,
+               project='Project', comment='Comment') }}
+    #}
     {% set cols = kwargs.values()|list + ['User', 'Timestamp', ''] %}
     {% set fields = kwargs.keys() %}
     {% call(tag_instance) render_table(tags, columns=cols, hide_id=True) %}
@@ -146,10 +83,11 @@
     </div>
 {% endmacro %}
 
+
 {% macro render_audit_table(audit_records) %}
-{# Render a paginated list of audit records.
-    The callback is for filling in the content of the 'Detail' column for a given audit_record.
-#}
+    {# Render a paginated list of audit records.
+        The callback is for filling in the content of the 'Detail' column for a given audit_record.
+    #}
     {% set orig_caller = caller %}
     {% call(audit_record) render_table(audit_records, 'Table', 'Command', 'Detail', 'User', 'Client', 'Timestamp', hide_id=True) %}
         <td>{{ audit_record.table }}</td>
@@ -163,8 +101,9 @@
     {% endcall %}
 {% endmacro %}
 
+
 {% macro render_button(button) %}
-{# Render a Button object. #}
+    {# Render a Button object. #}
     {% if button.prompt %}
         <form action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post">
             <button type="submit" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
@@ -180,11 +119,12 @@
     {% endif %}
 {% endmacro %}
 
+
 {% macro render_buttons(buttons) %}
-{# Render a row of buttons.
-    Each array item may be a Button object, or a string for custom rendering
-    via a callback.
-#}
+    {# Render a row of buttons.
+        Each array item may be a Button object, or a string for custom rendering
+        via a callback.
+    #}
     <div class="btn-toolbar justify-content-between mt-4">
         {% for button in buttons %}
             {% if button is string %}
@@ -196,10 +136,11 @@
     </div>
 {% endmacro %}
 
+
 {% macro render_item_delete_form(target, item_desc, enabled) %}
-{# Render a table row delete button (small red X).
-   Use kwargs to pass params to the target view function.
-#}
+    {# Render a table row delete button (small red X).
+       Use kwargs to pass params to the target view function.
+    #}
     <form action="{{ url_for(target, **kwargs) }}" method="post">
         <button type="submit" class="btn btn-outline-danger btn-row-delete p-0" {{ 'disabled' if not enabled }}
                 onclick="return confirm('Are you sure you want to delete this {{ item_desc }}?')">
@@ -208,19 +149,20 @@
     </form>
 {% endmacro %}
 
+
 {% macro render_info(obj) %}
-{# Render object info in a table.
-    Property labels can be passed in via kwarg properties=[...] or via varargs.
-    To disable automatic id field rendering, pass kwarg hide_id=True.
-    Example usage:
-    {% call(prop) render_info(collection, 'Name', 'Provider') %}
-        {% if prop == 'Name' %}
-            {{ collection.name }}
-        {% elif prop == 'Provider' %}
-            {{ obj_link('providers', collection.provider_id, collection.provider_key) }}
-        {% endif %}
-    {% endcall %}
-#}
+    {# Render object info in a table.
+        Property labels can be passed in via kwarg properties=[...] or via varargs.
+        To disable automatic id field rendering, pass kwarg hide_id=True.
+        Example usage:
+        {% call(prop) render_info(collection, 'Name', 'Provider') %}
+            {% if prop == 'Name' %}
+                {{ collection.name }}
+            {% elif prop == 'Provider' %}
+                {{ obj_link('providers', collection.provider_id, collection.provider_key) }}
+            {% endif %}
+        {% endcall %}
+    #}
     <table class="table">
         <tbody>
             {% if not kwargs.get('hide_id') %}
@@ -239,11 +181,12 @@
     </table>
 {% endmacro %}
 
+
 {% macro render_form(form, obj, col2_fields) %}
-{# Render a form and populate fields from obj, if provided.
-    To override the default submit target, pass submit_target=url.
-    To override the default cancel target, pass cancel_target=url.
-#}
+    {# Render a form and populate fields from obj, if provided.
+        To override the default submit target, pass submit_target=url.
+        To override the default cancel target, pass cancel_target=url.
+    #}
     {% set submit_target = kwargs.get('submit_target') or
         (url_for('.edit', id=obj.id) if obj else url_for('.create'))
     %}
@@ -274,6 +217,7 @@
         </div>
     </form>
 {% endmacro %}
+
 
 {% macro render_field(field, obj) %}
     <div class="mt-4">
@@ -307,6 +251,7 @@
     </div>
 {% endmacro %}
 
+
 {% macro obj_link(view, obj_id, display_text=None) %}
     {% if obj_id %}
         {% set target = url_for(view ~ '.view', id=obj_id) %}
@@ -316,10 +261,11 @@
     {%- endif %}
 {%- endmacro %}
 
+
 {% macro obj_links(view, obj_ids, newlines=False) %}
-{# Render a list of object links.
-    obj_ids may be a flat list of ids, or a mapping of keys to uuids.
-#}
+    {# Render a list of object links.
+        obj_ids may be a flat list of ids, or a mapping of keys to uuids.
+    #}
     {% if newlines %}
         {% set sep = '<br/>'|safe %}
     {% else %}

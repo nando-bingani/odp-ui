@@ -8,9 +8,78 @@
     </div>
 {% endmacro %}
 
+
 {% macro check_item(
     item_id
 ) %}
     <input class="form-check-input" type="checkbox" value="" id="check-item-{{ item_id }}"
            onchange="checkItem();">
+{% endmacro %}
+
+
+{% macro pagination(
+    page,
+    pages,
+    total,
+    items_singular='item',
+    items_plural='items',
+    endpoint='.index',
+    query=''
+) %}
+    {# Render pagination info and links.
+       Additional query params to append to paging URLs can be passed in via
+       query='&...' or kwargs. If kwargs includes 'page' it is ignored.
+    #}
+    {% set _ = kwargs.pop('page', none) %}
+    {% for param, value in dict(kwargs).items() %}
+        {% if value == '' %}
+            {% set _ = kwargs.pop(param) %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="d-flex">
+        <span class="mt-2 fw-bold flex-grow-evenly">
+            {{ total }} {{ items_singular if total == 1 else items_plural }} found
+        </span>
+
+        {% if pages > 1 %}
+            <nav>
+                <ul class="pagination">
+                    {% set disabled = 'disabled' if page <= 1 %}
+                    <li class="page-item {{ disabled }}">
+                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page - 1, **kwargs) }}{{ query }}">
+                            &laquo;
+                        </a>
+                    </li>
+
+                    <li class="page-item dropdown">
+                        <a class="page-link shadow-none" data-bs-toggle="dropdown" href="#" role="button">
+                            {{ page }}
+                        </a>
+                        <ul class="dropdown-menu overflow-auto" style="max-height:62vh">
+                            {% for num in range(1, pages + 1) %}
+                                {% set active = 'active' if num == page %}
+                                <li><a class="dropdown-item {{ active }}" href="{{ url_for(endpoint, page=num, **kwargs) }}{{ query }}">
+                                    {{ num }}
+                                </a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+
+                    {% set disabled = 'disabled' if page >= pages %}
+                    <li class="page-item {{ disabled }}">
+                        <a class="page-link shadow-none" href="{{ url_for(endpoint, page=page + 1, **kwargs) }}{{ query }}">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+
+        {% if total > 0 %}
+            <span class="mt-2 text-end flex-grow-evenly">
+                Page {{ page }} of {{ pages }}
+            </span>
+        {% endif %}
+    </div>
 {% endmacro %}
