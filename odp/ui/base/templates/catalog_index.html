@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% from 'catalog.j2' import result_list, facet_panel, filter_panel, filtered_search_proxy %}
 {% from 'content.j2' import pagination %}
+{% from 'controls.j2' import check_all %}
 
 {% set pagination %}
     <div class="my-4 mx-3">
@@ -25,6 +26,9 @@
                 <div class="col mx-3">
                     {{ filtered_search_proxy(form) }}
                     {{ pagination }}
+                    <div class="d-flex justify-content-end p-3">
+                        {{ check_all(right=true) }}
+                    </div>
                     {{ result_list(result['items']) }}
                     {% if result.total > 0 %}
                         {{ pagination }}
@@ -39,6 +43,7 @@
     {{ super() }}
     <script>
         createFilterMap();
+        initCheckAll();
         initFilteredSearchProxy('rank desc');
     </script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% from 'content.j2' import render_info %}
+{% from 'controls.j2' import check_item %}
 
 
 {% macro search_box(
@@ -186,21 +187,26 @@
         {% set abstract = metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first %}
 
         <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between">
-                <span>
-                    {% if record.doi %}
-                        DOI: {{ record.doi }}
-                    {% else %}
-                        (No DOI)
-                    {% endif %}
-                </span>
-                <div>
-                    {% for sdg_tag in record.tags | selectattr('tag_id', '==', 'Record.SDG') | sort(attribute='data.keyword') %}
-                        <span>
-                            SDG {{ sdg_tag.data.keyword }}
-                            {%- if not loop.last %}, {% endif %}
-                        </span>
-                    {% endfor %}
+            <div class="card-header d-flex">
+                <div class="d-flex flex-grow-1 justify-content-between">
+                    <span>
+                        {% if record.doi %}
+                            DOI: {{ record.doi }}
+                        {% else %}
+                            (No DOI)
+                        {% endif %}
+                    </span>
+                    <div>
+                        {% for sdg_tag in record.tags | selectattr('tag_id', '==', 'Record.SDG') | sort(attribute='data.keyword') %}
+                            <span>
+                                SDG {{ sdg_tag.data.keyword }}
+                                {%- if not loop.last %}, {% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ms-2">
+                    {{ check_item(record.id) }}
                 </div>
             </div>
 
