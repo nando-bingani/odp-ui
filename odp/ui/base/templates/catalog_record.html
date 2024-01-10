@@ -27,6 +27,13 @@
         </script>
     {% endif %}
 
+    {% set ris_metadata = record | select_ris_metadata %}
+    {% if ris_metadata and ris_metadata.ris %}
+        <script>
+            set_ris("{{ (ris_metadata.ris).replace('\n', '\\n') }}");
+        </script>
+    {% endif %}
+
     {% if record.doi %}
         <script>
             initCitation('apa');

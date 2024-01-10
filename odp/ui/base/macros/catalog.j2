@@ -416,7 +416,7 @@
                         </a>
                         <div>
                             {% if record.doi %}
-                                {{ citation_button(record.doi) }}
+                                {{ citation_button(record) }}
                             {% endif %}
                             {% if datacite_metadata.immutableResource and datacite_metadata.immutableResource.resourceDownload %}
                                 {{ download_button(
@@ -500,8 +500,10 @@
 
 
 {% macro citation_button(
-    doi
+    record
 ) %}
+    {% set ris_metadata = record | select_ris_metadata %} {# might be null #}
+
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#citation-popup">
         Cite
     </button>
@@ -510,7 +512,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5">Cite {{ doi }}</h1>
+                    <h1 class="modal-title fs-5">Cite {{ record.doi }}</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -525,13 +527,16 @@
                             </label>
                         </div>
                         <div class="col">
-                            <select id="citation-style" class="form-control" onchange="formatCitation('{{ doi }}')">
+                            <select id="citation-style" class="form-control" onchange="formatCitation('{{ record.doi }}')">
                                 <option value="apa">APA</option>
                                 <option value="bibtex">BibTeX</option>
                                 <option value="chicago-author-date">Chicago</option>
                                 <option value="elsevier-harvard">Harvard</option>
                                 <option value="ieee">IEEE</option>
                                 <option value="university-of-york-mla">MLA</option>
+                                {% if ris_metadata and ris_metadata.ris %}
+                                    <option value="ris">RIS</option>
+                                {% endif %}
                                 <option value="vancouver">Vancouver</option>
                             </select>
                         </div>
