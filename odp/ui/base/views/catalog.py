@@ -64,6 +64,12 @@ def select_schemaorg_metadata(record: dict) -> Optional[dict]:
     return _select_metadata(record, ODPMetadataSchema.SCHEMAORG_DATASET)
 
 
+@bp.app_template_filter()
+def select_ris_metadata(record: dict) -> Optional[dict]:
+    """Select the RIS metadata dict, if present."""
+    return _select_metadata(record, ODPMetadataSchema.RIS_CITATION)
+
+
 @bp.route('/')
 @cli.view()
 def index():

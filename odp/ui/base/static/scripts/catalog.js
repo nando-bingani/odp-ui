@@ -144,19 +144,30 @@ function initCitation(defaultStyle) {
     $('#citation-style').val(style || defaultStyle);
 }
 
+let ris;
+
+function setRIS(recordRIS) {
+    ris = recordRIS;
+}
+
 function formatCitation(doi) {
     const style = $('#citation-style').val();
-    $.ajax({
-        url: `https://doi.org/${doi}`,
-        dataType: 'text',
-        headers: {
-            Accept: `text/x-bibliography; locale=en-GB; style=${style}`
-        },
-        success: function (result) {
-            $('#citation').html(result);
-            localStorage.setItem('citation-style', style);
-        }
-    });
+    if (style === 'ris') {
+        $('#citation').html(ris);
+        localStorage.setItem('citation-style', style);
+    } else {
+        $.ajax({
+            url: `https://doi.org/${doi}`,
+            dataType: 'text',
+            headers: {
+                Accept: `text/x-bibliography; locale=en-GB; style=${style}`
+            },
+            success: function (result) {
+                $('#citation').html(result);
+                localStorage.setItem('citation-style', style);
+            }
+        });
+    }
 }
 
 function copyCitation() {
