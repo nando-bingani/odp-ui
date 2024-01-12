@@ -30,7 +30,7 @@
     {% set ris_metadata = record | select_ris_metadata %}
     {% if ris_metadata and ris_metadata.ris %}
         <script>
-            recordRIS("{{ (ris_metadata.ris).replace('\n', '\\n') }}");
+            setRIS("{{ (ris_metadata.ris).replace('\n', '\\n') }}");
         </script>
     {% endif %}
 

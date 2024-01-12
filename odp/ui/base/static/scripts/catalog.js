@@ -146,8 +146,8 @@ function initCitation(defaultStyle) {
 
 let ris;
 
-function recordRIS(record_ris) {
-    ris = record_ris;
+function setRIS(recordRIS) {
+    ris = recordRIS;
 }
 
 function formatCitation(doi) {
