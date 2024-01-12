@@ -146,7 +146,7 @@ function initCitation(defaultStyle) {
 
 let ris;
 
-function set_ris(record_ris) {
+function recordRIS(record_ris) {
     ris = record_ris;
 }
 
@@ -154,6 +154,7 @@ function formatCitation(doi) {
     const style = $('#citation-style').val();
     if (style === 'ris') {
         $('#citation').html(ris);
+        localStorage.setItem('citation-style', style);
     } else {
         $.ajax({
             url: `https://doi.org/${doi}`,
