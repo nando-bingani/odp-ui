@@ -16,6 +16,21 @@ def init_app(app: Flask):
     """Set up common template filters."""
 
     @app.template_filter()
+    def bytes(value: int, verbose=False) -> str:
+        """Format a file or memory size value using 1024-based units.
+        `verbose=True` prints the bytes value in brackets if value >= 1024.
+        """
+        if value < 1024:
+            return f'{value} bytes'
+
+        parenthetical = f' ({value} bytes)' if verbose else ''
+
+        for unit in 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB':
+            value /= 1024
+            if value < 1024:
+                return f'{value:.1f} {unit}{parenthetical}'
+
+    @app.template_filter()
     def format_json(obj: Any) -> str:
         """Return nicely formatted JSON."""
         return json.dumps(obj, indent=4, ensure_ascii=False)
