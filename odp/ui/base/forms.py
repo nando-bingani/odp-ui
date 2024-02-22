@@ -2,7 +2,8 @@ import json
 import re
 from datetime import datetime
 
-from flask import Flask, session
+from flask import Flask, request, session
+from werkzeug.utils import secure_filename
 from wtforms import BooleanField, DateField, FloatField, Form, SelectField, SelectMultipleField, StringField, TextAreaField, ValidationError
 from wtforms.csrf.session import SessionCSRF
 from wtforms.validators import optional
@@ -51,6 +52,16 @@ def json_object(form, field):
             raise ValidationError('The value must be a JSON object.')
     except json.JSONDecodeError:
         raise ValidationError('Invalid JSON')
+
+
+def file_required(message='Please select a file.'):
+    """A FileField validator that ensures that a file is selected."""
+
+    def validator(form, field):
+        if not (file := request.files.get(field.id)) or not secure_filename(file.filename):
+            raise ValidationError(message)
+
+    return validator
 
 
 class SearchForm(BaseForm):
