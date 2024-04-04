@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from flask import Flask
 
-from odp.const import DOI_REGEX
+from odp.const import DOI_REGEX, ODPMetadataSchema
 
 
 def init_app(app: Flask):
@@ -62,6 +62,19 @@ def init_app(app: Flask):
         """Pull a DOI out of `value`."""
         if match := re.search(DOI_REGEX[1:], value):
             return match.group(0)
+
+    @app.template_filter()
+    def metadata_title(package_or_record: dict) -> str:
+        """Get the title out of the metadata of the given ODP package/record (API output dict)."""
+        try:
+            if package_or_record['schema_id'] == ODPMetadataSchema.SAEON_DATACITE4:
+                return package_or_record['metadata']['titles'][0]['title']
+            if package_or_record['schema_id'] == ODPMetadataSchema.SAEON_ISO19115:
+                return package_or_record['metadata']['title']
+        except (KeyError, IndexError):
+            pass
+
+        return ''
 
 
 class ButtonTheme(str, Enum):
