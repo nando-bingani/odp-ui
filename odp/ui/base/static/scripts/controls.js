@@ -26,3 +26,14 @@ function checkAll() {
 function checkItem() {
     initCheckAll();
 }
+
+function flashTooltip(elementId, text) {
+    const tooltip = new bootstrap.Tooltip($(`#${elementId}`), {
+        title: text,
+        trigger: 'manual'
+    });
+    tooltip.show();
+    setTimeout(function () {
+        tooltip.hide();
+    }, 3000);
+}

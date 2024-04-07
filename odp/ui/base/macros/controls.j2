@@ -1,10 +1,13 @@
 {% macro check_all(
+    label=false,
     right=false
 ) %}
     <div class="form-check {% if right %}form-check-reverse{% endif %}">
         <input class="form-check-input" type="checkbox" value="" id="check-all"
                onchange="checkAll();">
-        <label class="form-check-label" for="check-all"></label>
+        {% if label %}
+            <label class="form-check-label" for="check-all"></label>
+        {% endif %}
     </div>
 {% endmacro %}
 

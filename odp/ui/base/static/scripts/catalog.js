@@ -173,13 +173,6 @@ function formatCitation(doi) {
 function copyCitation() {
     const text = $('#citation').text();
     navigator.clipboard.writeText(text).then(function () {
-        const tooltip = new bootstrap.Tooltip($('#copy-citation-btn'), {
-            title: 'Copied!',
-            trigger: 'manual'
-        });
-        tooltip.show();
-        setTimeout(function () {
-            tooltip.hide();
-        }, 3000);
+        flashTooltip('copy-citation-btn', 'Copied!');
     });
 }

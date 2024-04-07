@@ -28,6 +28,19 @@ class MultiCheckboxField(SelectMultipleField):
     widget = ListWidget(prefix_label=False)
     option_widget = CheckboxInput()
 
+    def __init__(self, *args, **kwargs):
+        """Set dynamic_choices=True for multi-select fields that are
+        dynamically populated in the browser. This causes the normal
+        choices validation to be skipped."""
+        self.dynamic_choices = kwargs.pop('dynamic_choices', False)
+        super().__init__(*args, **kwargs)
+
+    def pre_validate(self, form):
+        if self.dynamic_choices:
+            return
+
+        super().pre_validate(form)
+
 
 class StringListField(TextAreaField):
     def process_data(self, value):
