@@ -16,7 +16,7 @@ html {
     flex-grow: 1;
 }
 
-pre {
+pre, .pre-wrap {
     white-space: pre-wrap;
 }
 
