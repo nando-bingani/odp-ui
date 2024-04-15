@@ -97,7 +97,7 @@ class Button:
     prompt: str = None
     prompt_args: tuple = ()
     object_id: str = None
-    enabled: bool = True
+    scope: str = None
 
 
 create_btn = partial(
