@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% from 'content.j2' import render_table %}
+
+{% block main %}
+    <main class="flex-grow-1 m-3">
+        {% call(resource) render_table(resources,
+                'Path', 'Title', 'File name', 'File size', 'Content type', 'Provider',
+                hide_id=true, pag_text_white=true
+        ) %}
+            <th scope="row">{{ resource.path }}</th>
+            <td>{{ resource.title }}</td>
+            <td>{{ resource.filename }}</td>
+            <td>{{ resource.size | bytes }}</td>
+            <td>{{ resource.mimetype }}</td>
+            <td>{{ resource.provider_key }}</td>
+        {% endcall %}
+    </main>
+{% endblock %}
