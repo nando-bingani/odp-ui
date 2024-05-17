@@ -3,7 +3,7 @@ import re
 from flask import Flask, session
 from wtforms import BooleanField, FloatField, Form, SelectField, StringField
 from wtforms.csrf.session import SessionCSRF
-from wtforms.validators import optional
+from wtforms.validators import input_required, optional
 
 from odp.ui.base.forms.fields import DateStringField
 
@@ -46,3 +46,17 @@ class SearchForm(BaseForm):
     @staticmethod
     def facet_fieldname(facet: str) -> str:
         return 'facet_' + re.sub(r'\W', '_', facet).lower()
+
+
+class TagKeywordForm(BaseForm):
+    vocabulary = StringField(
+        label='Vocabulary',
+        render_kw={'readonly': ''},
+    )
+    keyword = SelectField(
+        label='Keyword',
+        validators=[input_required()],
+    )
+    comment = StringField(
+        label='Comment',
+    )
