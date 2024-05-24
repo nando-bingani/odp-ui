@@ -49,9 +49,10 @@ def populate_scope_choices(field, scope_types=None):
     ]
 
 
-def populate_role_choices(field):
+def populate_role_choices(field, include_none=False):
     roles = api.get('/role/')['items']
-    field.choices = [
+    field.choices = [('', '(None)')] if include_none else []
+    field.choices += [
         (role['id'], role['id'])
         for role in roles
     ]
