@@ -1,8 +1,8 @@
 from flask import Flask
 
-from odp.ui.base.forms import SearchForm
+from odp.ui.base.forms import CatalogSearchForm
 
 
 def init_app(app: Flask):
     if facets := app.config.get('CATALOG_FACETS'):
-        SearchForm.add_facets(*facets)
+        CatalogSearchForm.add_facets(*facets)

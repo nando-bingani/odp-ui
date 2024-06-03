@@ -7,7 +7,7 @@ from flask import Blueprint, abort, current_app, make_response, redirect, render
 from odp.const import ODPMetadataSchema
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api, cli
-from odp.ui.base.forms import SearchForm
+from odp.ui.base.forms import CatalogSearchForm
 
 bp = Blueprint('catalog', __name__)
 
@@ -92,7 +92,7 @@ def index():
     facet_ui_query = {}
     facet_fields = {}
     for facet_title in facets:
-        facet_field = SearchForm.facet_fieldname(facet_title)
+        facet_field = CatalogSearchForm.facet_fieldname(facet_title)
         facet_fields[facet_title] = facet_field
         if facet_value := request.args.get(facet_field):
             facet_api_query[facet_title] = facet_value
@@ -117,7 +117,7 @@ def index():
 
     return render_template(
         'catalog_index.html',
-        form=SearchForm(request.args),
+        form=CatalogSearchForm(request.args),
         result=result,
         facet_fields=facet_fields,
     )
@@ -125,7 +125,7 @@ def index():
 
 @bp.route('/search', methods=('POST',))
 def search():
-    form = SearchForm(request.form)
+    form = CatalogSearchForm(request.form)
     query = form.data
     query.pop('csrf_token')
     if not query['exclusive_region']:
@@ -135,7 +135,7 @@ def search():
 
     facets = current_app.config['CATALOG_FACETS']
     for facet_title in facets:
-        if not query[facet_field := SearchForm.facet_fieldname(facet_title)]:
+        if not query[facet_field := CatalogSearchForm.facet_fieldname(facet_title)]:
             query.pop(facet_field)
 
     return redirect(url_for('.index', **query))

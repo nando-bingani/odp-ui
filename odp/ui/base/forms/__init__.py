@@ -22,7 +22,7 @@ class BaseForm(Form):
             return session
 
 
-class SearchForm(BaseForm):
+class CatalogSearchForm(BaseForm):
     q = StringField(filters=[lambda s: s.strip() if s else s])
     n = FloatField()
     e = FloatField()
