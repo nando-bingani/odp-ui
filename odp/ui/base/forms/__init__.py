@@ -3,8 +3,9 @@ import re
 from flask import Flask, session
 from wtforms import BooleanField, FloatField, Form, SelectField, StringField
 from wtforms.csrf.session import SessionCSRF
-from wtforms.validators import input_required, optional
+from wtforms.validators import data_required, input_required, optional, regexp
 
+from odp.const import DOI_REGEX
 from odp.ui.base.forms.fields import DateStringField
 
 
@@ -46,6 +47,24 @@ class CatalogSearchForm(BaseForm):
     @staticmethod
     def facet_fieldname(facet: str) -> str:
         return 'facet_' + re.sub(r'\W', '_', facet).lower()
+
+
+class ResourceSearchForm(BaseForm):
+    # disambiguate from the package's provider_id which might be on the same page
+    resource_provider_id = SelectField(
+        label='Provider',
+        validators=[input_required()],
+    )
+    include_packaged = BooleanField(
+        label='Show already-packaged resources',
+    )
+
+
+class TagDOIForm(BaseForm):
+    doi = StringField(
+        label='DOI',
+        validators=[data_required(), regexp(DOI_REGEX)],
+    )
 
 
 class TagKeywordForm(BaseForm):

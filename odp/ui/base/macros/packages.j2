@@ -1,0 +1,117 @@
+{% from 'controls.j2' import check_all %}
+{% from 'content.j2' import render_field %}
+
+
+{% macro resources_popup_button(
+    form
+) %}
+    <button type="button" class="btn btn-outline-info btn-action" data-bs-toggle="modal" data-bs-target="#resources-popup">
+        Add Resources
+    </button>
+
+    <div class="modal fade" id="resources-popup" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Add resources to package</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-auto">
+                            {{ form.resource_provider_id.label(class='col-form-label') }}
+                        </div>
+                        <div class="col">
+                            {{ form.resource_provider_id(class='form-control') }}
+                        </div>
+                        <div class="col-auto">
+                            <div class="form-check form-check-reverse mt-2">
+                                {{ form.include_packaged(class='form-check-input') }}
+                                {{ form.include_packaged.label(class='form-check-label') }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button id="fetch-resources" onclick="fetchResources();" class="btn btn-outline-info">
+                                Find
+                            </button>
+                        </div>
+                    </div>
+
+                    <table class="table table-hover mt-2">
+                        <thead>
+                        <tr>
+                            <th scope="col">{{ check_all() }}</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">File name</th>
+                            <th scope="col">File size</th>
+                            <th scope="col">Content type</th>
+                            <th scope="col">Archive</th>
+                        </tr>
+                        </thead>
+                        <tbody id="resources-table-body"></tbody>
+                    </table>
+
+                    <p id="no-results" class="text-center">No results</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button id="add-resources-btn" type="button" class="btn btn-primary" onclick="addResources();">
+                        Add selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+
+{% macro tag_popup_button(
+    button
+) %}
+    {% set disabled = button.scope and button.scope not in g.user_permissions %}
+
+    <button type="button" class="btn btn-outline-success btn-action"
+            data-bs-toggle="modal" data-bs-target="#tag-popup" {{ 'disabled' if disabled }}>
+        {{ button.label }}
+    </button>
+
+    <div class="modal fade" id="tag-popup" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">{{ button.label }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="tag-form" action="{{ url_for(button.tag_endpoint, id=button.object_id) }}" method="post">
+                        {{ button.form.csrf_token }}
+                        {% for field in button.form if field.id != 'csrf_token' %}
+                            {{ render_field(field, obj) }}
+                        {% endfor %}
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <form id="tag-delete-form" method="post"
+                          action="{{ url_for(button.untag_endpoint, id=object_id, tag_instance_id=button.tag_instance.id if button.tag_instance) }}"/>
+
+                    <button type="submit" form="tag-form" class="btn btn-success btn-action">
+                        Save
+                    </button>
+                    <button type="submit" form="tag-delete-form" class="btn btn-danger btn-action"
+                            onclick="return confirm('Are you sure you want to delete the {{ button.label }} tag?')">
+                        Delete
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-action" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
