@@ -11,6 +11,7 @@ from flask import Flask, Response, flash, g, redirect, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
+from odp.config import config
 from odp.const import ODPScope
 from odp.lib.cache import Cache
 from odp.lib.client import ODPAPIError, ODPBaseClient, ODPClient
@@ -172,7 +173,8 @@ class ODPUserClient(ODPBaseClient):
         self.cache.set(self._cache_key(user_id, 'user'), json.dumps(asdict(localuser)))
 
         try:
-            token_data = self.get('/token/')
+            # force use of the ODP API token endpoint, in case we are cliented to another API
+            token_data = self.get('/token/', api_url=config.ODP.API_URL)
             user_permissions = token_data['permissions']
             self.cache.set(self._cache_key(user_id, 'permissions'), json.dumps(user_permissions))
 
