@@ -7,7 +7,7 @@ from typing import Optional
 
 import requests
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, Response, flash, g, redirect, request, url_for
+from flask import Flask, Response, flash, g, redirect, request, url_for, session
 from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
@@ -190,7 +190,9 @@ class ODPUserClient(ODPBaseClient):
 
         login_user(localuser)
 
-        return redirect(url_for('home.index'))
+        active_page = session.get('active_page_url') or url_for('home.index')
+
+        return redirect(active_page)
 
     def _logout(self):
         """Initiate logout.
