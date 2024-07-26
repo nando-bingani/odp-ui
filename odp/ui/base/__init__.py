@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import redis
-from flask import Flask
+from flask import Flask, session, request
 from jinja2 import ChoiceLoader, FileSystemLoader
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -97,3 +97,8 @@ def init_app(
 
     # trust the X-Forwarded-* headers set by the proxy server
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_prefix=1)
+
+    @app.context_processor
+    def set_active_url():
+        session['active_page_url'] = request.url
+        return dict()
