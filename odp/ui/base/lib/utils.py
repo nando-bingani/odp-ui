@@ -14,7 +14,7 @@ def pagify(item_list: list) -> dict:
 
 
 def populate_collection_choices(field, include_none=False):
-    collections = api.get('/collection/', sort='key')['items']
+    collections = api.get('/collection/', sort='key', size=0)['items']
     field.choices = [('', '(None)')] if include_none else []
     field.choices += [
         (collection['id'], Markup(f"{collection['key']} &mdash; {collection['name']}"))
@@ -23,7 +23,7 @@ def populate_collection_choices(field, include_none=False):
 
 
 def populate_provider_choices(field, include_none=False):
-    providers = api.get('/provider/', sort='key')['items']
+    providers = api.get('/provider/', sort='key', size=0)['items']
     field.choices = [('', '(None)')] if include_none else []
     field.choices += [
         (provider['id'], Markup(f"{provider['key']} &mdash; {provider['name']}"))
@@ -32,7 +32,7 @@ def populate_provider_choices(field, include_none=False):
 
 
 def populate_metadata_schema_choices(field):
-    schemas = api.get('/schema/', schema_type='metadata')['items']
+    schemas = api.get('/schema/', schema_type='metadata', size=0)['items']
     field.choices = [
         (schema['id'], schema['id'])
         for schema in schemas
@@ -41,7 +41,7 @@ def populate_metadata_schema_choices(field):
 
 
 def populate_scope_choices(field, scope_types=None):
-    scopes = api.get('/scope/')['items']
+    scopes = api.get('/scope/', size=0)['items']
     field.choices = [
         (scope['id'], scope['id'])
         for scope in scopes
@@ -50,7 +50,7 @@ def populate_scope_choices(field, scope_types=None):
 
 
 def populate_role_choices(field, include_none=False):
-    roles = api.get('/role/')['items']
+    roles = api.get('/role/', size=0)['items']
     field.choices = [('', '(None)')] if include_none else []
     field.choices += [
         (role['id'], role['id'])
@@ -59,7 +59,7 @@ def populate_role_choices(field, include_none=False):
 
 
 def populate_keyword_choices(field, vocabulary_id, include_none=False):
-    vocabulary = api.get(f'/vocabulary/{vocabulary_id}')
+    vocabulary = api.get(f'/vocabulary/{vocabulary_id}', size=0)
     field.choices = [('', '(None)')] if include_none else []
     field.choices += [
         (term['id'], term['id'])
@@ -68,7 +68,7 @@ def populate_keyword_choices(field, vocabulary_id, include_none=False):
 
 
 def populate_sdg_choices(field, vocabulary_id, include_none=False):
-    vocabulary = api.get(f'/vocabulary/{vocabulary_id}')
+    vocabulary = api.get(f'/vocabulary/{vocabulary_id}', size=0)
     field.choices = [('', '(None)')] if include_none else []
     field.choices += [
         (term['id'], f"{term['id']} - {term['data']['title']}")
