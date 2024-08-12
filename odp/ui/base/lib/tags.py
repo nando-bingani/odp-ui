@@ -6,7 +6,7 @@ from flask_login import current_user
 from odp.const import ODPCollectionTag, ODPRecordTag, ODPScope, ODPVocabulary
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import BaseForm, TagKeywordForm
+from odp.ui.base.forms import BaseForm, KeywordTagForm
 from odp.ui.base.lib.utils import pagify, populate_keyword_choices
 
 
@@ -140,12 +140,12 @@ def tag_keyword(
     obj = api.get(f'/{obj_type}/{obj_id}')
 
     if request.method == 'POST':
-        form = TagKeywordForm(request.form)
+        form = KeywordTagForm(request.form)
     else:
         # (existing) vocabulary tags have cardinality 'multi', so this will
         # always be an insert - i.e. don't populate form for update
         # todo: generalize; a vocabulary tag may have any cardinality
-        form = TagKeywordForm(data=dict(vocabulary=vocab_id.value))
+        form = KeywordTagForm(data=dict(vocabulary=vocab_id.value))
 
     if not keyword_choices_fn:
         keyword_choices_fn = populate_keyword_choices
