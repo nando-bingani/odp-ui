@@ -1,5 +1,6 @@
 from markupsafe import Markup
 
+from odp.const import ODPKeyword
 from odp.ui.base import api
 
 
@@ -64,6 +65,14 @@ def populate_keyword_choices(field, vocabulary_id, include_none=False):
     field.choices += [
         (term['id'], term['id'])
         for term in vocabulary['terms']
+    ]
+
+
+def populate_affiliation_choices(field):
+    keywords = api.get(f'/keyword/{ODPKeyword.INSTITUTION}/', size=0)
+    field.choices = [
+        (keyword['id'], keyword['id'].removeprefix('Institution:'))
+        for keyword in keywords['items']
     ]
 
 

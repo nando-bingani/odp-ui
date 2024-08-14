@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% from 'content.j2' import render_form %}
+{% from 'packages.j2' import resources_popup_button %}
+
+{% block web_title %}
+    {{ super() }} |
+    {% block heading %}
+        {% if package %}
+            Package: {{ package.id }}
+        {% else %}
+            Create Package
+        {% endif %}
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+    {{ resources_popup_button(resource_search_form) }}
+    {{ render_form(form, package, ['resource_ids']) }}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        initResourcesPopup();
+    </script>
+{% endblock %}

@@ -1,38 +1,19 @@
-from wtforms import BooleanField, DateTimeField, FieldList, FormField, SelectField, StringField
+from wtforms import BooleanField, SelectField, StringField
 from wtforms.validators import data_required, input_required, regexp
 
 from odp.const import DOI_REGEX
 from odp.ui.base.forms import BaseForm
-from odp.ui.base.forms._keywords import InstitutionKeywordForm
+from odp.ui.base.forms.fields import MultiCheckboxField
 
 
-class TagBaseForm(BaseForm):
-    tag_id = StringField(
-        label='Tag id',
-        render_kw={'readonly': ''},
-    )
-    user_id = StringField(
-        label='User id',
-        render_kw={'readonly': ''},
-    )
-    user_name = StringField(
-        label='User name',
-        render_kw={'readonly': ''},
-    )
-    timestamp = DateTimeField(
-        label='Timestamp',
-        render_kw={'readonly': ''},
-    )
-
-
-class DOITagForm(TagBaseForm):
+class DOITagForm(BaseForm):
     doi = StringField(
         label='DOI',
         validators=[data_required(), regexp(DOI_REGEX)],
     )
 
 
-class KeywordTagForm(TagBaseForm):
+class KeywordTagForm(BaseForm):
     vocabulary = StringField(
         label='Vocabulary',
         render_kw={'readonly': ''},
@@ -46,16 +27,17 @@ class KeywordTagForm(TagBaseForm):
     )
 
 
-class ContributorTagForm(TagBaseForm):
+class ContributorTagForm(BaseForm):
     name = StringField(
-        label='Name',
+        label='Full name',
         validators=[data_required()],
     )
-    orcid = SelectField(
+    orcid = StringField(
         label='ORCID',
     )
     is_author = BooleanField(
-        label='Cited author'
+        label='Author',
+        description='Check this box if the contributor must be cited as an author of the data package.',
     )
     author_role = SelectField(
         label='Role',
@@ -75,10 +57,7 @@ class ContributorTagForm(TagBaseForm):
             "processor"
         ],
     )
-    affiliations = FieldList(SelectField(
-        label='Affiliation'
-    ))
-    unlisted_affiliations = FieldList(FormField(
-        InstitutionKeywordForm,
-        label='Unlisted affiliation',
-    ))
+    affiliations = MultiCheckboxField(
+        label='Affiliation(s)',
+        description='Click the Add Institution button if your institution is not listed here.',
+    )

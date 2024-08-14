@@ -1,0 +1,59 @@
+{% from 'content.j2' import render_field %}
+
+{% macro modal_form_dialog(
+    button,
+    form,
+    modal_id,
+    edit_icon=false
+) %}
+    {# Render a Button instance that pops up a modal form dialog.
+        Optionally override default field rendering by using a callback.
+        Set edit_icon=true to render a small generic edit button.
+    #}
+    {% set disabled = button.scope and button.scope not in g.user_permissions %}
+
+    {% if edit_icon %}
+        <button type="button" class="btn btn-outline-primary btn-row-delete p-0"
+                data-bs-toggle="modal" data-bs-target="#{{ modal_id }}" {{ 'disabled' if disabled }}>
+            {{ '&#128393;' | safe }}
+        </button>
+    {% else %}
+        <button type="button" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
+                data-bs-toggle="modal" data-bs-target="#{{ modal_id }}" {{ 'disabled' if disabled }}>
+            {{ button.label }}
+        </button>
+    {% endif %}
+
+    <div class="modal fade" id="{{ modal_id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">{{ button.label }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="{{ modal_id }}-form" action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post">
+                        {{ form.csrf_token }}
+                        {% if caller %}
+                            {{ caller() }}
+                        {% else %}
+                            {% for field in form if field.id != 'csrf_token' %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" form="{{ modal_id }}-form" class="btn btn-outline-primary btn-action">
+                        Save
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-action" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}

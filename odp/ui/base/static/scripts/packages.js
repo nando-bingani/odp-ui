@@ -70,3 +70,14 @@ function addResources() {
         flashTooltip('add-resources-btn', 'No resources selected');
     }
 }
+
+function setAuthor() {
+    const isAuthor = $('#is_author').is(':checked');
+    if (isAuthor) {
+        $('#author_role_grp').removeClass('visually-hidden');
+        $('#contributor_role_grp').addClass('visually-hidden');
+    } else {
+        $('#author_role_grp').addClass('visually-hidden');
+        $('#contributor_role_grp').removeClass('visually-hidden');
+    }
+}

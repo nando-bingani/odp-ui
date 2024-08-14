@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% from 'content.j2' import render_tabs, render_info, render_table, render_item_delete_form, render_field %}
+{% from 'forms.j2' import modal_form_dialog %}
+
+{% block web_title %}
+    {{ super() }} |
+    {% block heading %}
+        Package: {{ package.title }}
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+    {% call(tab_id) render_tabs(
+        active_tab_id,
+        summary='Summary',
+        contributors='Contributors',
+        extent='Extent',
+        resources='Resources'
+    ) %}
+        {% if tab_id == 'summary' %}
+            {% set doi_enabled = doi_btn.scope in g.user_permissions %}
+
+            {% call(prop) render_info(package,
+                    'Title', 'DOI', 'Resources', 'Provider', 'Status', 'Last modified', hide_id=true
+            ) %}
+
+                {% if prop == 'Title' %}
+                    {{ package.title }}
+
+                {% elif prop == 'DOI' %}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {{ doi_tag.data.doi if doi_tag }}
+                        </div>
+                        <div class="row gx-1">
+                            {% if doi_enabled and doi_tag %}
+                                <div class="col">
+                                    {{ modal_form_dialog(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
+                                </div>
+                                <div class="col">
+                                    {{ render_item_delete_form(
+                                        '.untag_doi', 'DOI', true,
+                                        id=package.id, tag_instance_id=doi_tag.id) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% elif prop == 'Resources' %}
+                    {{ package.resource_ids | length }}
+
+                {% elif prop == 'Provider' %}
+                    {{ package.provider_key }}
+
+                {% elif prop == 'Status' %}
+                    {{ package.status }}
+
+                {% elif prop == 'Last modified' %}
+                    {{ package.timestamp | timestamp }}
+
+                {% endif %}
+            {% endcall %}
+
+            {% if doi_enabled and not doi_tag %}
+                <div class="mt-4">
+                    {{ modal_form_dialog(doi_btn, doi_form, 'tag-doi') }}
+                </div>
+            {% endif %}
+
+        {% elif tab_id == 'contributors' %}
+            {% set contrib_enabled = contrib_btn.scope in g.user_permissions %}
+
+            {% call(contrib_tag) render_table(contrib_tags,
+                    'Name', 'Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
+            ) %}
+                <td>
+                    {{ contrib_tag.data.name }}
+                </td>
+                <td>
+                    {{ '&#9989;' | safe if contrib_tag.data.is_author }}
+                </td>
+                <td>
+                    {{ contrib_tag.data.role }}
+                </td>
+                <td>
+                    {{ contrib_tag.data.orcid }}
+                </td>
+                <td>
+                    {{ contrib_tag.data.affiliations | join('<br/>') | safe }}
+                </td>
+                {% if contrib_enabled %}
+                    <td class="text-end">
+                        {{ render_item_delete_form(
+                            '.untag_contributor', 'contributor', true,
+                            id=package.id, tag_instance_id=contrib_tag.id) }}
+                    </td>
+                {% endif %}
+            {% endcall %}
+
+            {% if contrib_enabled %}
+                <div class="mt-4">
+                    {% call modal_form_dialog(contrib_btn, contrib_form, 'tag-contributor') %}
+                        {{ render_field(contrib_form.name) }}
+                        {{ render_field(contrib_form.is_author, onchange='setAuthor();') }}
+                        <div id="author_role_grp" class="visually-hidden">
+                            {{ render_field(contrib_form.author_role) }}
+                        </div>
+                        <div id="contributor_role_grp">
+                            {{ render_field(contrib_form.contributor_role) }}
+                        </div>
+                        {{ render_field(contrib_form.orcid) }}
+                        {{ render_field(contrib_form.affiliations, style="height: 150px") }}
+                    {% endcall %}
+                </div>
+            {% endif %}
+
+        {% elif tab_id == 'extent' %}
+
+        {% elif tab_id == 'resources' %}
+            {% call(resource) render_table(resources,
+                    'Title', 'File name', 'File size', 'Content type', 'Provider',
+                    hide_id=true
+            ) %}
+                <td>{{ resource.title }}</td>
+                <td>{{ resource.filename }}</td>
+                <td>{{ resource.size | bytes }}</td>
+                <td>{{ resource.mimetype }}</td>
+                <td>{{ resource.provider_key }}</td>
+            {% endcall %}
+
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        {% if active_modal_id %}
+            $(window).on('load', function () {
+                $('#{{ active_modal_id }}').modal('show');
+            });
+        {% endif %}
+        setAuthor();
+    </script>
+{% endblock %}

@@ -235,30 +235,69 @@
 {% macro render_field(field, obj) %}
     <div class="mt-4">
         {{ field.label(class='form-label') }}
+
         {% if obj and field.id == 'id' %}
             {{ field(class='form-control', readonly='') }}
+
         {% elif field.type == 'BooleanField' %}
             <div class="form-check">
-                {{ field(class='form-check-input') }}
+                {{ field(class='form-check-input', **kwargs) }}
             </div>
+
         {% else %}
             {% set classes = ['form-control'] %}
             {% if field.type == 'JSONTextField' %}
                 {% set classes = classes + ['font-monospace'] %}
-            {% elif field.type in ('MultiCheckboxField', 'RadioField') %}
+            {% elif field.type == 'RadioField' %}
+                {% set classes = classes + ['list-unstyled'] %}
+            {% elif field.type == 'MultiCheckboxField' %}
                 {% set classes = classes + ['list-unstyled'] %}
             {% endif %}
             {% if field.errors %}
                 {% set classes = classes + ['is-invalid'] %}
             {% endif %}
-            {{ field(class=classes|join(' '), spellcheck='false') }}
+
+            {% if field.type == 'MultiCheckboxField' %}
+                {% set style = kwargs.pop('style', '') %}
+                <div class="overflow-scroll" style="{{ style }}">
+                    {{ field(class=classes|join(' '), **kwargs) }}
+                </div>
+            {% else %}
+                {{ field(class=classes|join(' '), spellcheck='false', **kwargs) }}
+            {% endif %}
         {% endif %}
+
         {% if field.description %}
             <div class="form-text">{{ field.description }}</div>
         {% endif %}
+
         {% for error in field.errors %}
             <div class="invalid-feedback">
                 {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+
+{% macro render_tabs(active_tab_id) %}
+    {# Render a tabbed interface.
+        Pass tab_id='Tab Title' pairs via kwargs and render the content
+        of each tab via a call(tab_id) callback.
+    #}
+    <ul class="nav nav-tabs">
+        {% for tab_id, tab_title in kwargs.items() %}
+            <li class="nav-item">
+                <button class="nav-link {{ 'active' if tab_id == active_tab_id }}" data-bs-toggle="tab" data-bs-target="#{{ tab_id }}">
+                    {{ tab_title }}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content">
+        {% for tab_id in kwargs %}
+            <div id="{{ tab_id }}" class="tab-pane fade {{ 'show active' if tab_id == active_tab_id }}">
+                {{ caller(tab_id) }}
             </div>
         {% endfor %}
     </div>

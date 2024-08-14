@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 from flask import Flask
 
 from odp.const import DOI_REGEX, ODPMetadataSchema
-from odp.ui.base.forms import BaseForm
 
 
 def init_app(app: Flask):
@@ -122,14 +121,3 @@ delete_btn = partial(
     theme=ButtonTheme.danger,
     prompt='Are you sure you want to delete %s? This cannot be undone!',
 )
-
-
-@dataclass
-class TagPopupButton:
-    label: str
-    form: BaseForm
-    scope: str
-    object_id: str
-    tag_instance: dict | None
-    tag_endpoint: str
-    untag_endpoint: str

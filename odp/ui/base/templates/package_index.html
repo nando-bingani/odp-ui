@@ -1,17 +1,27 @@
 {% extends 'base.html' %}
-{% from 'content.j2' import render_table %}
+{% from 'content.j2' import render_table, render_buttons, obj_link %}
 
-{% block main %}
-    <main class="flex-grow-1 m-3">
-        {% call(package) render_table(packages,
-                'Title', 'DOI', 'Resources', 'Last modified', 'Provider',
-                hide_id=true, pag_text_white=true
-        ) %}
-            <th scope="row">{{ package | metadata_title or '(No title)' }}</th>
-            <td>{{ package.record_doi or '' }}</td>
-            <td>{{ package.resource_ids | length }}</td>
-            <td>{{ package.timestamp | timestamp }}</td>
-            <td>{{ package.provider_key }}</td>
-        {% endcall %}
-    </main>
+{% block web_title %}
+    {{ super() }} |
+    {% block heading %}
+        Packages
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+    {{ render_buttons(buttons) }}
+
+    {% call(package) render_table(packages,
+            'Title', 'DOI', 'Resources', 'Provider', 'Status', 'Last modified',
+            hide_id=true
+    ) %}
+        <th scope="row">
+            {{ obj_link('packages', package.id, package.title) }}
+        </th>
+        <td>{{ package.record_doi or '' }}</td>
+        <td>{{ package.resource_ids | length }}</td>
+        <td>{{ package.provider_key }}</td>
+        <td>{{ package.status }}</td>
+        <td>{{ package.timestamp | timestamp }}</td>
+    {% endcall %}
 {% endblock %}
