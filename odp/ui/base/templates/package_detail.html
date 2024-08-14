@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% from 'content.j2' import render_tabs, render_info, render_table, render_item_delete_form, render_field %}
-{% from 'forms.j2' import modal_form_dialog %}
+{% from 'content.j2' import render_tabs, render_info, render_table %}
+{% from 'forms.j2' import render_button_dialog_form, render_field, render_delete_button_form %}
 
 {% block web_title %}
     {{ super() }} |
@@ -35,10 +35,10 @@
                         <div class="row gx-1">
                             {% if doi_enabled and doi_tag %}
                                 <div class="col">
-                                    {{ modal_form_dialog(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
+                                    {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
                                 </div>
                                 <div class="col">
-                                    {{ render_item_delete_form(
+                                    {{ render_delete_button_form(
                                         '.untag_doi', 'DOI', true,
                                         id=package.id, tag_instance_id=doi_tag.id) }}
                                 </div>
@@ -63,7 +63,7 @@
 
             {% if doi_enabled and not doi_tag %}
                 <div class="mt-4">
-                    {{ modal_form_dialog(doi_btn, doi_form, 'tag-doi') }}
+                    {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi') }}
                 </div>
             {% endif %}
 
@@ -90,7 +90,7 @@
                 </td>
                 {% if contrib_enabled %}
                     <td class="text-end">
-                        {{ render_item_delete_form(
+                        {{ render_delete_button_form(
                             '.untag_contributor', 'contributor', true,
                             id=package.id, tag_instance_id=contrib_tag.id) }}
                     </td>
@@ -99,7 +99,7 @@
 
             {% if contrib_enabled %}
                 <div class="mt-4">
-                    {% call modal_form_dialog(contrib_btn, contrib_form, 'tag-contributor') %}
+                    {% call render_button_dialog_form(contrib_btn, contrib_form, 'tag-contributor') %}
                         {{ render_field(contrib_form.name) }}
                         {{ render_field(contrib_form.is_author, onchange='setAuthor();') }}
                         <div id="author_role_grp" class="visually-hidden">
