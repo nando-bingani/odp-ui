@@ -38,8 +38,7 @@
                                     {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
                                 </div>
                                 <div class="col">
-                                    {{ render_delete_button_form(
-                                        '.untag_doi', 'DOI', true,
+                                    {{ render_delete_button_form('.untag_doi', 'DOI',
                                         id=package.id, tag_instance_id=doi_tag.id) }}
                                 </div>
                             {% endif %}
@@ -73,25 +72,15 @@
             {% call(contrib_tag) render_table(contrib_tags,
                     'Name', 'Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
             ) %}
-                <td>
-                    {{ contrib_tag.data.name }}
-                </td>
-                <td>
-                    {{ '&#9989;' | safe if contrib_tag.data.is_author }}
-                </td>
-                <td>
-                    {{ contrib_tag.data.role }}
-                </td>
-                <td>
-                    {{ contrib_tag.data.orcid }}
-                </td>
-                <td>
-                    {{ contrib_tag.data.affiliations | join('<br/>') | safe }}
-                </td>
+                <td>{{ contrib_tag.data.name }}</td>
+                <td>{{ '&#9989;' | safe if contrib_tag.data.is_author }}</td>
+                <td>{{ contrib_tag.data.role }}</td>
+                <td>{{ contrib_tag.data.orcid }}</td>
+                <td>{{ contrib_tag.data.affiliations | join('<br/>') | safe }}</td>
+
                 {% if contrib_enabled %}
                     <td class="text-end">
-                        {{ render_delete_button_form(
-                            '.untag_contributor', 'contributor', true,
+                        {{ render_delete_button_form('.untag_contributor', 'contributor',
                             id=package.id, tag_instance_id=contrib_tag.id) }}
                     </td>
                 {% endif %}
@@ -101,7 +90,7 @@
                 <div class="mt-4">
                     {% call render_button_dialog_form(contrib_btn, contrib_form, 'tag-contributor') %}
                         {{ render_field(contrib_form.name) }}
-                        {{ render_field(contrib_form.is_author, onchange='setAuthor();') }}
+                        {{ render_field(contrib_form.is_author, onchange='toggleAuthor();') }}
                         <div id="author_role_grp" class="visually-hidden">
                             {{ render_field(contrib_form.author_role) }}
                         </div>
@@ -126,8 +115,20 @@
                 <td>{{ resource.size | bytes }}</td>
                 <td>{{ resource.mimetype }}</td>
                 <td>{{ resource.provider_key }}</td>
+
+                {% if can_edit %}
+                    <td class="text-end">
+                        {{ render_delete_button_form('.delete_resource', 'resource',
+                            id=package.id, resource_id=resource.id) }}
+                    </td>
+                {% endif %}
             {% endcall %}
 
+            {% if can_edit %}
+                <div class="mt-4">
+                    {{ render_button_dialog_form(resource_btn, resource_form, 'add-resource', file_upload=true) }}
+                </div>
+            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -140,6 +141,6 @@
                 $('#{{ active_modal_id }}').modal('show');
             });
         {% endif %}
-        setAuthor();
+        toggleAuthor();
     </script>
 {% endblock %}

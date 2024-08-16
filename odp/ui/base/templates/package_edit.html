@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% from 'forms.j2' import render_form %}
-{% from 'packages.j2' import resources_popup_button %}
 
 {% block web_title %}
     {{ super() }} |
@@ -14,13 +13,5 @@
 {% endblock %}
 
 {% block content %}
-{#    {{ resources_popup_button(resource_search_form) }}#}
-    {{ render_form(form, package, ['resource_ids']) }}
-{% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-    <script>
-        initResourcesPopup();
-    </script>
+    {{ render_form(form, package) }}
 {% endblock %}

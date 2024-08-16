@@ -71,7 +71,7 @@ function addResources() {
     }
 }
 
-function setAuthor() {
+function toggleAuthor() {
     const isAuthor = $('#is_author').is(':checked');
     if (isAuthor) {
         $('#author_role_grp').removeClass('visually-hidden');
