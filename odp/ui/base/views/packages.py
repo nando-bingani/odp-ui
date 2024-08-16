@@ -1,6 +1,5 @@
 import hashlib
 from pathlib import Path
-from urllib.parse import urlparse
 
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
@@ -12,20 +11,23 @@ from odp.ui.base import api, cli
 from odp.ui.base.forms import ContributorTagForm, DOITagForm, PackageCreateForm, ResourceUploadForm
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn
+from odp.ui.lib.archive import ArchiveError
+from odp.ui.lib.archive.filesystem import FilesystemArchive
 
 bp = Blueprint('packages', __name__)
 
 
-def file_unique_check(package):
-    filenames = [resource['filename'] for resource in package['resources']]
-
-    def _validator(form, field):
+def file_validator(package, error=None):
+    def validator(form, field):
         file = request.files.get('file')
         filename = secure_filename(file.filename)
+        filenames = [resource['filename'] for resource in package['resources']]
         if filename in filenames:
             raise ValidationError(f"File '{filename}' has already been added to the package.")
+        if error is not None:
+            raise ValidationError(error)
 
-    return _validator
+    return validator
 
 
 @bp.route('/')
@@ -67,7 +69,9 @@ def detail(id):
                 contrib_form.validate()
             elif active_modal_id == 'add-resource':
                 resource_form = ResourceUploadForm(request.form)
-                resource_form.validate(extra_validators={'file': [file_unique_check(package)]})
+                resource_form.validate(extra_validators={'file': [
+                    file_validator(package, request.args.get('archive_error')),
+                ]})
         else:
             active_modal_id = None
 
@@ -205,24 +209,24 @@ def tag_contributor(id):
 def add_resource(id):
     """Upload a file to the upload archive associated with this app, create
     a corresponding ODP resource, and link the resource to the package."""
-    upload_archive_id = current_app.config['ARCHIVE_ID']
-    upload_archive = cli.get(f'/archive/{upload_archive_id}')
-    upload_dir = Path(urlparse(upload_archive['url']).path)
-
     package = api.get(f'/package/{id}')
     form = ResourceUploadForm(request.form)
+    archive_error = None
 
-    if form.validate(extra_validators={'file': [file_unique_check(package)]}):
+    if form.validate(extra_validators={'file': [file_validator(package)]}):
+
+        folder = Path(package['provider_key']) / id
+        file = request.files.get('file')
+        filename = secure_filename(file.filename)
+        md5 = hashlib.md5(file.read()).hexdigest()
+        size = file.tell()
+
         try:
-            folder = Path(package['provider_key']) / id
-            file = request.files.get('file')
-            filename = secure_filename(file.filename)
-            md5 = hashlib.md5(file.read()).hexdigest()
-            size = file.tell()
+            archive_id = current_app.config['ARCHIVE_ID']
+            archive = cli.get(f'/archive/{archive_id}')
 
-            (upload_dir / folder).mkdir(mode=0o755, parents=True, exist_ok=True)
-            file.seek(0)
-            file.save(upload_dir / folder / filename)
+            archive_storage = FilesystemArchive(archive['url'])
+            archive_storage.put(folder / filename, file)
 
             try:
                 # TODO: this should be done via a single call to the package API
@@ -234,7 +238,7 @@ def add_resource(id):
                     size=size,
                     md5=md5,
                     provider_id=package['provider_id'],
-                    archive_id=upload_archive_id,
+                    archive_id=archive_id,
                     archive_path=f'{folder / filename}',
                 ))
 
@@ -251,10 +255,14 @@ def add_resource(id):
                 if response := api.handle_error(e):
                     return response
 
-        except OSError as e:
-            flash(f'File upload failed: {e!r}', category='error')
+        except ArchiveError as e:
+            archive_error = str(e)
 
-    return redirect(url_for('.detail', id=id, tab='resources', modal='add-resource'), code=307)
+    url_args = dict(id=id, tab='resources', modal='add-resource')
+    if archive_error is not None:
+        url_args |= dict(archive_error=archive_error)
+
+    return redirect(url_for('.detail', **url_args), code=307)
 
 
 @bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
