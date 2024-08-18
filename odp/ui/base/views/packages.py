@@ -137,6 +137,8 @@ def create():
 @api.view(ODPScope.PACKAGE_DOI)
 def tag_doi(id):
     form = DOITagForm(request.form)
+    redirect_args = dict(id=id, tab='summary')
+
     if form.validate():
         try:
             api.post(f'/package/{id}/tag', dict(
@@ -146,13 +148,15 @@ def tag_doi(id):
                 },
             ))
             flash(f'{ODPPackageTag.DOI} tag has been set.', category='success')
-            return redirect(url_for('.detail', id=id))
+            return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
             if response := api.handle_error(e):
                 return response
+    else:
+        redirect_args |= dict(modal='tag-doi')
 
-    return redirect(url_for('.detail', id=id, tab='summary', modal='tag-doi'), code=307)
+    return redirect(url_for('.detail', **redirect_args), code=307)
 
 
 @bp.route('/<id>/tag/contributor', methods=('POST',))
@@ -160,6 +164,7 @@ def tag_doi(id):
 def tag_contributor(id):
     form = ContributorTagForm(request.form)
     utils.populate_affiliation_choices(form.affiliations)
+    redirect_args = dict(id=id, tab='contributors')
 
     if form.validate():
         try:
@@ -174,23 +179,26 @@ def tag_contributor(id):
                 },
             ))
             flash(f'{ODPPackageTag.CONTRIBUTOR} tag has been set.', category='success')
-            return redirect(url_for('.detail', id=id))
+            return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
             if response := api.handle_error(e):
                 return response
+    else:
+        redirect_args |= dict(modal='tag-contributor')
 
-    return redirect(url_for('.detail', id=id, tab='contributors', modal='tag-contributor'), code=307)
+    return redirect(url_for('.detail', **redirect_args), code=307)
 
 
 @bp.route('/<id>/resource/add', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def add_resource(id):
     """Add a resource to the package and upload it to an archive."""
-    archive_id = current_app.config['ARCHIVE_ID']
-
     form = ResourceUploadForm(request.form)
+    redirect_args = dict(id=id, tab='resources')
+
     if form.validate():
+        archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
         try:
@@ -201,13 +209,15 @@ def add_resource(id):
                 description=form.description.data,
             )
             flash(f'Resource {title} has been added.', category='success')
-            return redirect(url_for('.detail', id=id, tab='resources'))
+            return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
             if response := api.handle_error(e):
                 return response
+    else:
+        redirect_args |= dict(modal='add-resource')
 
-    return redirect(url_for('.detail', id=id, tab='resources', modal='add-resource'), code=307)
+    return redirect(url_for('.detail', **redirect_args), code=307)
 
 
 @bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
