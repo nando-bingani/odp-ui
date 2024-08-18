@@ -7,7 +7,7 @@ from typing import Optional
 
 import requests
 from authlib.integrations.flask_client import OAuth
-from flask import Flask, Response, flash, g, redirect, request, url_for, session
+from flask import Flask, Response, flash, g, redirect, request, session, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from redis import Redis
 
@@ -130,9 +130,24 @@ class ODPUserClient(ODPBaseClient):
     def token(self) -> dict:
         return self.oauth.fetch_token('hydra')
 
-    def _send_request(self, method: str, url: str, data: dict, params: dict) -> requests.Response:
+    def _send_request(
+            self,
+            method: str,
+            url: str,
+            data: dict | None,
+            files: dict | None,
+            params: dict,
+            headers: dict,
+    ) -> requests.Response:
         """Send a request to the API with the user's access token."""
-        return self.oauth.hydra.request(method, url, json=data, params=params)
+        return self.oauth.hydra.request(
+            method,
+            url,
+            json=data,
+            files=files,
+            params=params,
+            headers=headers,
+        )
 
     def _signup(self):
         """Initiate signup.

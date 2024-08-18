@@ -112,7 +112,7 @@
             ) %}
                 <td>{{ resource.title }}</td>
                 <td>{{ resource.filename }}</td>
-                <td>{{ resource.size | bytes }}</td>
+                <td>{{ resource.size  }}</td> {# | bytes #}
                 <td>{{ resource.mimetype }}</td>
                 <td>{{ resource.provider_key }}</td>
 
