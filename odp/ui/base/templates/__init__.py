@@ -20,6 +20,9 @@ def init_app(app: Flask):
         """Format a file or memory size value using 1024-based units.
         `verbose=True` prints the bytes value in brackets if value >= 1024.
         """
+        if not isinstance(value, int):
+            return value
+
         if value < 1024:
             return f'{value} bytes'
 
