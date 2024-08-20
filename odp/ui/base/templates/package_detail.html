@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'content.j2' import render_tabs, render_info, render_table %}
+{% from 'content.j2' import render_tabs, render_info, render_table, obj_info_popup %}
 {% from 'forms.j2' import render_button_dialog_form, render_field, render_delete_button_form %}
 
 {% block web_title %}
@@ -107,14 +107,45 @@
 
         {% elif tab_id == 'resources' %}
             {% call(resource) render_table(resources,
-                    'Title', 'File name', 'File size', 'Content type', 'Provider',
+                    'Title', 'File name', 'File size', 'Content type',
                     hide_id=true
             ) %}
-                <td>{{ resource.title }}</td>
+                <td>
+                    {% call(prop) obj_info_popup(
+                        resource.id, resource.title, 'Resource: ' + resource.title,
+                        'Title', 'Description', 'Provider', 'Archive path',
+                        'File name', 'File size', 'Content type', 'MD5 checksum',
+                        'Resource id', 'Last modified'
+                    ) %}
+                        {% if prop == 'Title' %}
+                            {{ resource.title }}
+                        {% elif prop == 'Description' %}
+                            {{ resource.description }}
+                        {% elif prop == 'File name' %}
+                            {{ resource.filename }}
+                        {% elif prop == 'File size' %}
+                            {{ resource.size | bytes(verbose=true) }}
+                        {% elif prop == 'Content type' %}
+                            {{ resource.mimetype }}
+                        {% elif prop == 'MD5 checksum' %}
+                            {{ resource.md5 }}
+                        {% elif prop == 'Provider' %}
+                            {{ resource.provider_key }}
+                        {% elif prop == 'Archive path' %}
+                            {% for archive_id, path in resource.archive_paths | dictsort %}
+                                {{ archive_id }}/{{ path }}
+                                {% if not loop.last %}<br/>{% endif %}
+                            {% endfor %}
+                        {% elif prop == 'Last modified' %}
+                            {{ resource.timestamp | timestamp }}
+                        {% elif prop == 'Resource id' %}
+                            {{ resource.id }}
+                        {% endif %}
+                    {% endcall %}
+                </td>
                 <td>{{ resource.filename }}</td>
                 <td>{{ resource.size | bytes }}</td>
                 <td>{{ resource.mimetype }}</td>
-                <td>{{ resource.provider_key }}</td>
 
                 {% if can_edit %}
                     <td class="text-end">

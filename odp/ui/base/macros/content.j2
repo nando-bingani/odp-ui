@@ -233,3 +233,43 @@
         {% endfor %}
     {% endif %}
 {% endmacro %}
+
+
+{% macro obj_info_popup(obj_id, link_text, title_text) %}
+    {# Render object info in a modal dialog.
+        Pass property names via varargs; callback rendering as for render_info.
+    #}
+    <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#modal-{{ obj_id }}">
+        {{ link_text }}
+    </a>
+
+    <div class="modal fade" id="modal-{{ obj_id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">{{ title_text }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <table class="table">
+                        <tbody>
+                            {% for prop in varargs %}
+                                <tr>
+                                    <th scope="row">{{ prop }}</th>
+                                    <td>{{ caller(prop) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-info btn-action" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
