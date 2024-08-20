@@ -28,3 +28,7 @@ class ResourceUploadForm(BaseForm):
         label='File upload',
         validators=[file_required()],
     )
+    md5 = StringField(
+        label='MD5 checksum',
+        description='(Optional) Enter an MD5 checksum to verify the upload.',
+    )

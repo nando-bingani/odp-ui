@@ -1,3 +1,5 @@
+import hashlib
+
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
@@ -201,12 +203,20 @@ def add_resource(id):
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
+        md5 = hashlib.md5(file.read()).hexdigest()
+        size = file.tell()
+        file.seek(0)
         try:
+            path = f'{id}/{filename}'  # path must be unique to the archive
             api.put_files(
-                f'/archive/{archive_id}/{id}/{filename}',
+                f'/archive/{archive_id}/{id}/{path}',
                 files={'file': file.stream},
                 title=(title := form.title.data),
                 description=form.description.data,
+                filename=filename,
+                mimetype=file.mimetype,
+                size=size,
+                md5=form.md5.data or md5,  # verified by the API if supplied by the user
             )
             flash(f'Resource {title} has been added.', category='success')
             return redirect(url_for('.detail', **redirect_args))
