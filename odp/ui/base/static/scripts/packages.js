@@ -32,7 +32,7 @@ function fetchResources() {
                     row.append($('<td>').text(resource.filename));
                     row.append($('<td>').text(resource.size));
                     row.append($('<td>').text(resource.mimetype));
-                    row.append($('<td>').text(Object.keys(resource.archive_urls)));
+                    row.append($('<td>').text(Object.keys(resource.archive_paths)));
                     tbody.append(row);
                 }
                 $('#no-results').addClass('visually-hidden');
