@@ -200,23 +200,23 @@ def add_resource(id):
     redirect_args = dict(id=id, tab='resources')
 
     if form.validate():
+        package = api.get(f'/package/{id}')
+        provider_id = package['provider_id']
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
-        md5 = hashlib.md5(file.read()).hexdigest()
-        size = file.tell()
+        md5 = form.md5.data or hashlib.md5(file.read()).hexdigest()
         file.seek(0)
         try:
-            path = f'{id}/{filename}'  # path must be unique to the archive
             api.put_files(
-                f'/archive/{archive_id}/{id}/{path}',
+                f'/archive/{archive_id}/{provider_id}/{filename}',
                 files={'file': file.stream},
                 title=(title := form.title.data),
                 description=form.description.data,
                 filename=filename,
                 mimetype=file.mimetype,
-                size=size,
-                md5=form.md5.data or md5,  # verified by the API if supplied by the user
+                md5=md5,
+                package_id=id,
             )
             flash(f'Resource {title} has been added.', category='success')
             return redirect(url_for('.detail', **redirect_args))
