@@ -209,7 +209,7 @@ def add_resource(id):
         file.seek(0)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{filename}',
+                f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
                 files={'file': file.stream},
                 title=(title := form.title.data),
                 description=form.description.data,
