@@ -82,7 +82,7 @@
                     </li>
                 {% endif %}
                 <li><a href="https://odpwiki.saeon.ac.za/" target="_blank" class="dropdown-item">
-                    ODP Wiki
+                    ODP wiki
                 </a></li>
             {% endif %}
         </ul>
@@ -148,29 +148,53 @@
 {% macro footer(
     color='transparent',
     hr=true,
-    pad=4
+    pad=4,
+    repos=[]
 ) %}
-    <footer class="text-center mt-4 pb-{{ pad }} bg-{{ color }}">
+    <footer class="mt-4 pb-{{ pad }} bg-{{ color }}">
         {% if hr %}
             <hr class="m-0"/>
         {% endif %}
+
         <div class="mt-{{ pad }}"></div>
-        <small>
-            ODP v{{ config.ODP_VERSION }}
-        </small>
-        <br/>
-        <small>
-            Copyright &copy;
-            <script>document.write(new Date().getFullYear())</script>
-            <a href="https://www.saeon.ac.za/" target="_blank" class="text-decoration-none">
-                SAEON
-            </a>
-        </small>
-        <br/>
-        <small>
-            <a href="https://www.nrf.ac.za/privacy-policy/" target="_blank" class="text-decoration-none">
-                NRF Privacy Policy
-            </a>
-        </small>
+
+        <div class="row px-4">
+            <div class="col">
+                <small>
+                    Source code:
+                    <br/>
+                    {% for repo in repos %}
+                        <a href="https://github.com/SAEON/{{ repo }}" target="_blank" class="text-decoration-none">
+                            {{ repo }}
+                        </a>
+                        {% if not loop.last %} | {% endif %}
+                    {% endfor %}
+                </small>
+            </div>
+
+            <div class="col text-center">
+                <small>
+                    ODP v{{ config.ODP_VERSION }}
+                    <br/>
+                    <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" class="text-decoration-none">
+                        GNU Affero General Public License v3.0
+                    </a>
+                </small>
+            </div>
+
+            <div class="col text-end">
+                <small>
+                    Copyright &copy;
+                    <script>document.write(new Date().getFullYear())</script>
+                    <a href="https://www.saeon.ac.za/" target="_blank" class="text-decoration-none">
+                        SAEON
+                    </a>
+                    <br/>
+                    <a href="https://www.nrf.ac.za/privacy-policy/" target="_blank" class="text-decoration-none">
+                        NRF Privacy Policy
+                    </a>
+                </small>
+            </div>
+        </div>
     </footer>
 {% endmacro %}
