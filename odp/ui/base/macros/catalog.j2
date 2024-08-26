@@ -318,7 +318,7 @@
                 {% if datacite_metadata.relatedIdentifiers %}
                     <ul class="list-unstyled">
                         {% for related_id in datacite_metadata.relatedIdentifiers | selectattr('relationType', '!=', 'HasPart') | sort(attribute='relationType,relatedIdentifier') %}
-                            {% set relation_type = related_id.relationType | datacite_enum | lower %}
+                            {% set relation_type = related_id.relationType | uncamel | lower %}
                             <li>
                                 This digital object <b>{{ relation_type }}</b>
                                 {{ _render_related_identifier(related_id) }}
@@ -360,7 +360,7 @@
 
                 {% elif prop == 'Contributors' %}
                     {% for contributor in datacite_metadata.contributors %}
-                        <p>{{ contributor.contributorType | datacite_enum }}: {{ contributor.name }}<br/>
+                        <p>{{ contributor.contributorType | uncamel }}: {{ contributor.name }}<br/>
                             <small>{{ contributor.affiliation | map(attribute='affiliation') | join('<br/>') | safe }}</small>
                         </p>
                     {% endfor %}

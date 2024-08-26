@@ -14,14 +14,12 @@
         active_tab_id,
         summary='Summary',
         contributors='Contributors',
-        extent='Extent',
         resources='Resources'
     ) %}
         {% if tab_id == 'summary' %}
-            {% set doi_enabled = doi_btn.scope in g.user_permissions %}
-
             {% call(prop) render_info(package,
-                    'Title', 'DOI', 'Resources', 'Provider', 'Status', 'Last modified', hide_id=true
+                    'Title', 'DOI', 'Contributors', 'Resources', 'Geographic extent',
+                    'Data provider', 'Package status', 'Last modified', hide_id=true
             ) %}
 
                 {% if prop == 'Title' %}
@@ -33,25 +31,62 @@
                             {{ doi_tag.data.doi if doi_tag }}
                         </div>
                         <div class="row gx-1">
-                            {% if doi_enabled and doi_tag %}
+                            {% set doi_enabled = doi_btn.scope in g.user_permissions %}
+                            {% if doi_enabled %}
                                 <div class="col">
                                     {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
                                 </div>
                                 <div class="col">
-                                    {{ render_delete_button_form('.untag_doi', 'DOI',
+                                    {{ render_delete_button_form('.untag_doi', 'DOI', enabled=(doi_tag is not none),
                                         id=package.id, tag_instance_id=doi_tag.id) }}
                                 </div>
                             {% endif %}
                         </div>
                     </div>
 
+                {% elif prop == 'Contributors' %}
+                    {% for contrib_tag in contrib_tags['items'] %}
+                        {{ contrib_tag.data.role | uncamel }}: {{ contrib_tag.data.name }}
+                        {% if not loop.last %}<br/>{% endif %}
+                    {% endfor %}
+
                 {% elif prop == 'Resources' %}
                     {{ package.resource_ids | length }}
 
-                {% elif prop == 'Provider' %}
+                {% elif prop == 'Geographic extent' %}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if bbox_tag %}
+                                {% set N, E, S, W = bbox_tag.data.north, bbox_tag.data.east, bbox_tag.data.south, bbox_tag.data.west %}
+                                {% if N == S and E == W %}
+                                    Lat: {{ N }}<br/>
+                                    Lon: {{ E }}
+                                {% else %}
+                                    North: {{ N }}<br/>
+                                    South: {{ S }}<br/>
+                                    West: {{ W }}<br/>
+                                    East: {{ E }}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="row gx-1">
+                            {% set bbox_enabled = bbox_btn.scope in g.user_permissions %}
+                            {% if bbox_enabled %}
+                                <div class="col">
+                                    {{ render_button_dialog_form(bbox_btn, bbox_form, 'tag-bbox', edit_icon=true) }}
+                                </div>
+                                <div class="col">
+                                    {{ render_delete_button_form('.untag_bounding_box', 'bbox', enabled=(bbox_tag is not none),
+                                        id=package.id, tag_instance_id=bbox_tag.id) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% elif prop == 'Data provider' %}
                     {{ package.provider_key }}
 
-                {% elif prop == 'Status' %}
+                {% elif prop == 'Package status' %}
                     {{ package.status }}
 
                 {% elif prop == 'Last modified' %}
@@ -59,12 +94,6 @@
 
                 {% endif %}
             {% endcall %}
-
-            {% if doi_enabled and not doi_tag %}
-                <div class="mt-4">
-                    {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi') }}
-                </div>
-            {% endif %}
 
         {% elif tab_id == 'contributors' %}
             {% set contrib_enabled = contrib_btn.scope in g.user_permissions %}
@@ -102,8 +131,6 @@
                     {% endcall %}
                 </div>
             {% endif %}
-
-        {% elif tab_id == 'extent' %}
 
         {% elif tab_id == 'resources' %}
             {% call(resource) render_table(resources,

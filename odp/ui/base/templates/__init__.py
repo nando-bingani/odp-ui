@@ -55,9 +55,12 @@ def init_app(app: Flask):
         return dt.strftime('%d %b %Y')
 
     @app.template_filter()
-    def datacite_enum(value: str) -> str:
-        """Format a DataCite enum value as a title string.
-        e.g. 'IsDescribedBy' becomes 'Is Described By'"""
+    def uncamel(value: str) -> str:
+        """Format a camel-cased value as a title string.
+        e.g. 'IsDescribedBy' becomes 'Is Described By'
+             'pointOfContact' becomes 'Point Of Contact'
+        """
+        value = value[0].upper() + value[1:]
         return ' '.join(re.findall('[A-Z][a-z]*', value))
 
     @app.template_filter()

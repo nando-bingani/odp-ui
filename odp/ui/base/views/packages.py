@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from odp.const import ODPPackageTag, ODPScope
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import ContributorTagForm, DOITagForm, PackageCreateForm, ResourceUploadForm
+from odp.ui.base.forms import BoundingBoxTagForm, ContributorTagForm, DOITagForm, PackageCreateForm, ResourceUploadForm
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn
 
@@ -36,9 +36,11 @@ def detail(id):
     active_tab_id = request.args.get('tab', 'summary')
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
+    bbox_tag = tags.get_tag_instance(package, ODPPackageTag.BOUNDING_BOX)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
 
     doi_form = None
+    bbox_form = None
     contrib_form = None
     resource_form = None
 
@@ -47,6 +49,9 @@ def detail(id):
             if active_modal_id == 'tag-doi':
                 doi_form = DOITagForm(request.form)
                 doi_form.validate()
+            elif active_modal_id == 'tag-bbox':
+                bbox_form = BoundingBoxTagForm(request.form)
+                bbox_form.validate()
             elif active_modal_id == 'tag-contributor':
                 contrib_form = ContributorTagForm(request.form)
                 contrib_form.validate()
@@ -58,6 +63,9 @@ def detail(id):
 
     if not doi_form:
         doi_form = DOITagForm(data=doi_tag['data'] if doi_tag else None)
+
+    if not bbox_form:
+        bbox_form = BoundingBoxTagForm(data=bbox_tag['data'] if bbox_tag else None)
 
     if not contrib_form:
         contrib_form = ContributorTagForm()
@@ -73,6 +81,14 @@ def detail(id):
         theme=ButtonTheme.info,
         object_id=id,
         scope=ODPScope.PACKAGE_DOI,
+    )
+
+    bbox_btn = Button(
+        label='Edit Bounding Box' if bbox_tag else 'Add Bounding Box',
+        endpoint='.tag_bounding_box',
+        theme=ButtonTheme.info,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
     )
 
     contrib_btn = Button(
@@ -101,6 +117,9 @@ def detail(id):
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
+        bbox_tag=bbox_tag,
+        bbox_btn=bbox_btn,
+        bbox_form=bbox_form,
         contrib_tags=contrib_tags,
         contrib_btn=contrib_btn,
         contrib_form=contrib_form,
@@ -157,6 +176,35 @@ def tag_doi(id):
                 return response
     else:
         redirect_args |= dict(modal='tag-doi')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/tag/bbox', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_bounding_box(id):
+    form = BoundingBoxTagForm(request.form)
+    redirect_args = dict(id=id, tab='summary')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.BOUNDING_BOX,
+                data={
+                    'west': form.west.data,
+                    'east': form.east.data,
+                    'south': form.south.data,
+                    'north': form.north.data,
+                },
+            ))
+            flash(f'{ODPPackageTag.BOUNDING_BOX} tag has been set.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-bbox')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
 
@@ -233,6 +281,12 @@ def add_resource(id):
 @bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
 @api.view(ODPScope.PACKAGE_DOI)
 def untag_doi(id, tag_instance_id):
+    return
+
+
+@bp.route('/<id>/untag/bbox/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_bounding_box(id, tag_instance_id):
     return
 
 
