@@ -29,8 +29,11 @@ function _initMap(n, e, s, w) {
     return map;
 }
 
-function createExtentMap(n, e, s, w) {
-    $('#map').height('300px');
+function createExtentMap(n, e, s, w, height = '300px', width) {
+    $('#map').height(height);
+    if (width) {
+        $('#map').width(width);
+    }
     const map = _initMap(n, e, s, w);
 
     if (n === s && e === w) {

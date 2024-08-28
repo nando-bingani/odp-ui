@@ -71,7 +71,7 @@ function addResources() {
     }
 }
 
-function toggleAuthor() {
+function toggleContributorAuthor() {
     const isAuthor = $('#is_author').is(':checked');
     if (isAuthor) {
         $('#author_role_grp').removeClass('visually-hidden');
@@ -79,5 +79,27 @@ function toggleAuthor() {
     } else {
         $('#author_role_grp').addClass('visually-hidden');
         $('#contributor_role_grp').removeClass('visually-hidden');
+    }
+}
+
+
+function toggleGeoPointRegion() {
+    const isPoint = $('input[type="radio"][value="point"]').is(':checked');
+    const isRegion = $('input[type="radio"][value="box"]').is(':checked');
+    if (!isPoint && !isRegion) {
+        $('input[type="radio"][value="point"]').prop('checked', true);
+    }
+    if (isRegion) {
+        $('#geo_region_grp').removeClass('visually-hidden');
+        $('#west').prop('required', true);
+        $('#south').prop('required', true);
+        $('#west').prop('disabled', false);
+        $('#south').prop('disabled', false);
+    } else {
+        $('#geo_region_grp').addClass('visually-hidden');
+        $('#west').prop('required', false);
+        $('#south').prop('required', false);
+        $('#west').prop('disabled', true);
+        $('#south').prop('disabled', true);
     }
 }

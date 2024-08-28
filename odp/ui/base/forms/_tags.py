@@ -1,5 +1,5 @@
-from wtforms import BooleanField, FloatField, SelectField, StringField, ValidationError
-from wtforms.validators import data_required, input_required, number_range, regexp
+from wtforms import BooleanField, FloatField, RadioField, SelectField, StringField, ValidationError
+from wtforms.validators import data_required, input_required, number_range, optional, regexp
 
 from odp.const import DOI_REGEX
 from odp.ui.base.forms import BaseForm
@@ -63,28 +63,44 @@ class ContributorTagForm(BaseForm):
     )
 
 
-class BoundingBoxTagForm(BaseForm):
+class GeoLocationTagForm(BaseForm):
+    place = StringField(
+        label='Place name',
+        validators=[data_required()],
+    )
+    shape = RadioField(
+        label='Shape',
+        choices=[
+            ('point', 'Point location'),
+            ('box', 'Geographic region'),
+        ],
+    )
     west = FloatField(
-        label='W',
-        validators=[number_range(min=-180, max=180)],
+        label='West',
+        validators=[number_range(min=-180, max=180), optional()],
     )
     east = FloatField(
-        label='E',
-        validators=[number_range(min=-180, max=180)],
+        label='East',
+        validators=[number_range(min=-180, max=180), input_required()],
     )
     south = FloatField(
-        label='S',
-        validators=[number_range(min=-90, max=90)],
+        label='South',
+        validators=[number_range(min=-90, max=90), optional()],
     )
     north = FloatField(
-        label='N',
-        validators=[number_range(min=-90, max=90)],
+        label='North',
+        validators=[number_range(min=-90, max=90), input_required()],
     )
 
-    def validate_east(self, field):
-        if field.data < self['west'].data:
-            raise ValidationError('East must be greater than or equal to West')
+    def validate_shape(self, field):
+        if field.data == 'box':
+            if self['west'].data is None or self['south'].data is None:
+                raise ValidationError('All coordinates are required for a bounding box')
 
-    def validate_north(self, field):
-        if field.data < self['south'].data:
-            raise ValidationError('North must be greater than or equal to South')
+    def validate_west(self, field):
+        if field.data is not None and field.data > self['east'].data:
+            raise ValidationError('West must be less than or equal to East')
+
+    def validate_south(self, field):
+        if field.data is not None and field.data > self['north'].data:
+            raise ValidationError('South must be less than or equal to North')
