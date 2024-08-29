@@ -3,7 +3,7 @@ from wtforms.validators import data_required, input_required, number_range, opti
 
 from odp.const import DOI_REGEX
 from odp.ui.base.forms import BaseForm
-from odp.ui.base.forms.fields import MultiCheckboxField
+from odp.ui.base.forms.fields import DateStringField, MultiCheckboxField
 
 
 class DOITagForm(BaseForm):
@@ -94,13 +94,28 @@ class GeoLocationTagForm(BaseForm):
 
     def validate_shape(self, field):
         if field.data == 'box':
-            if self['west'].data is None or self['south'].data is None:
+            if self.west.data is None or self.south.data is None:
                 raise ValidationError('All coordinates are required for a bounding box')
 
     def validate_west(self, field):
-        if field.data is not None and field.data > self['east'].data:
+        if field.data is not None and field.data > self.east.data:
             raise ValidationError('West must be less than or equal to East')
 
     def validate_south(self, field):
-        if field.data is not None and field.data > self['north'].data:
+        if field.data is not None and field.data > self.north.data:
             raise ValidationError('South must be less than or equal to North')
+
+
+class DateRangeTagForm(BaseForm):
+    start = DateStringField(
+        label='Start date',
+        validators=[input_required()],
+    )
+    end = DateStringField(
+        label='End date',
+        validators=[input_required()],
+    )
+
+    def validate_end(self, field):
+        if field.data < self.start.data:
+            raise ValidationError('The end date cannot be earlier than the start date.')

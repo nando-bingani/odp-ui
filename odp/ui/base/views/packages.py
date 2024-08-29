@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from odp.const import ODPPackageTag, ODPScope
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import ContributorTagForm, DOITagForm, GeoLocationTagForm, PackageCreateForm, ResourceUploadForm
+from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, GeoLocationTagForm, PackageCreateForm, ResourceUploadForm
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn
 
@@ -37,10 +37,12 @@ def detail(id):
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
+    daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
 
     doi_form = None
     geoloc_form = None
+    daterange_form = None
     contrib_form = None
     resource_form = None
 
@@ -55,6 +57,10 @@ def detail(id):
                 geoloc_form = GeoLocationTagForm(request.form)
                 geoloc_form.validate()
                 active_modal_reload_on_cancel = geoloc_tag is not None
+            elif active_modal_id == 'tag-daterange':
+                daterange_form = DateRangeTagForm(request.form)
+                daterange_form.validate()
+                active_modal_reload_on_cancel = daterange_tag is not None
             elif active_modal_id == 'tag-contributor':
                 contrib_form = ContributorTagForm(request.form)
                 contrib_form.validate()
@@ -69,6 +75,9 @@ def detail(id):
 
     if not geoloc_form:
         geoloc_form = GeoLocationTagForm(data=geoloc_tag['data'] if geoloc_tag else None)
+
+    if not daterange_form:
+        daterange_form = DateRangeTagForm(data=daterange_tag['data'] if daterange_tag else None)
 
     if not contrib_form:
         contrib_form = ContributorTagForm()
@@ -89,6 +98,14 @@ def detail(id):
     geoloc_btn = Button(
         label='Edit Geographic Location' if geoloc_tag else 'Add Geographic Location',
         endpoint='.tag_geolocation',
+        theme=ButtonTheme.info,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+    )
+
+    daterange_btn = Button(
+        label='Edit Temporal Extent' if daterange_tag else 'Add Temporal Extent',
+        endpoint='.tag_daterange',
         theme=ButtonTheme.info,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
@@ -124,6 +141,9 @@ def detail(id):
         geoloc_tag=geoloc_tag,
         geoloc_btn=geoloc_btn,
         geoloc_form=geoloc_form,
+        daterange_tag=daterange_tag,
+        daterange_btn=daterange_btn,
+        daterange_form=daterange_form,
         contrib_tags=contrib_tags,
         contrib_btn=contrib_btn,
         contrib_form=contrib_form,
@@ -219,6 +239,33 @@ def tag_geolocation(id):
     return redirect(url_for('.detail', **redirect_args), code=307)
 
 
+@bp.route('/<id>/tag/daterange', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_daterange(id):
+    form = DateRangeTagForm(request.form)
+    redirect_args = dict(id=id, tab='overview')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.DATERANGE,
+                data={
+                    'start': form.start.data.isoformat(),
+                    'end': form.end.data.isoformat(),
+                },
+            ))
+            flash(f'{ODPPackageTag.DATERANGE} tag has been set.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-daterange')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
 @bp.route('/<id>/tag/contributor', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def tag_contributor(id):
@@ -297,6 +344,12 @@ def untag_doi(id, tag_instance_id):
 @bp.route('/<id>/untag/geoloc/<tag_instance_id>', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def untag_geolocation(id, tag_instance_id):
+    return
+
+
+@bp.route('/<id>/untag/daterange/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_daterange(id, tag_instance_id):
     return
 
 

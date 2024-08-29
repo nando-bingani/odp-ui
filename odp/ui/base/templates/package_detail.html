@@ -18,7 +18,7 @@
     ) %}
         {% if tab_id == 'overview' %}
             {% call(prop) render_info(package,
-                    'Title', 'DOI', 'Contributors', 'Resources', 'Geographic location',
+                    'Title', 'DOI', 'Contributors', 'Resources', 'Geographic location', 'Temporal extent',
                     'Data provider', 'Package status', 'Last modified', hide_id=true
             ) %}
 
@@ -106,6 +106,32 @@
                                         confirm_msg='Are you sure you want to delete the geographic location data?',
                                         enabled=(geoloc_tag is not none),
                                         id=package.id, tag_instance_id=geoloc_tag.id
+                                    ) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% elif prop == 'Temporal extent' %}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if daterange_tag %}
+                                {{ daterange_tag.data.start }} &ndash; {{ daterange_tag.data.end }}
+                            {% endif %}
+                        </div>
+                        <div class="row gx-1">
+                            {% set daterange_enabled = daterange_btn.scope in g.user_permissions %}
+                            {% if daterange_enabled %}
+                                <div class="col">
+                                    {{ render_button_dialog_form(
+                                        daterange_btn, daterange_form, 'tag-daterange', edit_icon=true,
+                                        reload_on_cancel=(daterange_tag is not none)
+                                    ) }}
+                                </div>
+                                <div class="col">
+                                    {{ render_delete_button_form(
+                                        '.untag_daterange', 'date range', enabled=(daterange_tag is not none),
+                                        id=package.id, tag_instance_id=daterange_tag.id
                                     ) }}
                                 </div>
                             {% endif %}
