@@ -34,11 +34,16 @@
                             {% set doi_enabled = doi_btn.scope in g.user_permissions %}
                             {% if doi_enabled %}
                                 <div class="col">
-                                    {{ render_button_dialog_form(doi_btn, doi_form, 'tag-doi', edit_icon=true) }}
+                                    {{ render_button_dialog_form(
+                                        doi_btn, doi_form, 'tag-doi', edit_icon=true,
+                                        reload_on_cancel=(doi_tag is not none)
+                                    ) }}
                                 </div>
                                 <div class="col">
-                                    {{ render_delete_button_form('.untag_doi', 'DOI', enabled=(doi_tag is not none),
-                                        id=package.id, tag_instance_id=doi_tag.id) }}
+                                    {{ render_delete_button_form(
+                                        '.untag_doi', 'DOI', enabled=(doi_tag is not none),
+                                        id=package.id, tag_instance_id=doi_tag.id
+                                    ) }}
                                 </div>
                             {% endif %}
                         </div>
@@ -81,7 +86,10 @@
                             {% set geoloc_enabled = geoloc_btn.scope in g.user_permissions %}
                             {% if geoloc_enabled %}
                                 <div class="col">
-                                    {% call render_button_dialog_form(geoloc_btn, geoloc_form, 'tag-geoloc', edit_icon=true) %}
+                                    {% call render_button_dialog_form(
+                                        geoloc_btn, geoloc_form, 'tag-geoloc', edit_icon=true,
+                                        reload_on_cancel=(geoloc_tag is not none)
+                                    ) %}
                                         {{ render_field(geoloc_form.place) }}
                                         {{ render_field(geoloc_form.shape, onchange='toggleGeoPointRegion();') }}
                                         {{ render_field(geoloc_form.north) }}
@@ -97,7 +105,8 @@
                                         '.untag_geolocation',
                                         confirm_msg='Are you sure you want to delete the geographic location data?',
                                         enabled=(geoloc_tag is not none),
-                                        id=package.id, tag_instance_id=geoloc_tag.id) }}
+                                        id=package.id, tag_instance_id=geoloc_tag.id
+                                    ) }}
                                 </div>
                             {% endif %}
                         </div>
@@ -129,15 +138,19 @@
 
                 {% if contrib_enabled %}
                     <td class="text-end">
-                        {{ render_delete_button_form('.untag_contributor', 'contributor',
-                            id=package.id, tag_instance_id=contrib_tag.id) }}
+                        {{ render_delete_button_form(
+                            '.untag_contributor', 'contributor',
+                            id=package.id, tag_instance_id=contrib_tag.id
+                        ) }}
                     </td>
                 {% endif %}
             {% endcall %}
 
             {% if contrib_enabled %}
                 <div class="mt-4">
-                    {% call render_button_dialog_form(contrib_btn, contrib_form, 'tag-contributor') %}
+                    {% call render_button_dialog_form(
+                        contrib_btn, contrib_form, 'tag-contributor'
+                    ) %}
                         {{ render_field(contrib_form.name) }}
                         {{ render_field(contrib_form.is_author, onchange='toggleContributorAuthor();') }}
                         <div id="author_role_grp" class="visually-hidden">
@@ -196,15 +209,19 @@
 
                 {% if can_edit %}
                     <td class="text-end">
-                        {{ render_delete_button_form('.delete_resource', 'resource',
-                            id=package.id, resource_id=resource.id) }}
+                        {{ render_delete_button_form(
+                            '.delete_resource', 'resource',
+                            id=package.id, resource_id=resource.id
+                        ) }}
                     </td>
                 {% endif %}
             {% endcall %}
 
             {% if can_edit %}
                 <div class="mt-4">
-                    {{ render_button_dialog_form(resource_btn, resource_form, 'add-resource', file_upload=true) }}
+                    {{ render_button_dialog_form(
+                        resource_btn, resource_form, 'add-resource', file_upload=true
+                    ) }}
                 </div>
             {% endif %}
         {% endif %}
@@ -216,16 +233,16 @@
     <script>
         {% if active_modal_id %}
             $(window).on('load', function () {
-                $('#{{ active_modal_id }}').modal('show');
+                showModal('{{ active_modal_id }}', {{ active_modal_reload_on_cancel | lower }});
             });
         {% endif %}
 
         {% if geoloc_tag %}
             {% set N, E, S, W = geoloc_tag.data.north, geoloc_tag.data.east, geoloc_tag.data.south, geoloc_tag.data.west %}
             {% if geoloc_tag.data.shape == 'point' %}
-                createExtentMap({{ N }}, {{ E }}, {{ N }}, {{ E }}, '300px', '600px');
+                createExtentMap({{ N }}, {{ E }}, {{ N }}, {{ E }}, '250px', '400px');
             {% else %}
-                createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }}, '300px', '600px');
+                createExtentMap({{ N }}, {{ E }}, {{ S }}, {{ W }}, '250px', '400px');
             {% endif %}
         {% endif %}
 

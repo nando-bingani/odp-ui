@@ -44,14 +44,17 @@ def detail(id):
     contrib_form = None
     resource_form = None
 
+    active_modal_reload_on_cancel = False
     if active_modal_id := request.args.get('modal'):
         if request.method == 'POST':
             if active_modal_id == 'tag-doi':
                 doi_form = DOITagForm(request.form)
                 doi_form.validate()
+                active_modal_reload_on_cancel = doi_tag is not None
             elif active_modal_id == 'tag-geoloc':
                 geoloc_form = GeoLocationTagForm(request.form)
                 geoloc_form.validate()
+                active_modal_reload_on_cancel = geoloc_tag is not None
             elif active_modal_id == 'tag-contributor':
                 contrib_form = ContributorTagForm(request.form)
                 contrib_form.validate()
@@ -113,6 +116,7 @@ def detail(id):
         resources=resources,
         active_tab_id=active_tab_id,
         active_modal_id=active_modal_id,
+        active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
         doi_tag=doi_tag,
         doi_btn=doi_btn,

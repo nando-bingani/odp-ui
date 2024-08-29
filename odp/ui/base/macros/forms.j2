@@ -118,22 +118,26 @@
     form,
     modal_id,
     edit_icon=false,
-    file_upload=false
+    file_upload=false,
+    reload_on_cancel=false
 ) %}
     {# Render a Button instance that pops up a modal form dialog.
         Optionally override default field rendering by using a callback.
         Set edit_icon=true to render a small generic edit button.
+        Set reload_on_cancel=true to force a page reload when the modal
+        is cancelled. This is the simplest way to ensure that form values
+        are reset.
     #}
     {% set disabled = button.scope and button.scope not in g.user_permissions %}
 
     {% if edit_icon %}
         <button type="button" class="btn btn-outline-primary btn-row-delete p-0"
-                data-bs-toggle="modal" data-bs-target="#{{ modal_id }}" {{ 'disabled' if disabled }}>
+                onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});" {{ 'disabled' if disabled }}>
             {{ '&#128393;' | safe }}
         </button>
     {% else %}
         <button type="button" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
-                data-bs-toggle="modal" data-bs-target="#{{ modal_id }}" {{ 'disabled' if disabled }}>
+                onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});" {{ 'disabled' if disabled }}>
             {{ button.label }}
         </button>
     {% endif %}
