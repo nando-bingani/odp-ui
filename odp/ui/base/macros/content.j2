@@ -112,20 +112,31 @@
 {% endmacro %}
 
 
-{% macro render_button(button) %}
-    {# Render a Button object. #}
+{% macro render_button(button, edit_icon=false) %}
+    {# Render a Button object.
+        Set edit_icon=true to render a small generic edit button.
+    #}
     {% set disabled = button.scope and button.scope not in g.user_permissions %}
+    {% set btn_class = 'btn btn-' + ('outline-' if button.outline) + button.theme.value %}
+    {% if edit_icon %}
+        {% set btn_class = btn_class + ' btn-row-delete p-0' %}
+        {% set btn_label = '&#128393;' | safe %}
+    {% else %}
+        {% set btn_class = btn_class + ' btn-action' %}
+        {% set btn_label = button.label %}
+    {% endif %}
+
     {% if button.prompt %}
         <form action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post">
-            <button type="submit" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
-                    onclick="return confirm('{{ button.prompt % button.prompt_args }}')" {{ 'disabled' if disabled }}>
-                {{ button.label }}
+            <button type="submit" class="{{ btn_class }}" {{ 'disabled' if disabled }}
+                    onclick="return confirm('{{ button.prompt % button.prompt_args }}')">
+                {{ btn_label }}
             </button>
         </form>
     {% else %}
         <a href="{{ url_for(button.endpoint, id=button.object_id) }}"
-           class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action {{ 'disabled' if disabled }}">
-            {{ button.label }}
+           class="{{ btn_class }} {{ 'disabled' if disabled }}">
+            {{ btn_label }}
         </a>
     {% endif %}
 {% endmacro %}
