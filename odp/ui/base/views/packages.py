@@ -90,7 +90,7 @@ def detail(id):
     doi_btn = Button(
         label='Edit DOI' if doi_tag else 'Add DOI',
         endpoint='.tag_doi',
-        theme=ButtonTheme.info,
+        theme=ButtonTheme.primary,
         object_id=id,
         scope=ODPScope.PACKAGE_DOI,
     )
@@ -98,7 +98,7 @@ def detail(id):
     geoloc_btn = Button(
         label='Edit Geographic Location' if geoloc_tag else 'Add Geographic Location',
         endpoint='.tag_geolocation',
-        theme=ButtonTheme.info,
+        theme=ButtonTheme.primary,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
     )
@@ -106,7 +106,7 @@ def detail(id):
     daterange_btn = Button(
         label='Edit Temporal Extent' if daterange_tag else 'Add Temporal Extent',
         endpoint='.tag_daterange',
-        theme=ButtonTheme.info,
+        theme=ButtonTheme.primary,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
     )

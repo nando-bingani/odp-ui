@@ -129,18 +129,19 @@
         are reset.
     #}
     {% set disabled = button.scope and button.scope not in g.user_permissions %}
-
+    {% set btn_class = 'btn btn-' + ('outline-' if button.outline) + button.theme.value %}
     {% if edit_icon %}
-        <button type="button" class="btn btn-outline-primary btn-row-delete p-0"
-                onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});" {{ 'disabled' if disabled }}>
-            {{ '&#128393;' | safe }}
-        </button>
+        {% set btn_class = btn_class + ' btn-row-delete p-0' %}
+        {% set btn_label = '&#128393;' | safe %}
     {% else %}
-        <button type="button" class="btn btn-{{ 'outline-' if button.outline }}{{ button.theme.value }} btn-action"
-                onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});" {{ 'disabled' if disabled }}>
-            {{ button.label }}
-        </button>
+        {% set btn_class = btn_class + ' btn-action' %}
+        {% set btn_label = button.label %}
     {% endif %}
+
+    <button type="button" class="{{ btn_class }}" {{ 'disabled' if disabled }}
+            onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});">
+        {{ btn_label }}
+    </button>
 
     <div class="modal fade" id="{{ modal_id }}" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
