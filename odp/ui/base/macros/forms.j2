@@ -49,6 +49,9 @@
 ) %}
     <div class="mt-4">
         {{ field.label(class='form-label') }}
+        {% if field.flags.required %}
+            <span class="text-danger"> *</span>
+        {% endif %}
 
         {% if obj and field.id == 'id' %}
             {{ field(class='form-control', readonly='') }}
