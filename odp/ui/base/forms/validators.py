@@ -31,4 +31,16 @@ class FileRequired:
             raise ValidationError(self.message)
 
 
+class PseudoRequired:
+    """A validator that makes the field appear required without
+    affecting server-side form validation."""
+
+    def __init__(self):
+        self.field_flags = {'required': True}
+
+    def __call__(self, form, field):
+        pass
+
+
 file_required = FileRequired
+pseudo_required = PseudoRequired

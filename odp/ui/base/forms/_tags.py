@@ -4,6 +4,7 @@ from wtforms.validators import data_required, input_required, number_range, opti
 from odp.const import DOI_REGEX
 from odp.ui.base.forms import BaseForm
 from odp.ui.base.forms.fields import DateStringField, MultiCheckboxField
+from odp.ui.base.forms.validators import pseudo_required
 
 
 class DOITagForm(BaseForm):
@@ -79,7 +80,7 @@ class GeoLocationTagForm(BaseForm):
     )
     west = FloatField(
         label='West',
-        validators=[number_range(min=-180, max=180), optional()],
+        validators=[number_range(min=-180, max=180), optional(), pseudo_required()],
     )
     east = FloatField(
         label='East',
@@ -87,7 +88,7 @@ class GeoLocationTagForm(BaseForm):
     )
     south = FloatField(
         label='South',
-        validators=[number_range(min=-90, max=90), optional()],
+        validators=[number_range(min=-90, max=90), optional(), pseudo_required()],
     )
     north = FloatField(
         label='North',
