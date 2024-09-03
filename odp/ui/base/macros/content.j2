@@ -191,30 +191,6 @@
 {% endmacro %}
 
 
-{% macro render_tabs(active_tab_id) %}
-    {# Render a tabbed interface.
-        Pass tab_id='Tab Title' pairs via kwargs and render the content
-        of each tab via a call(tab_id) callback.
-    #}
-    <ul class="nav nav-tabs">
-        {% for tab_id, tab_title in kwargs.items() %}
-            <li class="nav-item">
-                <button class="nav-link {{ 'active' if tab_id == active_tab_id }}" data-bs-toggle="tab" data-bs-target="#{{ tab_id }}">
-                    {{ tab_title }}
-                </button>
-            </li>
-        {% endfor %}
-    </ul>
-    <div class="tab-content">
-        {% for tab_id in kwargs %}
-            <div id="{{ tab_id }}" class="tab-pane fade {{ 'show active' if tab_id == active_tab_id }}">
-                {{ caller(tab_id) }}
-            </div>
-        {% endfor %}
-    </div>
-{% endmacro %}
-
-
 {% macro obj_link(view, obj_id, display_text=None) %}
     {% if obj_id %}
         {% set target = url_for(view ~ '.detail', id=obj_id) %}

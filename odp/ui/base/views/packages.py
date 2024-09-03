@@ -33,7 +33,6 @@ def index():
 def detail(id):
     package = api.get(f'/package/{id}')
     resources = utils.pagify(package['resources'])
-    active_tab_id = request.args.get('tab', 'overview')
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
@@ -131,7 +130,6 @@ def detail(id):
         'package_detail.html',
         package=package,
         resources=resources,
-        active_tab_id=active_tab_id,
         active_modal_id=active_modal_id,
         active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
@@ -212,7 +210,7 @@ def edit(id):
 @api.view(ODPScope.PACKAGE_DOI)
 def tag_doi(id):
     form = DOITagForm(request.form)
-    redirect_args = dict(id=id, tab='overview')
+    redirect_args = dict(id=id, _anchor='overview')
 
     if form.validate():
         try:
@@ -238,7 +236,7 @@ def tag_doi(id):
 @api.view(ODPScope.PACKAGE_WRITE)
 def tag_geolocation(id):
     form = GeoLocationTagForm(request.form)
-    redirect_args = dict(id=id, tab='overview')
+    redirect_args = dict(id=id, _anchor='overview')
 
     if form.validate():
         try:
@@ -273,7 +271,7 @@ def tag_geolocation(id):
 @api.view(ODPScope.PACKAGE_WRITE)
 def tag_daterange(id):
     form = DateRangeTagForm(request.form)
-    redirect_args = dict(id=id, tab='overview')
+    redirect_args = dict(id=id, _anchor='overview')
 
     if form.validate():
         try:
@@ -301,7 +299,7 @@ def tag_daterange(id):
 def tag_contributor(id):
     form = ContributorTagForm(request.form)
     utils.populate_affiliation_choices(form.affiliations)
-    redirect_args = dict(id=id, tab='contributors')
+    redirect_args = dict(id=id, _anchor='contributors')
 
     if form.validate():
         try:
@@ -332,7 +330,7 @@ def tag_contributor(id):
 def add_resource(id):
     """Add a resource to the package and upload it to an archive."""
     form = ResourceUploadForm(request.form)
-    redirect_args = dict(id=id, tab='resources')
+    redirect_args = dict(id=id, _anchor='resources')
 
     if form.validate():
         package = api.get(f'/package/{id}')

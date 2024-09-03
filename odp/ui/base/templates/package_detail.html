@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% from 'content.j2' import render_tabs, render_info, render_table, obj_info_popup, render_button %}
+{% from 'content.j2' import render_info, render_table, obj_info_popup, render_button %}
+{% from 'controls.j2' import tabs %}
 {% from 'forms.j2' import render_button_dialog_form, render_field, render_delete_button_form %}
 
 {% block web_title %}
@@ -10,8 +11,8 @@
 {% endblock %}
 
 {% block content %}
-    {% call(tab_id) render_tabs(
-        active_tab_id,
+    {% call(tab_id) tabs(
+        'overview',
         overview='Overview',
         contributors='Contributors',
         resources='Resources'
@@ -288,5 +289,7 @@
 
         toggleContributorAuthor();
         toggleGeoPointRegion();
+
+        initHashTabs();
     </script>
 {% endblock %}

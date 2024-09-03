@@ -1,3 +1,30 @@
+{% macro tabs(active_tab_id) %}
+    {# Render a tabbed interface.
+        Pass tab_id='Tab Title' pairs via kwargs and render the content
+        of each tab via a call(tab_id) callback.
+        Use the initHashTabs JS function on the client side to sync tabs
+        with the URL hash.
+    #}
+    <ul class="nav nav-tabs">
+        {% for tab_id, tab_title in kwargs.items() %}
+            <li class="nav-item">
+                <button id="{{ tab_id }}-btn" class="nav-link {{ 'active' if tab_id == active_tab_id }}"
+                        data-bs-toggle="tab" data-bs-target="#{{ tab_id }}-tab">
+                    {{ tab_title }}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content">
+        {% for tab_id in kwargs %}
+            <div id="{{ tab_id }}-tab" class="tab-pane fade {{ 'show active' if tab_id == active_tab_id }}">
+                {{ caller(tab_id) }}
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+
 {% macro check_all(
     label=false,
     right=false
