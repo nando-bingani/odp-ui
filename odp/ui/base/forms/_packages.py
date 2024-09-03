@@ -5,7 +5,7 @@ from odp.ui.base.forms import BaseForm
 from odp.ui.base.forms.validators import file_required
 
 
-class PackageCreateForm(BaseForm):
+class PackageForm(BaseForm):
     provider_id = SelectField(
         label='Package provider',
         validators=[input_required()],

@@ -6,9 +6,9 @@ from werkzeug.utils import secure_filename
 from odp.const import ODPPackageTag, ODPScope
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, GeoLocationTagForm, PackageCreateForm, ResourceUploadForm
+from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, GeoLocationTagForm, PackageForm, ResourceUploadForm
 from odp.ui.base.lib import tags, utils
-from odp.ui.base.templates import Button, ButtonTheme, create_btn
+from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
 
 bp = Blueprint('packages', __name__)
 
@@ -135,6 +135,7 @@ def detail(id):
         active_modal_id=active_modal_id,
         active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
+        edit_btn=edit_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE),
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
@@ -155,7 +156,7 @@ def detail(id):
 @bp.route('/new', methods=('GET', 'POST'))
 @api.view(ODPScope.PACKAGE_WRITE)
 def create():
-    form = PackageCreateForm(request.form)
+    form = PackageForm(request.form)
     utils.populate_provider_choices(form.provider_id)
 
     if request.method == 'POST' and form.validate():
@@ -174,6 +175,35 @@ def create():
 
     return render_template(
         'package_edit.html',
+        form=form,
+    )
+
+
+@bp.route('/<id>/edit', methods=('GET', 'POST'))
+@api.view(ODPScope.PACKAGE_WRITE)
+def edit(id):
+    package = api.get(f'/package/{id}')
+
+    form = PackageForm(request.form, data=package)
+    utils.populate_provider_choices(form.provider_id)
+
+    if request.method == 'POST' and form.validate():
+        try:
+            package = api.put(f'/package/{id}', dict(
+                provider_id=form.provider_id.data,
+                title=(title := form.title.data),
+                resource_ids=[],
+            ))
+            flash(f'Package <b>{title}</b> has been updated.', category='success')
+            return redirect(url_for('.detail', id=id))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+
+    return render_template(
+        'package_edit.html',
+        package=package,
         form=form,
     )
 

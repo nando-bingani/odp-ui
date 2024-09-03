@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'content.j2' import render_tabs, render_info, render_table, obj_info_popup %}
+{% from 'content.j2' import render_tabs, render_info, render_table, obj_info_popup, render_button %}
 {% from 'forms.j2' import render_button_dialog_form, render_field, render_delete_button_form %}
 
 {% block web_title %}
@@ -23,7 +23,14 @@
             ) %}
 
                 {% if prop == 'Title' %}
-                    {{ package.title }}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {{ package.title }}
+                        </div>
+                        <div>
+                            {{ render_button(edit_btn, edit_icon=true) }}
+                        </div>
+                    </div>
 
                 {% elif prop == 'DOI' %}
                     <div class="d-flex justify-content-between">
@@ -139,7 +146,14 @@
                     </div>
 
                 {% elif prop == 'Data provider' %}
-                    {{ package.provider_key }}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {{ package.provider_key }}
+                        </div>
+                        <div>
+                            {{ render_button(edit_btn, edit_icon=true) }}
+                        </div>
+                    </div>
 
                 {% elif prop == 'Package status' %}
                     {{ package.status }}
