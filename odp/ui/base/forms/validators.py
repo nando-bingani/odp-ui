@@ -19,11 +19,16 @@ def json_object():
     return validator
 
 
-def file_required(message='Please select a file.'):
+class FileRequired:
     """A FileField validator that ensures that a file is selected."""
 
-    def validator(form, field):
-        if not (file := request.files.get(field.id)) or not secure_filename(file.filename):
-            raise ValidationError(message)
+    def __init__(self, message='Please select a file.'):
+        self.message = message
+        self.field_flags = {'required': True}
 
-    return validator
+    def __call__(self, form, field):
+        if not (file := request.files.get(field.id)) or not secure_filename(file.filename):
+            raise ValidationError(self.message)
+
+
+file_required = FileRequired
