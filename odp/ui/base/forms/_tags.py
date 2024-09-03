@@ -45,6 +45,7 @@ class ContributorTagForm(BaseForm):
             'originator',
             'principalInvestigator',
         ],
+        validators=[input_required()],
     )
     contributor_role = SelectField(
         label='Role',
@@ -56,6 +57,7 @@ class ContributorTagForm(BaseForm):
             "pointOfContact",
             "processor"
         ],
+        validators=[input_required()],
     )
     affiliations = MultiCheckboxField(
         label='Affiliation(s)',
