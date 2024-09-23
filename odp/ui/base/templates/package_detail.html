@@ -213,7 +213,7 @@
             ) %}
                 <td>
                     {% call(prop) obj_info_popup(
-                        resource.id, resource.title, 'Resource: ' + resource.title,
+                        resource.id, resource.title or resource.filename, 'Resource: ' + resource.title,
                         'Title', 'Description', 'Provider', 'Archive path',
                         'File name', 'File size', 'Content type', 'MD5 checksum',
                         'Resource id', 'Last modified'
@@ -260,9 +260,16 @@
 
             {% if can_edit %}
                 <div class="mt-4">
-                    {{ render_button_dialog_form(
+                    {% call render_button_dialog_form(
                         resource_btn, resource_form, 'add-resource', file_upload=true
-                    ) }}
+                    ) %}
+                        {{ render_field(resource_form.title) }}
+                        {{ render_field(resource_form.description) }}
+                        {{ render_field(resource_form.file, onchange='fileSelected();') }}
+                        {{ render_field(resource_form.size) }}
+                        {{ render_field(resource_form.mimetype) }}
+                        {{ render_field(resource_form.sha256) }}
+                    {% endcall %}
                 </div>
             {% endif %}
         {% endif %}

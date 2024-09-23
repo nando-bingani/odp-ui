@@ -1,5 +1,3 @@
-import hashlib
-
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
@@ -338,8 +336,6 @@ def add_resource(id):
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
-        md5 = form.md5.data or hashlib.md5(file.read()).hexdigest()
-        file.seek(0)
         try:
             api.put_files(
                 f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
@@ -348,10 +344,10 @@ def add_resource(id):
                 description=form.description.data,
                 filename=filename,
                 mimetype=file.mimetype,
-                md5=md5,
+                sha256=form.sha256.data,
                 package_id=id,
             )
-            flash(f'Resource {title} has been added.', category='success')
+            flash(f'Resource <b>{title or filename}</b> has been added.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:

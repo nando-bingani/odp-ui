@@ -19,7 +19,6 @@ class PackageForm(BaseForm):
 class ResourceUploadForm(BaseForm):
     title = StringField(
         label='Resource title',
-        validators=[data_required()],
     )
     description = StringField(
         label='Resource description',
@@ -28,7 +27,15 @@ class ResourceUploadForm(BaseForm):
         label='File upload',
         validators=[file_required()],
     )
-    md5 = StringField(
-        label='MD5 checksum',
-        description='(Optional) Enter an MD5 checksum to verify the upload.',
+    size = StringField(
+        label='File size',
+        render_kw={'readonly': ''},
+    )
+    mimetype = StringField(
+        label='Content type',
+        render_kw={'readonly': ''},
+    )
+    sha256 = StringField(
+        label='SHA-256 checksum',
+        render_kw={'readonly': ''},
     )

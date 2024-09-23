@@ -103,3 +103,23 @@ function toggleGeoPointRegion() {
         $('#south').prop('disabled', true);
     }
 }
+
+
+async function fileSelected() {
+    /* Update resource upload form with file size and SHA-256 hash
+     * computed from the selected input file.
+     *
+     * Adapted from https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API/Non-cryptographic_uses_of_subtle_crypto
+     */
+    const file = $('#file').prop('files')[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const hashAsArrayBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+    const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
+    const hashAsString = Array.from(uint8ViewOfHash)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+    $('#size').val(file.size);
+    $('#mimetype').val(file.type);
+    $('#sha256').val(hashAsString);
+}
