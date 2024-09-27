@@ -215,7 +215,7 @@
                     {% call(prop) obj_info_popup(
                         resource.id, resource.title or resource.filename, 'Resource: ' + resource.title,
                         'Title', 'Description', 'Provider', 'Archive path',
-                        'File name', 'File size', 'Content type', 'MD5 checksum',
+                        'File name', 'File size', 'Content type', 'Checksum',
                         'Resource id', 'Last modified'
                     ) %}
                         {% if prop == 'Title' %}
@@ -228,8 +228,8 @@
                             {{ resource.size | bytes(verbose=true) }}
                         {% elif prop == 'Content type' %}
                             {{ resource.mimetype }}
-                        {% elif prop == 'MD5 checksum' %}
-                            {{ resource.md5 }}
+                        {% elif prop == 'Checksum' %}
+                            {{ resource.hash_algorithm }}: {{ resource.hash }}
                         {% elif prop == 'Provider' %}
                             {{ resource.provider_key }}
                         {% elif prop == 'Archive path' %}
