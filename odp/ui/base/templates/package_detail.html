@@ -261,14 +261,24 @@
             {% if can_edit %}
                 <div class="mt-4">
                     {% call render_button_dialog_form(
-                        resource_btn, resource_form, 'add-resource', file_upload=true
+                        file_btn, file_form, 'upload-file', file_upload=true
                     ) %}
-                        {{ render_field(resource_form.title) }}
-                        {{ render_field(resource_form.description) }}
-                        {{ render_field(resource_form.file, onchange='fileSelected();') }}
-                        {{ render_field(resource_form.size) }}
-                        {{ render_field(resource_form.mimetype) }}
-                        {{ render_field(resource_form.sha256) }}
+                        {{ render_field(file_form.title) }}
+                        {{ render_field(file_form.description) }}
+                        {{ render_field(file_form.file, onchange='fileSelected();') }}
+                        {{ render_field(file_form.size) }}
+                        {{ render_field(file_form.mimetype) }}
+                        {{ render_field(file_form.sha256) }}
+                    {% endcall %}
+                </div>
+                <div class="mt-4">
+                    {% call render_button_dialog_form(
+                        zip_btn, zip_form, 'upload-zip', file_upload=true
+                    ) %}
+                        {{ render_field(zip_form.zip_file, onchange='fileSelected(zip=true);') }}
+                        {{ render_field(zip_form.zip_size) }}
+                        {{ render_field(zip_form.zip_mimetype) }}
+                        {{ render_field(zip_form.zip_sha256) }}
                     {% endcall %}
                 </div>
             {% endif %}

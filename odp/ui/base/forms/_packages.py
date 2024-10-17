@@ -1,4 +1,4 @@
-from wtforms import FileField, SelectField, StringField
+from wtforms import FileField, SelectField, StringField, ValidationError
 from wtforms.validators import data_required, input_required
 
 from odp.ui.base.forms import BaseForm
@@ -16,7 +16,7 @@ class PackageForm(BaseForm):
     )
 
 
-class ResourceUploadForm(BaseForm):
+class FileUploadForm(BaseForm):
     title = StringField(
         label='Resource title',
     )
@@ -39,3 +39,26 @@ class ResourceUploadForm(BaseForm):
         label='SHA-256 checksum',
         render_kw={'readonly': ''},
     )
+
+
+class ZipUploadForm(BaseForm):
+    zip_file = FileField(
+        label='File upload',
+        validators=[file_required()],
+    )
+    zip_size = StringField(
+        label='File size',
+        render_kw={'readonly': ''},
+    )
+    zip_mimetype = StringField(
+        label='Content type',
+        render_kw={'readonly': ''},
+    )
+    zip_sha256 = StringField(
+        label='SHA-256 checksum',
+        render_kw={'readonly': ''},
+    )
+
+    def validate_zip_file(self, field):
+        if self.zip_mimetype.data != 'application/zip':
+            raise ValidationError('Only .zip files are supported for zip upload')

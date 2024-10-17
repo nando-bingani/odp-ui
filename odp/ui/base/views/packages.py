@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from odp.const import ODPPackageTag, ODPScope
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, GeoLocationTagForm, PackageForm, ResourceUploadForm
+from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, FileUploadForm, GeoLocationTagForm, PackageForm, ZipUploadForm
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
 
@@ -41,7 +41,8 @@ def detail(id):
     geoloc_form = None
     daterange_form = None
     contrib_form = None
-    resource_form = None
+    file_form = None
+    zip_form = None
 
     active_modal_reload_on_cancel = False
     if active_modal_id := request.args.get('modal'):
@@ -61,9 +62,12 @@ def detail(id):
             elif active_modal_id == 'tag-contributor':
                 contrib_form = ContributorTagForm(request.form)
                 contrib_form.validate()
-            elif active_modal_id == 'add-resource':
-                resource_form = ResourceUploadForm(request.form)
-                resource_form.validate()
+            elif active_modal_id == 'upload-file':
+                file_form = FileUploadForm(request.form)
+                file_form.validate()
+            elif active_modal_id == 'upload-zip':
+                zip_form = ZipUploadForm(request.form)
+                zip_form.validate()
         else:
             active_modal_id = None
 
@@ -79,8 +83,11 @@ def detail(id):
     if not contrib_form:
         contrib_form = ContributorTagForm()
 
-    if not resource_form:
-        resource_form = ResourceUploadForm()
+    if not file_form:
+        file_form = FileUploadForm()
+
+    if not zip_form:
+        zip_form = ZipUploadForm()
 
     utils.populate_affiliation_choices(contrib_form.affiliations)
 
@@ -116,9 +123,17 @@ def detail(id):
         scope=ODPScope.PACKAGE_WRITE,
     )
 
-    resource_btn = Button(
-        label='Add Resource',
-        endpoint='.add_resource',
+    file_btn = Button(
+        label='Upload File',
+        endpoint='.upload_file',
+        theme=ButtonTheme.success,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+    )
+
+    zip_btn = Button(
+        label='Upload Zip',
+        endpoint='.upload_zip',
         theme=ButtonTheme.success,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
@@ -144,8 +159,10 @@ def detail(id):
         contrib_tags=contrib_tags,
         contrib_btn=contrib_btn,
         contrib_form=contrib_form,
-        resource_btn=resource_btn,
-        resource_form=resource_form,
+        file_btn=file_btn,
+        file_form=file_form,
+        zip_btn=zip_btn,
+        zip_form=zip_form,
     )
 
 
@@ -323,11 +340,11 @@ def tag_contributor(id):
     return redirect(url_for('.detail', **redirect_args), code=307)
 
 
-@bp.route('/<id>/resource/add', methods=('POST',))
+@bp.route('/<id>/upload-file', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
-def add_resource(id):
-    """Add a resource to the package and upload it to an archive."""
-    form = ResourceUploadForm(request.form)
+def upload_file(id):
+    """Add a file to a package and upload it to an archive."""
+    form = FileUploadForm(request.form)
     redirect_args = dict(id=id, _anchor='resources')
 
     if form.validate():
@@ -340,21 +357,56 @@ def add_resource(id):
             api.put_files(
                 f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
                 files={'file': file.stream},
-                title=(title := form.title.data),
+                title=form.title.data,
                 description=form.description.data,
                 filename=filename,
                 mimetype=file.mimetype,
                 sha256=form.sha256.data,
                 package_id=id,
             )
-            flash(f'Resource <b>{title or filename}</b> has been added.', category='success')
+            flash(f'File <b>{filename}</b> has been uploaded.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
             if response := api.handle_error(e):
                 return response
     else:
-        redirect_args |= dict(modal='add-resource')
+        redirect_args |= dict(modal='upload-file')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/upload-zip', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def upload_zip(id):
+    """Upload a zip file, unpacking its contents into the package."""
+    form = ZipUploadForm(request.form)
+    redirect_args = dict(id=id, _anchor='resources')
+
+    if form.validate():
+        package = api.get(f'/package/{id}')
+        provider_id = package['provider_id']
+        archive_id = current_app.config['ARCHIVE_ID']
+        file = request.files.get('zip_file')
+        filename = secure_filename(file.filename)
+        try:
+            api.put_files(
+                f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
+                unzip=True,
+                files={'file': file.stream},
+                filename=filename,
+                mimetype=file.mimetype,
+                sha256=form.zip_sha256.data,
+                package_id=id,
+            )
+            flash(f'Zip file <b>{filename}</b> has been uploaded and unpacked.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='upload-zip')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
 

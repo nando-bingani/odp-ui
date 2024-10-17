@@ -105,13 +105,14 @@ function toggleGeoPointRegion() {
 }
 
 
-async function fileSelected() {
-    /* Update resource upload form with file size and SHA-256 hash
-     * computed from the selected input file.
+async function fileSelected(zip = false) {
+    /* Update file/zip upload form with file size, content type
+     * and SHA-256 hash computed from the selected input file.
      *
      * Adapted from https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API/Non-cryptographic_uses_of_subtle_crypto
      */
-    const file = $('#file').prop('files')[0];
+    zip = zip ? 'zip_' : '';
+    const file = $(`#${zip}file`).prop('files')[0];
     const arrayBuffer = await file.arrayBuffer();
     const hashAsArrayBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
     const uint8ViewOfHash = new Uint8Array(hashAsArrayBuffer);
@@ -119,7 +120,7 @@ async function fileSelected() {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-    $('#size').val(file.size);
-    $('#mimetype').val(file.type);
-    $('#sha256').val(hashAsString);
+    $(`#${zip}size`).val(file.size);
+    $(`#${zip}mimetype`).val(file.type);
+    $(`#${zip}sha256`).val(hashAsString);
 }
