@@ -355,12 +355,11 @@ def upload_file(id):
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
+                f'/archive/{archive_id}/{provider_id}/{id}/',
                 files={'file': file.stream},
                 title=form.title.data,
                 description=form.description.data,
                 filename=filename,
-                mimetype=file.mimetype,
                 sha256=form.sha256.data,
                 package_id=id,
             )
@@ -391,11 +390,10 @@ def upload_zip(id):
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/{filename}',
-                unzip=True,
+                f'/archive/{archive_id}/{provider_id}/{id}/',
+                unpack=True,
                 files={'file': file.stream},
                 filename=filename,
-                mimetype=file.mimetype,
                 sha256=form.zip_sha256.data,
                 package_id=id,
             )
