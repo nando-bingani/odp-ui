@@ -212,8 +212,9 @@
                     hide_id=true
             ) %}
                 <td>
+                    {% set resource_label = resource.title or resource.filename or '' %}
                     {% call(prop) obj_info_popup(
-                        resource.id, resource.title or resource.filename, 'Resource: ' + resource.title,
+                        resource.id, resource_label, 'Resource: ' + resource_label,
                         'Title', 'Description', 'Provider', 'Archive path',
                         'File name', 'File size', 'Content type', 'Checksum',
                         'Resource id', 'Last modified'
