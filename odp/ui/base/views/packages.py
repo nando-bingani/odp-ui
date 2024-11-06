@@ -126,7 +126,7 @@ def detail(id):
     file_btn = Button(
         label='Upload File',
         endpoint='.upload_file',
-        theme=ButtonTheme.success,
+        theme=ButtonTheme.warning,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
     )
@@ -134,7 +134,7 @@ def detail(id):
     zip_btn = Button(
         label='Upload Zip',
         endpoint='.upload_zip',
-        theme=ButtonTheme.success,
+        theme=ButtonTheme.warning,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
     )

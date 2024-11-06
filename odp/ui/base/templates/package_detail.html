@@ -208,16 +208,15 @@
 
         {% elif tab_id == 'resources' %}
             {% call(resource) render_table(resources,
-                    'Title', 'File name', 'File size', 'Content type',
+                    'Package path', 'File size', 'Content type', '',
                     hide_id=true
             ) %}
                 <td>
-                    {% set resource_label = resource.title or resource.filename or '' %}
+                    {% set resource_path = resource.package_paths[package.id] %}
                     {% call(prop) obj_info_popup(
-                        resource.id, resource_label, 'Resource: ' + resource_label,
-                        'Title', 'Description', 'Provider', 'Archive path',
-                        'File name', 'File size', 'Content type', 'Checksum',
-                        'Resource id', 'Last modified'
+                        resource.id, resource_path, 'Resource: ' + resource_path,
+                        'Title', 'Description', 'File name', 'File size', 'Content type', 'Checksum',
+                        'Provider', 'Resource id', 'Last modified'
                     ) %}
                         {% if prop == 'Title' %}
                             {{ resource.title }}
@@ -230,24 +229,22 @@
                         {% elif prop == 'Content type' %}
                             {{ resource.mimetype }}
                         {% elif prop == 'Checksum' %}
-                            {{ resource.hash_algorithm }}: {{ resource.hash }}
-                        {% elif prop == 'Provider' %}
-                            {{ resource.provider_key }}
-                        {% elif prop == 'Archive path' %}
-                            {% for archive_id, path in resource.archive_paths | dictsort %}
-                                {{ archive_id }}/{{ path }}
-                                {% if not loop.last %}<br/>{% endif %}
-                            {% endfor %}
+                            [{{ resource.hash_algorithm }}] {{ resource.hash }}
                         {% elif prop == 'Last modified' %}
                             {{ resource.timestamp | timestamp }}
+                        {% elif prop == 'Provider' %}
+                            {{ resource.provider_key }}
                         {% elif prop == 'Resource id' %}
                             {{ resource.id }}
                         {% endif %}
                     {% endcall %}
                 </td>
-                <td>{{ resource.filename }}</td>
-                <td>{{ resource.size | bytes }}</td>
-                <td>{{ resource.mimetype }}</td>
+                <td>
+                    {{ resource.size | bytes }}
+                </td>
+                <td>
+                    {{ resource.mimetype }}
+                </td>
 
                 {% if can_edit %}
                     <td class="text-end">
@@ -260,27 +257,29 @@
             {% endcall %}
 
             {% if can_edit %}
-                <div class="mt-4">
-                    {% call render_button_dialog_form(
-                        file_btn, file_form, 'upload-file', file_upload=true
-                    ) %}
-                        {{ render_field(file_form.title) }}
-                        {{ render_field(file_form.description) }}
-                        {{ render_field(file_form.file, onchange='fileSelected();') }}
-                        {{ render_field(file_form.size) }}
-                        {{ render_field(file_form.mimetype) }}
-                        {{ render_field(file_form.sha256) }}
-                    {% endcall %}
-                </div>
-                <div class="mt-4">
-                    {% call render_button_dialog_form(
-                        zip_btn, zip_form, 'upload-zip', file_upload=true
-                    ) %}
-                        {{ render_field(zip_form.zip_file, onchange='fileSelected(zip=true);') }}
-                        {{ render_field(zip_form.zip_size) }}
-                        {{ render_field(zip_form.zip_mimetype) }}
-                        {{ render_field(zip_form.zip_sha256) }}
-                    {% endcall %}
+                <div class="mt-4 btn-toolbar">
+                    <div class="me-3">
+                        {% call render_button_dialog_form(
+                            file_btn, file_form, 'upload-file', file_upload=true
+                        ) %}
+                            {{ render_field(file_form.title) }}
+                            {{ render_field(file_form.description) }}
+                            {{ render_field(file_form.file, onchange='fileSelected();') }}
+                            {{ render_field(file_form.size) }}
+                            {{ render_field(file_form.mimetype) }}
+                            {{ render_field(file_form.sha256) }}
+                        {% endcall %}
+                    </div>
+                    <div class="">
+                        {% call render_button_dialog_form(
+                            zip_btn, zip_form, 'upload-zip', file_upload=true
+                        ) %}
+                            {{ render_field(zip_form.zip_file, onchange='fileSelected(zip=true);') }}
+                            {{ render_field(zip_form.zip_size) }}
+                            {{ render_field(zip_form.zip_mimetype) }}
+                            {{ render_field(zip_form.zip_sha256) }}
+                        {% endcall %}
+                    </div>
                 </div>
             {% endif %}
         {% endif %}
