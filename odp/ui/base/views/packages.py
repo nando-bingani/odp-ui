@@ -357,8 +357,8 @@ def upload_file(id):
             api.put_files(
                 f'/archive/{archive_id}/{provider_id}/{id}/',
                 files={'file': file.stream},
-                title=form.title.data,
-                description=form.description.data,
+                title=form.title.data or None,
+                description=form.description.data or None,
                 filename=filename,
                 sha256=form.sha256.data,
                 package_id=id,

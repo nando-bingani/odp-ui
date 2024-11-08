@@ -219,9 +219,9 @@
                         'Provider', 'Resource id', 'Last modified'
                     ) %}
                         {% if prop == 'Title' %}
-                            {{ resource.title }}
+                            {{ resource.title if resource.title }}
                         {% elif prop == 'Description' %}
-                            {{ resource.description }}
+                            {{ resource.description if resource.description }}
                         {% elif prop == 'File name' %}
                             {{ resource.filename }}
                         {% elif prop == 'File size' %}
