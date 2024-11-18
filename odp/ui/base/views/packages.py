@@ -177,7 +177,6 @@ def create():
             package = api.post('/package/', dict(
                 provider_id=form.provider_id.data,
                 title=(title := form.title.data),
-                resource_ids=[],
             ))
             flash(f'Package <b>{title}</b> has been created.', category='success')
             return redirect(url_for('.detail', id=package['id']))
@@ -205,7 +204,6 @@ def edit(id):
             package = api.put(f'/package/{id}', dict(
                 provider_id=form.provider_id.data,
                 title=(title := form.title.data),
-                resource_ids=[],
             ))
             flash(f'Package <b>{title}</b> has been updated.', category='success')
             return redirect(url_for('.detail', id=id))
