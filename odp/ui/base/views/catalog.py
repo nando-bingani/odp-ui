@@ -148,14 +148,10 @@ def view(id):
     catalog_id = current_app.config['CATALOG_ID']
 
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')
-    sdg_vocab = {
-        keyword_obj['id']: keyword_obj['data']
-        for keyword_obj in cli.get(f'/vocabulary/SDG')['terms']
-    }
 
     return render_template(
         'catalog_record.html',
-        record=record, sdg_vocab=sdg_vocab,
+        record=record,
     )
 
 
