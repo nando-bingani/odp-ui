@@ -196,14 +196,6 @@
                             (No DOI)
                         {% endif %}
                     </span>
-                    <div>
-                        {% for sdg_tag in record.tags | selectattr('tag_id', '==', 'Record.SDG') | sort(attribute='data.keyword') %}
-                            <span>
-                                SDG {{ sdg_tag.data.keyword }}
-                                {%- if not loop.last %}, {% endif %}
-                            </span>
-                        {% endfor %}
-                    </div>
                 </div>
 {#                <div class="ms-2">#}
 {#                    {{ check_item(record.id) }}#}
@@ -228,8 +220,7 @@
 
 {% macro render_metadata(
     record,
-    current_user,
-    sdg_vocab
+    current_user
 ) %}
     {% set datacite_metadata = record | select_datacite_metadata %}  {# always present #}
     {% set iso19115_metadata = record | select_iso19115_metadata %}  {# might be null #}
@@ -302,17 +293,6 @@
             {% endif %}
 
             {% set props = props + ['Keywords'] %}
-
-            {% set sdg -%}
-                {% for sdg_tag in record.tags | selectattr('tag_id', '==', 'Record.SDG') | sort(attribute='data.keyword') %}
-                    {% set sdg_keyword = sdg_vocab[sdg_tag.data.keyword] %}
-                    {{ sdg_keyword.id | int }}: {{ sdg_keyword.title }}
-                    {%- if not loop.last %}<br/>{% endif %}
-                {% endfor %}
-            {%- endset %}
-            {% if sdg %}
-                {% set props = props + ['SDGs'] %}
-            {% endif %}
 
             {% set related_ids -%}
                 {% if datacite_metadata.relatedIdentifiers %}
@@ -429,8 +409,6 @@
                 {% elif prop == 'Related resources' %}
                     {{ related_ids }}
 
-                {% elif prop == 'SDGs' %}
-                    {{ sdg }}
                 {% endif %}
             {% endcall %}
         </div>
