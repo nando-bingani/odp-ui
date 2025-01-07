@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from random import randint
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -82,6 +83,31 @@ def init_app(app: Flask):
 
         return ''
 
+    @app.template_filter()
+    def keyword(keyword_id: int) -> dict:
+        """Return the keyword object for a keyword code.
+        The cli client must have scope `odp.keyword:read_all`.
+        This will fail horrifically if there is an API error.
+        """
+        from odp.ui.base import cli
+
+        if cached_kw_obj := cli.cache.jget('keyword', keyword_id):
+            return cached_kw_obj
+
+        kw_obj = cli.get(f'/keyword/{keyword_id}')
+
+        # For keywords awaiting approval, expire quickly, otherwise keep
+        # cached for between 7 and 14 days. Keyword objects will rarely
+        # change, but we must expire them in case they ever do.
+        if kw_obj['status'] == 'proposed':
+            expiry = 3600
+        else:
+            expiry = randint(604800, 1209600)
+
+        cli.cache.jset('keyword', keyword_id, value=kw_obj, expiry=expiry)
+
+        return kw_obj
+
 
 class ButtonTheme(str, Enum):
     primary = 'primary'
@@ -104,6 +130,7 @@ class Button:
     prompt_args: tuple = ()
     object_id: str = None
     scope: str = None
+    description: str = None
 
 
 create_btn = partial(

@@ -129,7 +129,8 @@
     {% if button.prompt %}
         <form action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post">
             <button type="submit" class="{{ btn_class }}" {{ 'disabled' if disabled }}
-                    onclick="return confirm('{{ button.prompt % button.prompt_args }}')">
+                    onclick="return confirm('{{ button.prompt % button.prompt_args }}')"
+                    {% if button.description %}title="{{ button.description }}{% endif %}">
                 {{ btn_label }}
             </button>
         </form>

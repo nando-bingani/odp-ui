@@ -76,7 +76,7 @@
 
             {% if field.type == 'MultiCheckboxField' %}
                 {% set style = kwargs.pop('style', '') %}
-                <div class="overflow-scroll" style="{{ style }}">
+                <div class="overflow-auto" style="{{ style }}">
                     {{ field(class=classes|join(' '), **kwargs) }}
                 </div>
             {% else %}
@@ -142,7 +142,8 @@
     {% endif %}
 
     <button type="button" class="{{ btn_class }}" {{ 'disabled' if disabled }}
-            onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});">
+            onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});"
+            {% if button.description %}title="{{ button.description }}{% endif %}">
         {{ btn_label }}
     </button>
 
@@ -155,6 +156,9 @@
                 </div>
 
                 <div class="modal-body">
+                    {% if button.description %}
+                        <span>{{ button.description }}</span>
+                    {% endif %}
                     <form id="{{ modal_id }}-form" action="{{ url_for(button.endpoint, id=button.object_id) }}" method="post"
                         {% if file_upload %}
                             enctype="multipart/form-data"

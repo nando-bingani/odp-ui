@@ -167,15 +167,25 @@
 
         {% elif tab_id == 'contributors' %}
             {% set contrib_enabled = contrib_btn.scope in g.user_permissions %}
+            {% set institution_enabled = institution_btn.scope in g.user_permissions %}
 
             {% call(contrib_tag) render_table(contrib_tags,
-                    'Name', 'Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
+                    'Name', 'Is Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
             ) %}
                 <td>{{ contrib_tag.data.name }}</td>
                 <td>{{ '&#9989;' | safe if contrib_tag.data.is_author }}</td>
-                <td>{{ contrib_tag.data.role }}</td>
+                <td>{{ contrib_tag.data.role | uncamel }}</td>
                 <td>{{ contrib_tag.data.orcid }}</td>
-                <td>{{ contrib_tag.data.affiliations | join('<br/>') | safe }}</td>
+                <td>
+                    {% for keyword_id in contrib_tag.data.affiliations %}
+                        {% set keyword_obj = keyword_id | keyword %}
+                        {{ keyword_obj.key }}
+                        {% if keyword_obj.data.abbr %}
+                            ({{ keyword_obj.data.abbr }})
+                        {% endif %}
+                        {% if not loop.last %}<br/>{% endif %}
+                    {% endfor %}
+                </td>
 
                 {% if contrib_enabled %}
                     <td class="text-end">
@@ -188,21 +198,28 @@
             {% endcall %}
 
             {% if contrib_enabled %}
-                <div class="mt-4">
-                    {% call render_button_dialog_form(
-                        contrib_btn, contrib_form, 'tag-contributor'
-                    ) %}
-                        {{ render_field(contrib_form.name) }}
-                        {{ render_field(contrib_form.is_author, onchange='toggleContributorAuthor();') }}
-                        <div id="author_role_grp" class="visually-hidden">
-                            {{ render_field(contrib_form.author_role) }}
-                        </div>
-                        <div id="contributor_role_grp">
-                            {{ render_field(contrib_form.contributor_role) }}
-                        </div>
-                        {{ render_field(contrib_form.orcid) }}
-                        {{ render_field(contrib_form.affiliations, style="height: 150px") }}
-                    {% endcall %}
+                <div class="mt-4 btn-toolbar">
+                    <div class="me-3">
+                        {% call render_button_dialog_form(
+                            contrib_btn, contrib_form, 'tag-contributor'
+                        ) %}
+                            {{ render_field(contrib_form.name) }}
+                            {{ render_field(contrib_form.is_author, onchange='toggleContributorAuthor();') }}
+                            <div id="author_role_grp" class="visually-hidden">
+                                {{ render_field(contrib_form.author_role) }}
+                            </div>
+                            <div id="contributor_role_grp">
+                                {{ render_field(contrib_form.contributor_role) }}
+                            </div>
+                            {{ render_field(contrib_form.orcid) }}
+                            {{ render_field(contrib_form.affiliations, style="height: 200px") }}
+                        {% endcall %}
+                    </div>
+                    <div>
+                        {{ render_button_dialog_form(
+                            institution_btn, institution_form, 'add-institution'
+                        ) }}
+                    </div>
                 </div>
             {% endif %}
 

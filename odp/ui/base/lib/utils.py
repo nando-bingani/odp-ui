@@ -1,6 +1,5 @@
 from markupsafe import Markup
 
-from odp.const import ODPVocabulary
 from odp.const.db import KeywordStatus
 from odp.ui.base import api
 
@@ -60,29 +59,11 @@ def populate_role_choices(field, include_none=False):
     ]
 
 
-def populate_keyword_choices(field, vocabulary_id, include_none=False):
-    vocabulary = api.get(f'/vocabulary/{vocabulary_id}', size=0)
+def populate_keyword_choices(field, vocabulary_id, include_none=False, include_proposed=False):
+    keywords = api.get(f'/keyword/{vocabulary_id}/', size=0, include_proposed=include_proposed)
     field.choices = [('', '(None)')] if include_none else []
-    field.choices += [
-        (term['id'], term['id'])
-        for term in vocabulary['terms']
-    ]
-
-
-def populate_affiliation_choices(field):
-    keywords = api.get(f'/keyword/{ODPVocabulary.INSTITUTION}/', size=0, include_proposed=True)
-    field.choices = []
     for keyword in keywords['items']:
         key = keyword['key']
         if keyword['status'] == KeywordStatus.proposed:
-            key = Markup(f'<i>{key}</i>')
+            key = Markup(f'<i>{key} (pending verification)</i>')
         field.choices += [(keyword['id'], key)]
-
-
-def populate_sdg_choices(field, vocabulary_id, include_none=False):
-    vocabulary = api.get(f'/vocabulary/{vocabulary_id}', size=0)
-    field.choices = [('', '(None)')] if include_none else []
-    field.choices += [
-        (term['id'], f"{term['id']} - {term['data']['title']}")
-        for term in vocabulary['terms']
-    ]
