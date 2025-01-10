@@ -260,7 +260,7 @@ def tag_doi(id):
                     'doi': form.doi.data,
                 },
             ))
-            flash(f'{ODPPackageTag.DOI} tag has been set.', category='success')
+            flash('DOI has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -270,6 +270,14 @@ def tag_doi(id):
         redirect_args |= dict(modal='tag-doi')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_DOI)
+def untag_doi(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('DOI has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
 
 @bp.route('/<id>/tag/geoloc', methods=('POST',))
@@ -295,7 +303,7 @@ def tag_geolocation(id):
                 tag_id=ODPPackageTag.GEOLOCATION,
                 data=tag_data,
             ))
-            flash(f'{ODPPackageTag.GEOLOCATION} tag has been set.', category='success')
+            flash('Geographic location has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -305,6 +313,14 @@ def tag_geolocation(id):
         redirect_args |= dict(modal='tag-geoloc')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/geoloc/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_geolocation(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Geographic location has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
 
 @bp.route('/<id>/tag/daterange', methods=('POST',))
@@ -322,7 +338,7 @@ def tag_daterange(id):
                     'end': form.end.data.isoformat(),
                 },
             ))
-            flash(f'{ODPPackageTag.DATERANGE} tag has been set.', category='success')
+            flash('Temporal extent has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -332,6 +348,14 @@ def tag_daterange(id):
         redirect_args |= dict(modal='tag-daterange')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/daterange/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_daterange(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Temporal extent has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
 
 @bp.route('/<id>/tag/contributor', methods=('POST',))
@@ -350,10 +374,10 @@ def tag_contributor(id):
                     'orcid': form.orcid.data,
                     'is_author': form.is_author.data,
                     'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
-                    'affiliations': form.affiliations.data,
+                    'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
                 },
             ))
-            flash(f'{ODPPackageTag.CONTRIBUTOR} tag has been set.', category='success')
+            flash('Contributor has been added.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -363,6 +387,14 @@ def tag_contributor(id):
         redirect_args |= dict(modal='tag-contributor')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/contributor/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_contributor(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Contributor has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='contributors'))
 
 
 @bp.route('/<id>/add-institution', methods=('POST',))
@@ -458,30 +490,6 @@ def upload_zip(id):
         redirect_args |= dict(modal='upload-zip')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
-
-
-@bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_DOI)
-def untag_doi(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/geoloc/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_geolocation(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/daterange/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_daterange(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/contributor/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_contributor(id, tag_instance_id):
-    return
 
 
 @bp.route('/<id>/resource/delete/<resource_id>', methods=('POST',))

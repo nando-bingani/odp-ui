@@ -91,7 +91,7 @@ def init_app(app: Flask):
         """
         from odp.ui.base import cli
 
-        if cached_kw_obj := cli.cache.jget('keyword', keyword_id):
+        if cached_kw_obj := cli.cache.jget('keyword', str(keyword_id)):
             return cached_kw_obj
 
         kw_obj = cli.get(f'/keyword/{keyword_id}')
@@ -104,7 +104,7 @@ def init_app(app: Flask):
         else:
             expiry = randint(604800, 1209600)
 
-        cli.cache.jset('keyword', keyword_id, value=kw_obj, expiry=expiry)
+        cli.cache.jset('keyword', str(keyword_id), value=kw_obj, expiry=expiry)
 
         return kw_obj
 
