@@ -15,11 +15,13 @@
         'overview',
         overview='Overview',
         contributors='Contributors',
-        resources='Resources'
+        resources='Resources',
+        sdgs='SDGs'
     ) %}
         {% if tab_id == 'overview' %}
             {% call(prop) render_info(package,
-                    'Title', 'DOI', 'Contributors', 'Resources', 'Geographic location', 'Temporal extent',
+                    'Title', 'DOI', 'Contributors', 'Resources', 'SDGs',
+                    'Geographic location', 'Temporal extent',
                     'Data provider', 'Package status', 'Last modified', hide_id=true
             ) %}
 
@@ -65,6 +67,12 @@
 
                 {% elif prop == 'Resources' %}
                     {{ package.resource_ids | length }}
+
+                {% elif prop == 'SDGs' %}
+                    {% for sdg_tag in sdg_tags['items'] %}
+                        {{ sdg_tag.keyword_keys[-1] }}
+                        {%- if not loop.last %}, {% endif %}
+                    {% endfor %}
 
                 {% elif prop == 'Geographic location' %}
                     <div class="d-flex justify-content-between">
@@ -223,6 +231,65 @@
                 </div>
             {% endif %}
 
+        {% elif tab_id == 'sdgs' %}
+            {% set sdg_enabled = sdg_btn.scope in g.user_permissions %}
+            {% set institution_enabled = institution_btn.scope in g.user_permissions %}
+
+            {% call(sdg_tag) render_table(sdg_tags,
+                    'SDG', 'Goal', 'Target', 'Indicator', hide_id=true
+            ) %}
+                {% set goal_kw = sdg_tag.keyword_ids[0] | keyword %}
+                {% if sdg_tag.keyword_ids | length > 1 %}
+                    {% set target_kw = sdg_tag.keyword_ids[1] | keyword %}
+                {% endif %}
+                {% if sdg_tag.keyword_ids | length > 2 %}
+                    {% set indicator_kw = sdg_tag.keyword_ids[2] | keyword %}
+                {% endif %}
+                <th>
+                    {{ goal_kw.key }} {{ goal_kw.data.title }}
+                </th>
+                <td>
+                    {{ goal_kw.key }} {{ goal_kw.data.goal }}
+                </td>
+                <td>
+                    {% if target_kw %}
+                        {{ target_kw.key }} {{ target_kw.data.target }}
+                    {% else %}
+                        All
+                    {% endif %}
+                </td>
+                <td>
+                    {% if indicator_kw %}
+                        {{ indicator_kw.key }} {{ indicator_kw.data.indicator }}
+                    {% else %}
+                        All
+                    {% endif %}
+                </td>
+
+                {% if sdg_enabled %}
+                    <td class="text-end">
+                        {{ render_delete_button_form(
+                            '.untag_sdg', 'sdg',
+                            id=package.id, tag_instance_id=sdg_tag.id
+                        ) }}
+                    </td>
+                {% endif %}
+            {% endcall %}
+
+            {% if sdg_enabled %}
+                <div class="mt-4 btn-toolbar">
+                    <div class="me-3">
+                        {% call render_button_dialog_form(
+                            sdg_btn, sdg_form, 'tag-sdg'
+                        ) %}
+                            {{ render_field(sdg_form.goal, onchange='populateSDGTargets();') }}
+                            {{ render_field(sdg_form.target, onchange='populateSDGIndicators();') }}
+                            {{ render_field(sdg_form.indicator) }}
+                        {% endcall %}
+                    </div>
+                </div>
+            {% endif %}
+
         {% elif tab_id == 'resources' %}
             {% call(resource) render_table(resources,
                     'Package path', 'File size', 'Content type', '',
@@ -321,9 +388,9 @@
             {% endif %}
         {% endif %}
 
+        initHashTabs();
         toggleContributorAuthor();
         toggleGeoPointRegion();
-
-        initHashTabs();
+        loadSDGVocabulary();
     </script>
 {% endblock %}

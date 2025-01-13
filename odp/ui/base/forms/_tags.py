@@ -3,7 +3,7 @@ from wtforms.validators import data_required, input_required, number_range, opti
 
 from odp.const import DOI_REGEX
 from odp.ui.base.forms import BaseForm
-from odp.ui.base.forms.fields import DateStringField, MultiCheckboxField
+from odp.ui.base.forms.fields import DateStringField, DynamicSelectField, MultiCheckboxField
 from odp.ui.base.forms.validators import pseudo_required
 
 
@@ -11,6 +11,22 @@ class DOITagForm(BaseForm):
     doi = StringField(
         label='DOI',
         validators=[data_required(), regexp(DOI_REGEX)],
+    )
+
+
+class SDGTagForm(BaseForm):
+    goal = DynamicSelectField(
+        label='Goal',
+        validators=[input_required()],
+    )
+    target = DynamicSelectField(
+        label='Target',
+    )
+    indicator = DynamicSelectField(
+        label='Indicator',
+    )
+    comment = StringField(
+        label='Comment',
     )
 
 

@@ -12,12 +12,13 @@ from odp.ui.base.forms import (
     GeoLocationTagForm,
     InstitutionKeywordForm,
     PackageForm,
+    SDGTagForm,
     ZipUploadForm,
 )
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
 
-bp = Blueprint('packages', __name__)
+bp = Blueprint('package', __name__)
 
 
 @bp.route('/')
@@ -45,12 +46,14 @@ def detail(id):
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
     daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
+    sdg_tags = tags.get_tag_instances(package, ODPPackageTag.SDG)
 
     doi_form = None
     geoloc_form = None
     daterange_form = None
     contrib_form = None
     institution_form = None
+    sdg_form = None
     file_form = None
     zip_form = None
 
@@ -75,6 +78,9 @@ def detail(id):
             elif active_modal_id == 'add-institution':
                 institution_form = InstitutionKeywordForm(request.form)
                 institution_form.validate()
+            elif active_modal_id == 'tag-sdg':
+                sdg_form = SDGTagForm(request.form)
+                sdg_form.validate()
             elif active_modal_id == 'upload-file':
                 file_form = FileUploadForm(request.form)
                 file_form.validate()
@@ -98,6 +104,9 @@ def detail(id):
 
     if not institution_form:
         institution_form = InstitutionKeywordForm()
+
+    if not sdg_form:
+        sdg_form = SDGTagForm()
 
     if not file_form:
         file_form = FileUploadForm()
@@ -148,6 +157,15 @@ def detail(id):
         description='Add an unlisted institution to the list of available contributor affiliations.',
     )
 
+    sdg_btn = Button(
+        label='Add SDG',
+        endpoint='.tag_sdg',
+        theme=ButtonTheme.success,
+        object_id=id,
+        scope=ODPScope.PACKAGE_SDG,
+        description='Associate the package with a UN Sustainable Development Goal.',
+    )
+
     file_btn = Button(
         label='Upload File',
         endpoint='.upload_file',
@@ -186,6 +204,9 @@ def detail(id):
         contrib_form=contrib_form,
         institution_btn=institution_btn,
         institution_form=institution_form,
+        sdg_tags=sdg_tags,
+        sdg_btn=sdg_btn,
+        sdg_form=sdg_form,
         file_btn=file_btn,
         file_form=file_form,
         zip_btn=zip_btn,
@@ -395,6 +416,46 @@ def untag_contributor(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
     flash('Contributor has been deleted.', category='success')
     return redirect(url_for('.detail', id=id, _anchor='contributors'))
+
+
+@bp.route('/<id>/tag/sdg', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_sdg(id):
+    form = SDGTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='sdgs')
+
+    if form.validate():
+        if indicator := form.indicator.data:
+            keyword = indicator
+        elif target := form.target.data:
+            keyword = target
+        else:
+            keyword = form.goal.data
+
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.SDG,
+                keyword=keyword,
+                data={},
+            ))
+            flash('SDG has been added.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-sdg')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/sdg/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_sdg(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('SDG has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='sdgs'))
 
 
 @bp.route('/<id>/add-institution', methods=('POST',))

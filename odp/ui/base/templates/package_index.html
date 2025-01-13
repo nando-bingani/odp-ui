@@ -16,7 +16,7 @@
             hide_id=true
     ) %}
         <th scope="row">
-            {{ obj_link('packages', package.id, package.title) }}
+            {{ obj_link('package', package.id, package.title) }}
         </th>
         <td>{{ package.record_doi or '' }}</td>
         <td>{{ package.resource_ids | length }}</td>
