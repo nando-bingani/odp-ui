@@ -1,14 +1,24 @@
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
-from odp.const import ODPPackageTag, ODPScope
+from odp.const import ODPPackageTag, ODPScope, ODPVocabulary
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
-from odp.ui.base.forms import ContributorTagForm, DOITagForm, DateRangeTagForm, FileUploadForm, GeoLocationTagForm, PackageForm, ZipUploadForm
+from odp.ui.base.forms import (
+    ContributorTagForm,
+    DOITagForm,
+    DateRangeTagForm,
+    FileUploadForm,
+    GeoLocationTagForm,
+    InstitutionKeywordForm,
+    PackageForm,
+    SDGTagForm,
+    ZipUploadForm,
+)
 from odp.ui.base.lib import tags, utils
 from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
 
-bp = Blueprint('packages', __name__)
+bp = Blueprint('package', __name__)
 
 
 @bp.route('/')
@@ -36,11 +46,14 @@ def detail(id):
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
     daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
+    sdg_tags = tags.get_tag_instances(package, ODPPackageTag.SDG)
 
     doi_form = None
     geoloc_form = None
     daterange_form = None
     contrib_form = None
+    institution_form = None
+    sdg_form = None
     file_form = None
     zip_form = None
 
@@ -62,6 +75,12 @@ def detail(id):
             elif active_modal_id == 'tag-contributor':
                 contrib_form = ContributorTagForm(request.form)
                 contrib_form.validate()
+            elif active_modal_id == 'add-institution':
+                institution_form = InstitutionKeywordForm(request.form)
+                institution_form.validate()
+            elif active_modal_id == 'tag-sdg':
+                sdg_form = SDGTagForm(request.form)
+                sdg_form.validate()
             elif active_modal_id == 'upload-file':
                 file_form = FileUploadForm(request.form)
                 file_form.validate()
@@ -83,13 +102,19 @@ def detail(id):
     if not contrib_form:
         contrib_form = ContributorTagForm()
 
+    if not institution_form:
+        institution_form = InstitutionKeywordForm()
+
+    if not sdg_form:
+        sdg_form = SDGTagForm()
+
     if not file_form:
         file_form = FileUploadForm()
 
     if not zip_form:
         zip_form = ZipUploadForm()
 
-    utils.populate_affiliation_choices(contrib_form.affiliations)
+    utils.populate_keyword_choices(contrib_form.affiliations, ODPVocabulary.INSTITUTION, include_proposed=True)
 
     doi_btn = Button(
         label='Edit DOI' if doi_tag else 'Add DOI',
@@ -121,6 +146,24 @@ def detail(id):
         theme=ButtonTheme.success,
         object_id=id,
         scope=ODPScope.PACKAGE_WRITE,
+    )
+
+    institution_btn = Button(
+        label='Add Institution',
+        endpoint='.add_institution',
+        theme=ButtonTheme.info,
+        object_id=id,
+        scope=ODPScope.KEYWORD_SUGGEST,
+        description='Add an unlisted institution to the list of available contributor affiliations.',
+    )
+
+    sdg_btn = Button(
+        label='Add SDG',
+        endpoint='.tag_sdg',
+        theme=ButtonTheme.success,
+        object_id=id,
+        scope=ODPScope.PACKAGE_SDG,
+        description='Associate the package with a UN Sustainable Development Goal.',
     )
 
     file_btn = Button(
@@ -159,6 +202,11 @@ def detail(id):
         contrib_tags=contrib_tags,
         contrib_btn=contrib_btn,
         contrib_form=contrib_form,
+        institution_btn=institution_btn,
+        institution_form=institution_form,
+        sdg_tags=sdg_tags,
+        sdg_btn=sdg_btn,
+        sdg_form=sdg_form,
         file_btn=file_btn,
         file_form=file_form,
         zip_btn=zip_btn,
@@ -233,7 +281,7 @@ def tag_doi(id):
                     'doi': form.doi.data,
                 },
             ))
-            flash(f'{ODPPackageTag.DOI} tag has been set.', category='success')
+            flash('DOI has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -243,6 +291,14 @@ def tag_doi(id):
         redirect_args |= dict(modal='tag-doi')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_DOI)
+def untag_doi(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('DOI has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
 
 @bp.route('/<id>/tag/geoloc', methods=('POST',))
@@ -268,7 +324,7 @@ def tag_geolocation(id):
                 tag_id=ODPPackageTag.GEOLOCATION,
                 data=tag_data,
             ))
-            flash(f'{ODPPackageTag.GEOLOCATION} tag has been set.', category='success')
+            flash('Geographic location has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -278,6 +334,14 @@ def tag_geolocation(id):
         redirect_args |= dict(modal='tag-geoloc')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/geoloc/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_geolocation(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Geographic location has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
 
 @bp.route('/<id>/tag/daterange', methods=('POST',))
@@ -295,7 +359,7 @@ def tag_daterange(id):
                     'end': form.end.data.isoformat(),
                 },
             ))
-            flash(f'{ODPPackageTag.DATERANGE} tag has been set.', category='success')
+            flash('Temporal extent has been set.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -307,11 +371,19 @@ def tag_daterange(id):
     return redirect(url_for('.detail', **redirect_args), code=307)
 
 
+@bp.route('/<id>/untag/daterange/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_daterange(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Temporal extent has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
+
+
 @bp.route('/<id>/tag/contributor', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def tag_contributor(id):
     form = ContributorTagForm(request.form)
-    utils.populate_affiliation_choices(form.affiliations)
+    utils.populate_keyword_choices(form.affiliations, ODPVocabulary.INSTITUTION, include_proposed=True)
     redirect_args = dict(id=id, _anchor='contributors')
 
     if form.validate():
@@ -323,10 +395,10 @@ def tag_contributor(id):
                     'orcid': form.orcid.data,
                     'is_author': form.is_author.data,
                     'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
-                    'affiliations': form.affiliations.data,
+                    'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
                 },
             ))
-            flash(f'{ODPPackageTag.CONTRIBUTOR} tag has been set.', category='success')
+            flash('Contributor has been added.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -334,6 +406,80 @@ def tag_contributor(id):
                 return response
     else:
         redirect_args |= dict(modal='tag-contributor')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/contributor/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_contributor(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Contributor has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='contributors'))
+
+
+@bp.route('/<id>/tag/sdg', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_sdg(id):
+    form = SDGTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='sdgs')
+
+    if form.validate():
+        if indicator := form.indicator.data:
+            keyword = indicator
+        elif target := form.target.data:
+            keyword = target
+        else:
+            keyword = form.goal.data
+
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.SDG,
+                keyword=keyword,
+                data={},
+            ))
+            flash('SDG has been added.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-sdg')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/sdg/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_sdg(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('SDG has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='sdgs'))
+
+
+@bp.route('/<id>/add-institution', methods=('POST',))
+@api.view(ODPScope.KEYWORD_SUGGEST)
+def add_institution(id):
+    """Add an unlisted institution (propose institution keyword)."""
+    form = InstitutionKeywordForm(request.form)
+    redirect_args = dict(id=id, _anchor='contributors')
+
+    if form.validate():
+        try:
+            api_args = {'key': form.key.data, 'data': {}}
+            if form.abbr.data:
+                api_args['data']['abbr'] = form.abbr.data
+            if form.ror.data:
+                api_args['data']['ror'] = form.ror.data
+
+            api.post('/keyword/Institution/', api_args)
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='add-institution')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
 
@@ -405,30 +551,6 @@ def upload_zip(id):
         redirect_args |= dict(modal='upload-zip')
 
     return redirect(url_for('.detail', **redirect_args), code=307)
-
-
-@bp.route('/<id>/untag/doi/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_DOI)
-def untag_doi(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/geoloc/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_geolocation(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/daterange/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_daterange(id, tag_instance_id):
-    return
-
-
-@bp.route('/<id>/untag/contributor/<tag_instance_id>', methods=('POST',))
-@api.view(ODPScope.PACKAGE_WRITE)
-def untag_contributor(id, tag_instance_id):
-    return
 
 
 @bp.route('/<id>/resource/delete/<resource_id>', methods=('POST',))

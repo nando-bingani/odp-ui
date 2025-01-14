@@ -124,3 +124,72 @@ async function fileSelected(zip = false) {
     $(`#${zip}mimetype`).val(file.type);
     $(`#${zip}sha256`).val(hashAsString);
 }
+
+
+let sdgVocab;
+
+function loadSDGVocabulary() {
+    $.getJSON("/vocabulary/SDG")
+        .done(function (data) {
+            sdgVocab = data;
+            populateSDGs();
+        })
+        .fail(function (jqxhr, textStatus, error) {
+            alert(`${textStatus}: ${error}`);
+        });
+}
+
+
+function populateSDGs() {
+    const goalDropdown = $('#goal');
+    $.each(sdgVocab.keywords, function (i, sdg) {
+        goalDropdown.append(
+            $(`<option value="${sdg.key}">${sdg.key} ${sdg.title}</option>`)
+        );
+    });
+    populateSDGTargets();
+}
+
+
+function populateSDGTargets() {
+    const goal = $('#goal').val();
+    const targetDropdown = $('#target');
+    targetDropdown.empty();
+    targetDropdown.append(
+        $(`<option value="">All</option>`)
+    );
+    $.each(sdgVocab.keywords, function (i, sdg) {
+        if (sdg.key == goal) {
+            $.each(sdg.keywords, function (j, sdgTarget) {
+                targetDropdown.append(
+                    $(`<option value="${sdgTarget.key}">${sdgTarget.key} ${sdgTarget.target}</option>`)
+                );
+            });
+        }
+    });
+    populateSDGIndicators();
+}
+
+
+function populateSDGIndicators() {
+    const goal = $('#goal').val();
+    const target = $('#target').val();
+    const indicatorDropdown = $('#indicator');
+    indicatorDropdown.empty();
+    indicatorDropdown.append(
+        $(`<option value="">All</option>`)
+    );
+    $.each(sdgVocab.keywords, function (i, sdg) {
+        if (sdg.key == goal) {
+            $.each(sdg.keywords, function (j, sdgTarget) {
+                if (sdgTarget.key == target) {
+                    $.each(sdgTarget.keywords, function (k, sdgIndicator) {
+                        indicatorDropdown.append(
+                            $(`<option value="${sdgIndicator.key}">${sdgIndicator.key} ${sdgIndicator.indicator}</option>`)
+                        );
+                    });
+                }
+            });
+        }
+    });
+}

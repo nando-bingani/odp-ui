@@ -1,8 +1,16 @@
 import json
 from datetime import datetime
 
-from wtforms import DateField, SelectMultipleField, TextAreaField
+from wtforms import DateField, SelectField, SelectMultipleField, TextAreaField
 from wtforms.widgets import CheckboxInput, ListWidget
+
+
+class DynamicSelectField(SelectField):
+    """Use for a select field that is dynamically populated in
+    the browser. Normal choices validation is skipped."""
+
+    def pre_validate(self, form):
+        pass
 
 
 class MultiCheckboxField(SelectMultipleField):
