@@ -70,7 +70,7 @@
 
                 {% elif prop == 'SDGs' %}
                     {% for sdg_tag in sdg_tags['items'] %}
-                        {{ sdg_tag.keyword_keys[-1] }}
+                        {{ sdg_tag.keyword }}
                         {%- if not loop.last %}, {% endif %}
                     {% endfor %}
 
