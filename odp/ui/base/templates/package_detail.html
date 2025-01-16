@@ -2,6 +2,7 @@
 {% from 'content.j2' import render_info, render_table, obj_info_popup, render_button %}
 {% from 'controls.j2' import tabs %}
 {% from 'forms.j2' import render_button_dialog_form, render_field, render_delete_button_form %}
+{% from 'editor.j2' import init_editor, render_editor %}
 
 {% block web_title %}
     {{ super() }} |
@@ -20,9 +21,19 @@
     ) %}
         {% if tab_id == 'overview' %}
             {% call(prop) render_info(package,
-                    'Title', 'DOI', 'Contributors', 'Resources', 'SDGs',
-                    'Geographic location', 'Temporal extent',
-                    'Data provider', 'Package status', 'Last modified', hide_id=true
+                    'Title',
+                    'DOI',
+                    'Abstract',
+                    'Methods (Lineage)',
+                    'Contributors',
+                    'Resources',
+                    'SDGs',
+                    'Geographic location',
+                    'Temporal extent',
+                    'Data provider',
+                    'Package status',
+                    'Last modified',
+                    hide_id=true
             ) %}
 
                 {% if prop == 'Title' %}
@@ -53,6 +64,60 @@
                                     {{ render_delete_button_form(
                                         '.untag_doi', 'DOI', enabled=(doi_tag is not none),
                                         id=package.id, tag_instance_id=doi_tag.id
+                                    ) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% elif prop == 'Abstract' %}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {{ abstract_tag.data.abstract | safe if abstract_tag }}
+                        </div>
+                        <div class="row gx-1">
+                            {% set abstract_enabled = abstract_btn.scope in g.user_permissions %}
+                            {% if abstract_enabled %}
+                                <div class="col">
+                                    {% call render_button_dialog_form(
+                                        abstract_btn, abstract_form, 'tag-abstract', edit_icon=true,
+                                        reload_on_cancel=(abstract_tag is not none)
+                                    ) %}
+                                        {{ render_editor('abstract') }}
+                                        {{ abstract_form.abstract_hidden }}
+                                    {% endcall %}
+                                </div>
+                                <div class="col">
+                                    {{ render_delete_button_form(
+                                        '.untag_abstract', 'abstract', enabled=(abstract_tag is not none),
+                                        id=package.id, tag_instance_id=abstract_tag.id
+                                    ) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% elif prop == 'Methods (Lineage)' %}
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {{ lineage_tag.data.lineage | safe if lineage_tag }}
+                        </div>
+                        <div class="row gx-1">
+                            {% set lineage_enabled = lineage_btn.scope in g.user_permissions %}
+                            {% if lineage_enabled %}
+                                <div class="col">
+                                    {% call render_button_dialog_form(
+                                        lineage_btn, lineage_form, 'tag-lineage', edit_icon=true,
+                                        reload_on_cancel=(lineage_tag is not none)
+                                    ) %}
+                                        {{ render_editor('lineage') }}
+                                        {{ lineage_form.lineage_hidden }}
+                                    {% endcall %}
+                                </div>
+                                <div class="col">
+                                    {{ render_delete_button_form(
+                                        '.untag_lineage', 'lineage', enabled=(lineage_tag is not none),
+                                        id=package.id, tag_instance_id=lineage_tag.id
                                     ) }}
                                 </div>
                             {% endif %}
@@ -372,6 +437,7 @@
 
 {% block scripts %}
     {{ super() }}
+
     <script>
         {% if active_modal_id %}
             $(window).on('load', function () {
@@ -393,4 +459,21 @@
         toggleGeoPointRegion();
         loadSDGVocabulary();
     </script>
+
+    {{ init_editor(
+        element_id='abstract',
+        modal_id='tag-abstract',
+        form_id='tag-abstract-form',
+        field_id='abstract_hidden',
+        content=abstract_tag.data.abstract if abstract_tag
+    ) }}
+
+    {{ init_editor(
+        element_id='lineage',
+        modal_id='tag-lineage',
+        form_id='tag-lineage-form',
+        field_id='lineage_hidden',
+        content=lineage_tag.data.lineage if lineage_tag
+    ) }}
+
 {% endblock %}

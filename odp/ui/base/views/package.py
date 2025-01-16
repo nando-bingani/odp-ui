@@ -5,12 +5,14 @@ from odp.const import ODPPackageTag, ODPScope, ODPVocabulary
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
 from odp.ui.base.forms import (
+    AbstractTagForm,
     ContributorTagForm,
     DOITagForm,
     DateRangeTagForm,
     FileUploadForm,
     GeoLocationTagForm,
     InstitutionKeywordForm,
+    LineageTagForm,
     PackageForm,
     SDGTagForm,
     ZipUploadForm,
@@ -47,6 +49,8 @@ def detail(id):
     daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
     sdg_tags = tags.get_tag_instances(package, ODPPackageTag.SDG)
+    abstract_tag = tags.get_tag_instance(package, ODPPackageTag.ABSTRACT)
+    lineage_tag = tags.get_tag_instance(package, ODPPackageTag.LINEAGE)
 
     doi_form = None
     geoloc_form = None
@@ -54,39 +58,50 @@ def detail(id):
     contrib_form = None
     institution_form = None
     sdg_form = None
+    abstract_form = None
+    lineage_form = None
     file_form = None
     zip_form = None
 
     active_modal_reload_on_cancel = False
     if active_modal_id := request.args.get('modal'):
         if request.method == 'POST':
-            if active_modal_id == 'tag-doi':
-                doi_form = DOITagForm(request.form)
-                doi_form.validate()
-                active_modal_reload_on_cancel = doi_tag is not None
-            elif active_modal_id == 'tag-geoloc':
-                geoloc_form = GeoLocationTagForm(request.form)
-                geoloc_form.validate()
-                active_modal_reload_on_cancel = geoloc_tag is not None
-            elif active_modal_id == 'tag-daterange':
-                daterange_form = DateRangeTagForm(request.form)
-                daterange_form.validate()
-                active_modal_reload_on_cancel = daterange_tag is not None
-            elif active_modal_id == 'tag-contributor':
-                contrib_form = ContributorTagForm(request.form)
-                contrib_form.validate()
-            elif active_modal_id == 'add-institution':
-                institution_form = InstitutionKeywordForm(request.form)
-                institution_form.validate()
-            elif active_modal_id == 'tag-sdg':
-                sdg_form = SDGTagForm(request.form)
-                sdg_form.validate()
-            elif active_modal_id == 'upload-file':
-                file_form = FileUploadForm(request.form)
-                file_form.validate()
-            elif active_modal_id == 'upload-zip':
-                zip_form = ZipUploadForm(request.form)
-                zip_form.validate()
+            match active_modal_id:
+                case 'tag-doi':
+                    doi_form = DOITagForm(request.form)
+                    doi_form.validate()
+                    active_modal_reload_on_cancel = doi_tag is not None
+                case 'tag-geoloc':
+                    geoloc_form = GeoLocationTagForm(request.form)
+                    geoloc_form.validate()
+                    active_modal_reload_on_cancel = geoloc_tag is not None
+                case 'tag-daterange':
+                    daterange_form = DateRangeTagForm(request.form)
+                    daterange_form.validate()
+                    active_modal_reload_on_cancel = daterange_tag is not None
+                case 'tag-contributor':
+                    contrib_form = ContributorTagForm(request.form)
+                    contrib_form.validate()
+                case 'add-institution':
+                    institution_form = InstitutionKeywordForm(request.form)
+                    institution_form.validate()
+                case 'tag-sdg':
+                    sdg_form = SDGTagForm(request.form)
+                    sdg_form.validate()
+                case 'tag-abstract':
+                    abstract_form = AbstractTagForm(request.form)
+                    abstract_form.validate()
+                    active_modal_reload_on_cancel = abstract_tag is not None
+                case 'tag-lineage':
+                    lineage_form = LineageTagForm(request.form)
+                    lineage_form.validate()
+                    active_modal_reload_on_cancel = lineage_tag is not None
+                case 'upload-file':
+                    file_form = FileUploadForm(request.form)
+                    file_form.validate()
+                case 'upload-zip':
+                    zip_form = ZipUploadForm(request.form)
+                    zip_form.validate()
         else:
             active_modal_id = None
 
@@ -107,6 +122,12 @@ def detail(id):
 
     if not sdg_form:
         sdg_form = SDGTagForm()
+
+    if not abstract_form:
+        abstract_form = AbstractTagForm(data=abstract_tag['data'] if abstract_tag else None)
+
+    if not lineage_form:
+        lineage_form = LineageTagForm(data=lineage_tag['data'] if lineage_tag else None)
 
     if not file_form:
         file_form = FileUploadForm()
@@ -166,6 +187,22 @@ def detail(id):
         description='Associate the package with a UN Sustainable Development Goal.',
     )
 
+    abstract_btn = Button(
+        label='Edit Abstract' if abstract_tag else 'Add Abstract',
+        endpoint='.tag_abstract',
+        theme=ButtonTheme.primary,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+    )
+
+    lineage_btn = Button(
+        label='Edit Methods (Lineage)' if lineage_tag else 'Add Methods (Lineage)',
+        endpoint='.tag_lineage',
+        theme=ButtonTheme.primary,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+    )
+
     file_btn = Button(
         label='Upload File',
         endpoint='.upload_file',
@@ -207,6 +244,12 @@ def detail(id):
         sdg_tags=sdg_tags,
         sdg_btn=sdg_btn,
         sdg_form=sdg_form,
+        abstract_tag=abstract_tag,
+        abstract_btn=abstract_btn,
+        abstract_form=abstract_form,
+        lineage_tag=lineage_tag,
+        lineage_btn=lineage_btn,
+        lineage_form=lineage_form,
         file_btn=file_btn,
         file_form=file_form,
         zip_btn=zip_btn,
@@ -281,7 +324,7 @@ def tag_doi(id):
                     'doi': form.doi.data,
                 },
             ))
-            flash('DOI has been set.', category='success')
+            flash('DOI has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -298,6 +341,74 @@ def tag_doi(id):
 def untag_doi(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
     flash('DOI has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/tag/abstract', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_abstract(id):
+    form = AbstractTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='overview')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.ABSTRACT,
+                data={
+                    'abstract': form.abstract_hidden.data,
+                },
+            ))
+            flash('Abstract has been saved.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-abstract')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/abstract/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_abstract(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Abstract has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/tag/lineage', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_lineage(id):
+    form = LineageTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='overview')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.LINEAGE,
+                data={
+                    'lineage': form.lineage_hidden.data,
+                },
+            ))
+            flash('Methods (Lineage) has been saved.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-lineage')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
+
+
+@bp.route('/<id>/untag/lineage/<tag_instance_id>', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def untag_lineage(id, tag_instance_id):
+    api.delete(f'/package/{id}/tag/{tag_instance_id}')
+    flash('Methods (Lineage) has been deleted.', category='success')
     return redirect(url_for('.detail', id=id))
 
 
@@ -324,7 +435,7 @@ def tag_geolocation(id):
                 tag_id=ODPPackageTag.GEOLOCATION,
                 data=tag_data,
             ))
-            flash('Geographic location has been set.', category='success')
+            flash('Geographic location has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -359,7 +470,7 @@ def tag_daterange(id):
                     'end': form.end.data.isoformat(),
                 },
             ))
-            flash('Temporal extent has been set.', category='success')
+            flash('Temporal extent has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -398,7 +509,7 @@ def tag_contributor(id):
                     'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
                 },
             ))
-            flash('Contributor has been added.', category='success')
+            flash('Contributor has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -438,7 +549,7 @@ def tag_sdg(id):
                 keyword=keyword,
                 data={},
             ))
-            flash('SDG has been added.', category='success')
+            flash('SDG has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:

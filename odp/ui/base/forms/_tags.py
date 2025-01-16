@@ -1,4 +1,4 @@
-from wtforms import BooleanField, FloatField, RadioField, SelectField, StringField, ValidationError
+from wtforms import BooleanField, FloatField, HiddenField, RadioField, SelectField, StringField, ValidationError
 from wtforms.validators import data_required, input_required, number_range, optional, regexp
 
 from odp.const import DOI_REGEX
@@ -138,3 +138,17 @@ class DateRangeTagForm(BaseForm):
     def validate_end(self, field):
         if field.data < self.start.data:
             raise ValidationError('The end date cannot be earlier than the start date.')
+
+
+class AbstractTagForm(BaseForm):
+    abstract_hidden = HiddenField(
+        label='Abstract',
+        validators=[data_required()],
+    )
+
+
+class LineageTagForm(BaseForm):
+    lineage_hidden = HiddenField(
+        label='Methods (Lineage)',
+        validators=[data_required()],
+    )

@@ -108,7 +108,7 @@
     #}
     {% set msg = confirm_msg or 'Are you sure you want to delete this %s?' % item_desc %}
     <form action="{{ url_for(target, **kwargs) }}" method="post">
-        <button type="submit" class="btn btn-outline-danger btn-row-delete p-0" {{ 'disabled' if not enabled }}
+        <button type="submit" class="btn btn-outline-danger btn-icon" {{ 'disabled' if not enabled }}
                 onclick="return confirm('{{ msg }}')">
             {{ '&#10060;'|safe }}
         </button>
@@ -134,7 +134,7 @@
     {% set disabled = button.scope and button.scope not in g.user_permissions %}
     {% set btn_class = 'btn btn-' + ('outline-' if button.outline) + button.theme.value %}
     {% if edit_icon %}
-        {% set btn_class = btn_class + ' btn-row-delete p-0' %}
+        {% set btn_class = btn_class + ' btn-icon' %}
         {% set btn_label = '&#128393;' | safe %}
     {% else %}
         {% set btn_class = btn_class + ' btn-action' %}
@@ -143,12 +143,12 @@
 
     <button type="button" class="{{ btn_class }}" {{ 'disabled' if disabled }}
             onclick="showModal('{{ modal_id }}', {{ reload_on_cancel | lower }});"
-            {% if button.description %}title="{{ button.description }}{% endif %}">
+            {% if button.description %}title="{{ button.description }}"{% endif %}>
         {{ btn_label }}
     </button>
 
-    <div class="modal fade" id="{{ modal_id }}" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal fade" id="{{ modal_id }}" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5">{{ button.label }}</h1>

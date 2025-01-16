@@ -1,0 +1,45 @@
+{% macro render_editor(
+    element_id
+) %}
+    <div class="btn-toolbar mb-3">
+        <div class="btn-group">
+            {% for command in 'bold', 'italic', 'underline', 'subscript', 'superscript' %}
+                <button type="button" id="{{ element_id }}-{{ command }}" title="{{ command | title }}"
+                        class="btn btn-outline-info btn-icon ri-{{ command }}"></button>
+            {% endfor %}
+        </div>
+    </div>
+    <div id="{{ element_id }}"></div>
+{% endmacro %}
+
+{% macro init_editor(
+    element_id,
+    form_id=none,
+    field_id=none,
+    modal_id=none,
+    content=''
+) %}
+    <script type="module">
+        import {createEditor} from "{{ url_for('static', filename='scripts/editor.js') }}";
+
+        const {{ element_id }}Editor = createEditor('{{ element_id }}', '{{ content }}');
+
+        {% for command in 'bold', 'italic', 'underline', 'subscript', 'superscript' %}
+            $("#{{ element_id }}-{{ command }}").bind("click", (event) => {
+                {{ element_id }}Editor.chain().focus().toggle{{ command | title }}().run();
+            });
+        {% endfor %}
+
+        {% if form_id and field_id %}
+            $("#{{ form_id }}").bind("submit", (event) => {
+                $("#{{ field_id }}").val({{ element_id }}Editor.getHTML());
+            });
+        {% endif %}
+
+        {% if modal_id %}
+            $("#{{ modal_id }}").bind("shown.bs.modal", (event) => {
+                {{ element_id }}Editor.chain().focus().run();
+            });
+        {% endif %}
+    </script>
+{% endmacro %}

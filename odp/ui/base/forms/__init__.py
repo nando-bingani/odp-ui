@@ -4,7 +4,16 @@ from odp.ui.base.forms._base import BaseForm
 from odp.ui.base.forms._keywords import InstitutionKeywordForm
 from odp.ui.base.forms._packages import FileUploadForm, PackageForm, ZipUploadForm
 from odp.ui.base.forms._search import CatalogSearchForm, ResourceSearchForm
-from odp.ui.base.forms._tags import ContributorTagForm, DOITagForm, DateRangeTagForm, GeoLocationTagForm, KeywordTagForm, SDGTagForm
+from odp.ui.base.forms._tags import (
+    AbstractTagForm,
+    ContributorTagForm,
+    DOITagForm,
+    DateRangeTagForm,
+    GeoLocationTagForm,
+    KeywordTagForm,
+    LineageTagForm,
+    SDGTagForm,
+)
 
 
 def init_app(app: Flask):

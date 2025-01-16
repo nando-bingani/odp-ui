@@ -119,7 +119,7 @@
     {% set disabled = button.scope and button.scope not in g.user_permissions %}
     {% set btn_class = 'btn btn-' + ('outline-' if button.outline) + button.theme.value %}
     {% if edit_icon %}
-        {% set btn_class = btn_class + ' btn-row-delete p-0' %}
+        {% set btn_class = btn_class + ' btn-icon' %}
         {% set btn_label = '&#128393;' | safe %}
     {% else %}
         {% set btn_class = btn_class + ' btn-action' %}
