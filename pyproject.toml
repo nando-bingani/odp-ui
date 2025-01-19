@@ -1,3 +1,36 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "odp-ui"
+version = "3.0.0"
+description = "User interface library for Python-based ODP web applications."
+authors = [
+    { name = "South African Environmental Observation Network", email = "development@saeon.nrf.ac.za" },
+]
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
+requires-python = "== 3.10.*"
+dependencies = [
+    "authlib",
+    "flask < 3",
+    "flask-login",
+    "redis",
+    "werkzeug < 3",
+    "wtforms",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+source = "https://github.com/SAEON/odp-ui"
+
+[tool.setuptools]
+packages = ["odp"]
