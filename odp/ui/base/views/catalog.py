@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from random import randint
 from typing import Optional
 
@@ -9,7 +10,10 @@ from odp.lib.client import ODPAPIError
 from odp.ui.base import api, cli
 from odp.ui.base.forms import SearchForm
 
-bp = Blueprint('catalog', __name__)
+bp = Blueprint(
+    'catalog', __name__,
+    static_folder=Path(__file__).parent.parent / 'static',
+)
 
 
 @bp.app_template_filter()

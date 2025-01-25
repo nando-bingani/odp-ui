@@ -10,28 +10,36 @@
             result.total,
             items_singular='dataset',
             items_plural='datasets',
+            text_color='light',
             **dict(request.args)
         ) }}
     </div>
 {% endset %}
 
 {% block main %}
-    <main class="flex-grow-1 m-3">
-        <div class="container-xl">
-            <div class="row">
-                <div class="col-3 mx-2">
-                    {{ filter_panel(form, facet_fields, result.facets, **dict(request.args)) }}
+    <main class="flex-grow-1 m-5">
+        <div class="container-xxl">
+            <div class="d-flex justify-content-center align-items-start">
+                <div class="flex-grow-evenly">
+                    {{ facet_panel(facet_fields, result.facets, **dict(request.args)) }}
                 </div>
-                <div class="col mx-3">
-                    {{ filtered_search_proxy(form) }}
+                <div class="mx-5 w-50">
+                    <div class="mb-5">
+                        {{ filtered_search_proxy(form) }}
+                    </div>
                     {{ pagination }}
 {#                    <div class="d-flex justify-content-end p-3">#}
 {#                        {{ check_all(right=true) }}#}
 {#                    </div>#}
-                    {{ result_list(result['items']) }}
+                    <div class="mb-5">
+                        {{ result_list(result['items']) }}
+                    </div>
                     {% if result.total > 0 %}
                         {{ pagination }}
                     {% endif %}
+                </div>
+                <div class="flex-grow-evenly">
+                    {{ filter_panel(form, facet_fields) }}
                 </div>
             </div>
         </div>
