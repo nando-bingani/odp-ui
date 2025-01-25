@@ -1,0 +1,10 @@
+body {
+    background-image: var(--home-background-url);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.tab-content, .filter-panel, .accordion-item, .card, .search-control, .sort-control {
+    background-color: rgba(var(--bs-white-rgb), 0.9) !important;
+}

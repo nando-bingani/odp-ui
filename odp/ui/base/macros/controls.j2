@@ -55,14 +55,14 @@
     items_plural='items',
     endpoint='.index',
     query='',
-    text_white=false
+    text_color=none
 ) %}
     {# Render pagination info and links.
        Additional query params to append to paging URLs can be passed in via
        query='&...' or kwargs. If kwargs includes 'page' it is ignored.
     #}
     {% set _ = kwargs.pop('page', none) %}
-    {% set text_white = 'text-white' if text_white %}
+    {% set text_color = 'text-' + text_color if text_color %}
     {% for param, value in dict(kwargs).items() %}
         {% if value == '' %}
             {% set _ = kwargs.pop(param) %}
@@ -70,7 +70,7 @@
     {% endfor %}
 
     <div class="d-flex">
-        <span class="mt-2 fw-bold flex-grow-evenly {{ text_white }}">
+        <span class="mt-2 fw-bold flex-grow-evenly {{ text_color }}">
             {{ total }} {{ items_singular if total == 1 else items_plural }} found
         </span>
 
@@ -109,7 +109,7 @@
         {% endif %}
 
         {% if total > 0 %}
-            <span class="mt-2 text-end flex-grow-evenly {{ text_white }}">
+            <span class="mt-2 text-end flex-grow-evenly {{ text_color }}">
                 Page {{ page }} of {{ pages }}
             </span>
         {% endif %}

@@ -8,7 +8,7 @@
 ) %}
     <form action="{{ url_for('catalog.search') }}" method="post">
         {{ form.csrf_token }}
-        <div class="bg-white rounded-pill p-1 px-3 border border-secondary">
+        <div class="bg-white rounded-pill p-1 px-3 border border-secondary search-control">
             <div class="input-group">
                 {{ form.q(
                     class='form-control bg-transparent border-0 shadow-none',
@@ -33,7 +33,7 @@
     #}
     <div class="d-flex">
         <div class="flex-grow-1 me-3">
-            <div class="form-control p-1 pe-2">
+            <div class="form-control p-1 pe-2 search-control">
                 <div class="input-group">
                     {{ form.q(
                         id='q-proxy',
@@ -47,7 +47,7 @@
             </div>
         </div>
         <div>
-            <div class="form-control p-1 pe-0">
+            <div class="form-control p-1 pe-0 sort-control">
                 <div class="input-group">
                     {{ form.sort(
                         id='sort-proxy',
@@ -64,92 +64,102 @@
 {% macro filter_panel(
     form,
     facet_fields,
+    show_search=false
+) %}
+    {# Render filtering panel.
+       Facet fields are hidden.
+    #}
+    <div class="filter-panel p-3 rounded">
+        <form action="{{ url_for('catalog.search') }}" method="post">
+            {{ form.csrf_token }}
+
+            {% if show_search %}
+                <div class="form-control p-0 pe-2 mb-4 search-control">
+                    <div class="input-group">
+                        {{ form.q(
+                            class='form-control bg-transparent border-0 shadow-none',
+                            placeholder='Enter search terms...'
+                        ) }}
+                        <button type="submit" onclick="setFilter();" class="btn p-1">
+                            &#128269;
+                        </button>
+                    </div>
+                </div>
+            {% else %}
+                {{ form.q(type='hidden') }}
+            {% endif %}
+
+            <input id="sort" name="sort" type="hidden" value="">
+
+            <div class="mb-4">
+                <p class="fw-bold mb-2">
+                    Geographic extent
+                </p>
+                <div id="map"></div>
+                <small class="form-check mt-2">
+                    {{ form.exclusive_region(class='form-check-input') }}
+                    {{ form.exclusive_region.label(class='form-check-label') }}
+                </small>
+                {% for bound in 'n', 'e', 's', 'w' %}
+                    {{ form[bound](type='hidden') }}
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                <p class="fw-bold mb-2">
+                    Temporal extent
+                </p>
+                {{ form.after.label(class='form-label') }}
+                {{ form.after(class='form-control mb-2') }}
+                {{ form.before.label(class='form-label') }}
+                {{ form.before(class='form-control mb-2') }}
+                <small class="form-check">
+                    {{ form.exclusive_interval(class='form-check-input') }}
+                    {{ form.exclusive_interval.label(class='form-check-label') }}
+                </small>
+            </div>
+
+            <button type="submit" onclick="setFilter();" class="btn btn-outline-primary btn-action"
+                    title="Apply filters" id="apply-filter">
+                Apply
+            </button>
+
+            <button type="submit" onclick="clearFilter();" class="btn btn-outline-primary btn-action"
+                    title="Clear filters">
+                Clear
+            </button>
+
+            {% for facet_field in facet_fields.values() %}
+                {{ form[facet_field](type='hidden') }}
+            {% endfor %}
+        </form>
+    </div>
+{% endmacro %}
+
+
+{% macro facet_panel(
+    facet_fields,
     result_facets,
-    show_search=false,
     endpoint='.index'
 ) %}
-    {# Render filtering and faceting panel.
+    {# Render faceting panel.
        Query params can be passed via kwargs.
     #}
     {% set _ = kwargs.pop('page', none) %}
 
-    <form action="{{ url_for('catalog.search') }}" method="post">
-        {{ form.csrf_token }}
-
-        {% if show_search %}
-            <div class="form-control p-0 pe-2 mb-4">
-                <div class="input-group">
-                    {{ form.q(
-                        class='form-control bg-transparent border-0 shadow-none',
-                        placeholder='Enter search terms...'
-                    ) }}
-                    <button type="submit" onclick="setFilter();" class="btn p-1">
-                        &#128269;
-                    </button>
-                </div>
-            </div>
-        {% else %}
-            {{ form.q(type='hidden') }}
-        {% endif %}
-
-        <input id="sort" name="sort" type="hidden" value="">
-
-        <div class="mb-4">
-            <p class="fw-bold mb-2">
-                Filter by location
-            </p>
-            <div id="map"></div>
-            <small class="form-check mt-2">
-                {{ form.exclusive_region(class='form-check-input') }}
-                {{ form.exclusive_region.label(class='form-check-label') }}
-            </small>
-            {% for bound in 'n', 'e', 's', 'w' %}
-                {{ form[bound](type='hidden') }}
-            {% endfor %}
-        </div>
-
-        <div class="mb-4">
-            <p class="fw-bold mb-2">
-                Filter by date range
-            </p>
-            {{ form.after.label(class='form-label') }}
-            {{ form.after(class='form-control mb-2') }}
-            {{ form.before.label(class='form-label') }}
-            {{ form.before(class='form-control mb-2') }}
-            <small class="form-check">
-                {{ form.exclusive_interval(class='form-check-input') }}
-                {{ form.exclusive_interval.label(class='form-check-label') }}
-            </small>
-        </div>
-
-        <button type="submit" onclick="setFilter();" class="btn btn-outline-primary btn-action"
-                title="Apply filters" id="apply-filter">
-            Apply
-        </button>
-
-        <button type="submit" onclick="clearFilter();" class="btn btn-outline-primary btn-action"
-                title="Clear filters">
-            Clear
-        </button>
-
-        {% for facet_field in facet_fields.values() %}
-            {{ form[facet_field](type='hidden') }}
-        {% endfor %}
-    </form>
-
-    <div class="accordion mt-5">
+    <div class="accordion">
         {% for facet_title, facet_field in facet_fields.items() %}
             {% set facet_id = 'facet-' + loop.index|string %}
 
-            <div class="accordion-item my-5">
+            <div class="accordion-item mb-4">
                 <h5 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#{{ facet_id }}">
+                    <button class="accordion-button fw-bold text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#{{ facet_id }}">
                         {{ facet_title }}
                     </button>
                 </h5>
 
                 <div id="{{ facet_id }}" class="accordion-collapse collapse show">
-                    <div class="accordion-body overflow-auto" style="max-height:72vh">
+                    <div class="accordion-body overflow-auto" style="max-height:66vh">
                         {% for facet_value, count in result_facets[facet_title] | sort %}
                             <p class="card-text">
                                 {% set query = dict(kwargs) %}
@@ -229,7 +239,7 @@
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
             {#<button class="nav-link active" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">#}
-            <div class="nav-link active">
+            <div class="nav-link active py-3 px-4">
                 {% if record.doi %}
                     DOI:
                     <span class="user-select-all">
@@ -250,7 +260,7 @@
         {% endif %}
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content p-4">
         <div id="info" class="tab-pane fade show active" role="tabpanel">
             {% set props = ['Title'] %}
 
