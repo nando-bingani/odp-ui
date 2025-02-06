@@ -137,6 +137,26 @@ def detail(id):
 
     utils.populate_keyword_choices(contrib_form.affiliations, ODPVocabulary.INSTITUTION, include_proposed=True)
 
+    submit_btn = Button(
+        label='Submit',
+        endpoint='.submit',
+        theme=ButtonTheme.success,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+        prompt='Are you sure you want to submit the package?',
+        description='Submit package for publication'
+    )
+
+    cancel_btn = Button(
+        label='Cancel',
+        endpoint='.cancel',
+        theme=ButtonTheme.warning,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+        prompt='Are you sure you want to cancel the package submission?',
+        description='Cancel package submission',
+    )
+
     doi_btn = Button(
         label='Edit DOI' if doi_tag else 'Add DOI',
         endpoint='.tag_doi',
@@ -227,6 +247,8 @@ def detail(id):
         active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
         edit_btn=edit_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE),
+        submit_btn=submit_btn,
+        cancel_btn=cancel_btn,
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
@@ -266,8 +288,9 @@ def create():
     if request.method == 'POST' and form.validate():
         try:
             package = api.post('/package/', dict(
-                provider_id=form.provider_id.data,
                 title=(title := form.title.data),
+                provider_id=form.provider_id.data,
+                schema_id=current_app.config['SCHEMA_ID'],
             ))
             flash(f'Package <b>{title}</b> has been created.', category='success')
             return redirect(url_for('.detail', id=package['id']))
@@ -293,8 +316,9 @@ def edit(id):
     if request.method == 'POST' and form.validate():
         try:
             package = api.put(f'/package/{id}', dict(
-                provider_id=form.provider_id.data,
                 title=(title := form.title.data),
+                provider_id=form.provider_id.data,
+                schema_id=current_app.config['SCHEMA_ID'],
             ))
             flash(f'Package <b>{title}</b> has been updated.', category='success')
             return redirect(url_for('.detail', id=id))
@@ -308,6 +332,32 @@ def edit(id):
         package=package,
         form=form,
     )
+
+
+@bp.route('/<id>/submit', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def submit(id):
+    package = api.get(f'/package/{id}')
+    api.post(f'/package/{id}/submit', {})
+    flash(f'Package <b>{package["title"]}</b> has been submitted.', category='success')
+    return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/cancel', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def cancel(id):
+    api.post(f'/package/{id}/cancel', {})
+    flash('Package submission has been cancelled.', category='success')
+    return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/delete', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def delete(id):
+    package = api.get(f'/package/{id}')
+    api.delete(f'/package/admin/{id}')
+    flash(f'Package <b>{package["title"]}</b> has been deleted.', category='success')
+    return redirect(url_for('.index'))
 
 
 @bp.route('/<id>/tag/doi', methods=('POST',))

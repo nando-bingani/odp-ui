@@ -238,6 +238,14 @@
                 {% endif %}
             {% endcall %}
 
+            <div class="mt-4 btn-toolbar">
+                {% if package.status == 'pending' %}
+                    {{ render_button(submit_btn) }}
+                {% elif package.status == 'submitted' %}
+                    {{ render_button(cancel_btn) }}
+                {% endif %}
+            </div>
+
         {% elif tab_id == 'contributors' %}
             {% set contrib_enabled = contrib_btn.scope in g.user_permissions %}
             {% set institution_enabled = institution_btn.scope in g.user_permissions %}
