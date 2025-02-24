@@ -17,7 +17,8 @@
         overview='Overview',
         contributors='Contributors',
         resources='Resources',
-        sdgs='SDGs'
+        sdgs='SDGs',
+        metadata='Metadata'
     ) %}
         {% if tab_id == 'overview' %}
             {% call(prop) render_info(package,
@@ -439,6 +440,12 @@
                     </div>
                 </div>
             {% endif %}
+
+        {% elif tab_id == 'metadata' %}
+            <pre class="m-3">
+                {{- package.metadata | format_json -}}
+            </pre>
+
         {% endif %}
     {% endcall %}
 {% endblock %}
