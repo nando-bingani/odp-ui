@@ -549,15 +549,20 @@ def tag_contributor(id):
 
     if form.validate():
         try:
+            tag_data = {
+                'name': form.name.data,
+                'is_author': form.is_author.data,
+                'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
+                'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
+            }
+            if form.orcid.data:
+                tag_data |= {
+                    'orcid': form.orcid.data,
+                }
+
             api.post(f'/package/{id}/tag', dict(
                 tag_id=ODPPackageTag.CONTRIBUTOR,
-                data={
-                    'name': form.name.data,
-                    'orcid': form.orcid.data,
-                    'is_author': form.is_author.data,
-                    'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
-                    'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
-                },
+                data=tag_data,
             ))
             flash('Contributor has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
