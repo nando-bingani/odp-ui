@@ -82,6 +82,10 @@ class ContributorTagForm(BaseForm):
         label='Affiliation(s)',
         description='Click the Add Institution button if your institution is not listed here.',
     )
+    contact_info = StringField(
+        label='Contact information',
+        validators=[pseudo_required()],
+    )
 
 
 class GeoLocationTagForm(BaseForm):

@@ -252,12 +252,13 @@
             {% set institution_enabled = institution_btn.scope in g.user_permissions %}
 
             {% call(contrib_tag) render_table(contrib_tags,
-                    'Name', 'Is Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
+                    'Name', 'Author', 'Role', 'ORCID', 'Contact Information', 'Affiliation(s)', hide_id=true
             ) %}
                 <td>{{ contrib_tag.data.name }}</td>
                 <td>{{ '&#9989;' | safe if contrib_tag.data.is_author }}</td>
                 <td>{{ contrib_tag.data.role | uncamel }}</td>
                 <td>{{ contrib_tag.data.orcid }}</td>
+                <td>{{ contrib_tag.data.contact_info }}</td>
                 <td>
                     {% for keyword_id in contrib_tag.data.affiliations %}
                         {% set keyword_obj = keyword_id | keyword %}
@@ -291,7 +292,10 @@
                                 {{ render_field(contrib_form.author_role) }}
                             </div>
                             <div id="contributor_role_grp">
-                                {{ render_field(contrib_form.contributor_role) }}
+                                {{ render_field(contrib_form.contributor_role, onchange='toggleContactInfo();') }}
+                            </div>
+                            <div id="contact_info_grp" class="visually-hidden">
+                                {{ render_field(contrib_form.contact_info) }}
                             </div>
                             {{ render_field(contrib_form.orcid) }}
                             {{ render_field(contrib_form.affiliations, style="height: 200px") }}
@@ -471,6 +475,7 @@
 
         initHashTabs();
         toggleContributorAuthor();
+        toggleContactInfo();
         toggleGeoPointRegion();
         loadSDGVocabulary();
     </script>

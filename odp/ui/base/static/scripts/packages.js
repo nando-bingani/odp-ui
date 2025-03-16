@@ -80,8 +80,20 @@ function toggleContributorAuthor() {
         $('#author_role_grp').addClass('visually-hidden');
         $('#contributor_role_grp').removeClass('visually-hidden');
     }
+    toggleContactInfo();
 }
 
+function toggleContactInfo() {
+    const isAuthor = $('#is_author').is(':checked');
+    const isContactPerson = $('#contributor_role option:selected').val() == 'pointOfContact';
+    if (!isAuthor && isContactPerson) {
+        $('#contact_info_grp').removeClass('visually-hidden');
+        $('#contact_info').prop('required', true);
+    } else {
+        $('#contact_info_grp').addClass('visually-hidden');
+        $('#contact_info').prop('required', false);
+    }
+}
 
 function toggleGeoPointRegion() {
     const isPoint = $('input[type="radio"][value="point"]').is(':checked');

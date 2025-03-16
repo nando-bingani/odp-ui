@@ -559,6 +559,10 @@ def tag_contributor(id):
                 tag_data |= {
                     'orcid': form.orcid.data,
                 }
+            if tag_data['role'] == 'pointOfContact':
+                tag_data |= {
+                    'contact_info': form.contact_info.data,
+                }
 
             api.post(f'/package/{id}/tag', dict(
                 tag_id=ODPPackageTag.CONTRIBUTOR,
