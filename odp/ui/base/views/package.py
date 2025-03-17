@@ -166,7 +166,7 @@ def detail(id):
     )
 
     geoloc_btn = Button(
-        label='Edit Geographic Location' if geoloc_tag else 'Add Geographic Location',
+        label='Edit Geographic Extent' if geoloc_tag else 'Add Geographic Extent',
         endpoint='.tag_geolocation',
         theme=ButtonTheme.primary,
         object_id=id,
@@ -485,7 +485,7 @@ def tag_geolocation(id):
                 tag_id=ODPPackageTag.GEOLOCATION,
                 data=tag_data,
             ))
-            flash('Geographic location has been saved.', category='success')
+            flash('Geographic extent has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -501,7 +501,7 @@ def tag_geolocation(id):
 @api.view(ODPScope.PACKAGE_WRITE)
 def untag_geolocation(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
-    flash('Geographic location has been deleted.', category='success')
+    flash('Geographic extent has been deleted.', category='success')
     return redirect(url_for('.detail', id=id))
 
 
@@ -557,7 +557,7 @@ def tag_contributor(id):
             }
             if form.orcid.data:
                 tag_data |= {
-                    'orcid': form.orcid.data,
+                    'orcid': 'https://orcid.org/' + form.orcid.data,
                 }
             if tag_data['role'] == 'pointOfContact':
                 tag_data |= {
@@ -641,7 +641,7 @@ def add_institution(id):
             if form.abbr.data:
                 api_args['data']['abbr'] = form.abbr.data
             if form.ror.data:
-                api_args['data']['ror'] = form.ror.data
+                api_args['data']['ror'] = 'https://ror.org/' + form.ror.data
 
             api.post('/keyword/Institution/', api_args)
 

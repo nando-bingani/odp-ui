@@ -1,7 +1,7 @@
 from wtforms import BooleanField, FloatField, HiddenField, RadioField, SelectField, StringField, ValidationError
 from wtforms.validators import data_required, input_required, number_range, optional, regexp
 
-from odp.const import DOI_REGEX, ORCID_REGEX
+from odp.const import DOI_REGEX, ORCID_PATH
 from odp.ui.base.forms import BaseForm
 from odp.ui.base.forms.fields import DateStringField, DynamicSelectField, MultiCheckboxField
 from odp.ui.base.forms.validators import pseudo_required
@@ -51,8 +51,8 @@ class ContributorTagForm(BaseForm):
     )
     orcid = StringField(
         label='ORCID',
-        validators=[regexp('^$|' + ORCID_REGEX)],
-        description='ORCID identifier (https://orcid.org/...)'
+        validators=[regexp(f'^(|{ORCID_PATH})$', message='Expecting 16-digit ORCID. Example: 0000-0001-2345-678X')],
+        description='https://orcid.org/',
     )
     is_author = BooleanField(
         label='Author',

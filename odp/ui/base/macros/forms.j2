@@ -85,7 +85,7 @@
         {% endif %}
 
         {% if field.description %}
-            <div class="form-text">{{ field.description }}</div>
+            <div id="{{ field.id }}-description" class="form-text">{{ field.description }}</div>
         {% endif %}
 
         {% for error in field.errors %}

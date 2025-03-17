@@ -29,8 +29,8 @@
                     'Contributors',
                     'Resources',
                     'SDGs',
-                    'Geographic location',
                     'Temporal extent',
+                    'Geographic extent',
                     'Data provider',
                     'Package status',
                     'Last modified',
@@ -126,10 +126,7 @@
                     </div>
 
                 {% elif prop == 'Contributors' %}
-                    {% for contrib_tag in contrib_tags['items'] %}
-                        {{ contrib_tag.data.role | uncamel }}: {{ contrib_tag.data.name }}
-                        {% if not loop.last %}<br/>{% endif %}
-                    {% endfor %}
+                    {{ contrib_tags['items'] | length }}
 
                 {% elif prop == 'Resources' %}
                     {{ package.resource_ids | length }}
@@ -140,7 +137,7 @@
                         {%- if not loop.last %}, {% endif %}
                     {% endfor %}
 
-                {% elif prop == 'Geographic location' %}
+                {% elif prop == 'Geographic extent' %}
                     <div class="d-flex justify-content-between">
                         <div class="pe-4">
                             {% if geoloc_tag %}
@@ -257,7 +254,13 @@
                 <td>{{ contrib_tag.data.name }}</td>
                 <td>{{ '&#9989;' | safe if contrib_tag.data.is_author }}</td>
                 <td>{{ contrib_tag.data.role | uncamel }}</td>
-                <td>{{ contrib_tag.data.orcid }}</td>
+                <td>
+                    {% if contrib_tag.data.orcid %}
+                        <a href="{{ contrib_tag.data.orcid }}" target="_blank" class="text-decoration-none">
+                            {{ contrib_tag.data.orcid }}
+                        </a>
+                    {% endif %}
+                </td>
                 <td>{{ contrib_tag.data.contact_info }}</td>
                 <td>
                     {% for keyword_id in contrib_tag.data.affiliations %}
@@ -297,14 +300,18 @@
                             <div id="contact_info_grp" class="visually-hidden">
                                 {{ render_field(contrib_form.contact_info) }}
                             </div>
-                            {{ render_field(contrib_form.orcid) }}
+                            {{ render_field(contrib_form.orcid, oninput='updateORCID();') }}
                             {{ render_field(contrib_form.affiliations, style="height: 200px") }}
                         {% endcall %}
                     </div>
                     <div>
-                        {{ render_button_dialog_form(
+                        {% call render_button_dialog_form(
                             institution_btn, institution_form, 'add-institution'
-                        ) }}
+                        ) %}
+                            {{ render_field(institution_form.key) }}
+                            {{ render_field(institution_form.abbr) }}
+                            {{ render_field(institution_form.ror, oninput='updateROR();') }}
+                        {% endcall %}
                     </div>
                 </div>
             {% endif %}
@@ -476,6 +483,8 @@
         initHashTabs();
         toggleContributorAuthor();
         toggleContactInfo();
+        updateORCID();
+        updateROR();
         toggleGeoPointRegion();
         loadSDGVocabulary();
     </script>

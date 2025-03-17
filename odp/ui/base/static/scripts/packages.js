@@ -95,6 +95,16 @@ function toggleContactInfo() {
     }
 }
 
+function updateORCID() {
+    const orcid_url = 'https://orcid.org/' + $('#orcid').val();
+    $('#orcid-description').text(orcid_url);
+}
+
+function updateROR() {
+    const ror_url = 'https://ror.org/' + $('#ror').val();
+    $('#ror-description').text(ror_url);
+}
+
 function toggleGeoPointRegion() {
     const isPoint = $('input[type="radio"][value="point"]').is(':checked');
     const isRegion = $('input[type="radio"][value="box"]').is(':checked');
