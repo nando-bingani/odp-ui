@@ -32,8 +32,8 @@ class FileRequired:
 
 
 class PseudoRequired:
-    """A validator that makes the field appear required without
-    affecting server-side form validation."""
+    """A validator that sets required on the widget but
+    does not affect server-side form validation."""
 
     def __init__(self):
         self.field_flags = {'required': True}

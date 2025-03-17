@@ -170,7 +170,7 @@
                                         reload_on_cancel=(geoloc_tag is not none)
                                     ) %}
                                         {{ render_field(geoloc_form.place) }}
-                                        {{ render_field(geoloc_form.shape, onchange='toggleGeoPointRegion();') }}
+                                        {{ render_field(geoloc_form.shape, onchange='selectGeoShape();') }}
                                         {{ render_field(geoloc_form.north) }}
                                         <div id="geo_region_grp" class="visually-hidden">
                                             {{ render_field(geoloc_form.south) }}
@@ -290,12 +290,12 @@
                             contrib_btn, contrib_form, 'tag-contributor'
                         ) %}
                             {{ render_field(contrib_form.name) }}
-                            {{ render_field(contrib_form.is_author, onchange='toggleContributorAuthor();') }}
+                            {{ render_field(contrib_form.is_author, onchange='toggleContribAuthor();') }}
                             <div id="author_role_grp" class="visually-hidden">
-                                {{ render_field(contrib_form.author_role) }}
+                                {{ render_field(contrib_form.author_role, onchange='selectContribRole();') }}
                             </div>
                             <div id="contributor_role_grp">
-                                {{ render_field(contrib_form.contributor_role, onchange='toggleContactInfo();') }}
+                                {{ render_field(contrib_form.contributor_role, onchange='selectContribRole();') }}
                             </div>
                             <div id="contact_info_grp" class="visually-hidden">
                                 {{ render_field(contrib_form.contact_info) }}
@@ -481,11 +481,10 @@
         {% endif %}
 
         initHashTabs();
-        toggleContributorAuthor();
-        toggleContactInfo();
+        toggleContribAuthor();
         updateORCID();
         updateROR();
-        toggleGeoPointRegion();
+        selectGeoShape();
         loadSDGVocabulary();
     </script>
 

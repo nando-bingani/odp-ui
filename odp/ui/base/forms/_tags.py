@@ -61,22 +61,26 @@ class ContributorTagForm(BaseForm):
     author_role = SelectField(
         label='Role',
         choices=[
-            'originator',
-            'principalInvestigator',
+            ('', 'Please select...'),
+            ('originator', 'Originator'),
+            ('principalInvestigator', 'Principal Investigator'),
         ],
-        validators=[input_required()],
+        validate_choice=False,
+        validators=[pseudo_required()],
     )
     contributor_role = SelectField(
         label='Role',
         choices=[
-            "resourceProvider",
-            "custodian",
-            "owner",
-            "distributor",
-            "pointOfContact",
-            "processor"
+            ('', 'Please select...'),
+            ('custodian', 'Custodian'),
+            ('distributor', 'Distributor'),
+            ('owner', 'Owner'),
+            ('pointOfContact', 'Point Of Contact'),
+            ('processor', 'Processor'),
+            ('resourceProvider', 'Resource Provider'),
         ],
-        validators=[input_required()],
+        validate_choice=False,
+        validators=[pseudo_required()],
     )
     affiliations = MultiCheckboxField(
         label='Affiliation(s)',
