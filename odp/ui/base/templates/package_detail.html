@@ -32,6 +32,7 @@
                     'Temporal extent',
                     'Geographic extent',
                     'Data provider',
+                    'Package key',
                     'Package status',
                     'Last modified',
                     hide_id=true
@@ -40,10 +41,18 @@
                 {% if prop == 'Title' %}
                     <div class="d-flex justify-content-between">
                         <div>
-                            {{ package.title }}
+                            {{ title_tag.data.title if title_tag }}
                         </div>
-                        <div>
-                            {{ render_button(edit_btn, edit_icon=true) }}
+                        <div class="row gx-1">
+                            {% set title_enabled = title_btn.scope in g.user_permissions %}
+                            {% if title_enabled %}
+                                <div class="col">
+                                    {{ render_button_dialog_form(
+                                        title_btn, title_form, 'tag-title', edit_icon=true,
+                                        reload_on_cancel=(title_tag is not none)
+                                    ) }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -218,14 +227,10 @@
                     </div>
 
                 {% elif prop == 'Data provider' %}
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {{ package.provider_key }}
-                        </div>
-                        <div>
-                            {{ render_button(edit_btn, edit_icon=true) }}
-                        </div>
-                    </div>
+                    {{ package.provider_key }}
+
+                {% elif prop == 'Package key' %}
+                    {{ package.key }}
 
                 {% elif prop == 'Package status' %}
                     {{ package.status }}

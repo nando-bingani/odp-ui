@@ -13,12 +13,13 @@ from odp.ui.base.forms import (
     GeoLocationTagForm,
     InstitutionKeywordForm,
     LineageTagForm,
-    PackageForm,
+    PackageCreateForm,
     SDGTagForm,
+    TitleTagForm,
     ZipUploadForm,
 )
 from odp.ui.base.lib import tags, utils
-from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
+from odp.ui.base.templates import Button, ButtonTheme, create_btn
 
 bp = Blueprint('package', __name__)
 
@@ -45,6 +46,7 @@ def detail(id):
     resources = utils.pagify(package['resources'])
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
+    title_tag = tags.get_tag_instance(package, ODPPackageTag.TITLE)
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
     daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
@@ -53,6 +55,7 @@ def detail(id):
     lineage_tag = tags.get_tag_instance(package, ODPPackageTag.LINEAGE)
 
     doi_form = None
+    title_form = None
     geoloc_form = None
     daterange_form = None
     contrib_form = None
@@ -71,6 +74,10 @@ def detail(id):
                     doi_form = DOITagForm(request.form)
                     doi_form.validate()
                     active_modal_reload_on_cancel = doi_tag is not None
+                case 'tag-title':
+                    title_form = TitleTagForm(request.form)
+                    title_form.validate()
+                    active_modal_reload_on_cancel = title_tag is not None
                 case 'tag-geoloc':
                     geoloc_form = GeoLocationTagForm(request.form)
                     geoloc_form.validate()
@@ -107,6 +114,9 @@ def detail(id):
 
     if not doi_form:
         doi_form = DOITagForm(data=doi_tag['data'] if doi_tag else None)
+
+    if not title_form:
+        title_form = TitleTagForm(data=title_tag['data'] if title_tag else None)
 
     if not geoloc_form:
         geoloc_form = GeoLocationTagForm(data=geoloc_tag['data'] if geoloc_tag else None)
@@ -163,6 +173,14 @@ def detail(id):
         theme=ButtonTheme.primary,
         object_id=id,
         scope=ODPScope.PACKAGE_DOI,
+    )
+
+    title_btn = Button(
+        label='Edit Title' if title_tag else 'Add Title',
+        endpoint='.tag_title',
+        theme=ButtonTheme.primary,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
     )
 
     geoloc_btn = Button(
@@ -246,12 +264,14 @@ def detail(id):
         active_modal_id=active_modal_id,
         active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
-        edit_btn=edit_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE),
         submit_btn=submit_btn,
         cancel_btn=cancel_btn,
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
+        title_tag=title_tag,
+        title_btn=title_btn,
+        title_form=title_form,
         geoloc_tag=geoloc_tag,
         geoloc_btn=geoloc_btn,
         geoloc_form=geoloc_form,
@@ -282,16 +302,23 @@ def detail(id):
 @bp.route('/new', methods=('GET', 'POST'))
 @api.view(ODPScope.PACKAGE_WRITE)
 def create():
-    form = PackageForm(request.form)
+    form = PackageCreateForm(request.form)
     utils.populate_provider_choices(form.provider_id)
 
     if request.method == 'POST' and form.validate():
         try:
             package = api.post('/package/', dict(
-                title=(title := form.title.data),
                 provider_id=form.provider_id.data,
                 schema_id=current_app.config['SCHEMA_ID'],
             ))
+            try:
+                api.post(f"/package/{package['id']}/tag", dict(
+                    tag_id=ODPPackageTag.TITLE,
+                    data={'title': (title := form.title.data)},
+                ))
+            except ODPAPIError as e:
+                api.handle_error(e)
+
             flash(f'Package <b>{title}</b> has been created.', category='success')
             return redirect(url_for('.detail', id=package['id']))
 
@@ -305,41 +332,12 @@ def create():
     )
 
 
-@bp.route('/<id>/edit', methods=('GET', 'POST'))
-@api.view(ODPScope.PACKAGE_WRITE)
-def edit(id):
-    package = api.get(f'/package/{id}')
-
-    form = PackageForm(request.form, data=package)
-    utils.populate_provider_choices(form.provider_id)
-
-    if request.method == 'POST' and form.validate():
-        try:
-            package = api.put(f'/package/{id}', dict(
-                title=(title := form.title.data),
-                provider_id=form.provider_id.data,
-                schema_id=current_app.config['SCHEMA_ID'],
-            ))
-            flash(f'Package <b>{title}</b> has been updated.', category='success')
-            return redirect(url_for('.detail', id=id))
-
-        except ODPAPIError as e:
-            if response := api.handle_error(e):
-                return response
-
-    return render_template(
-        'package_edit.html',
-        package=package,
-        form=form,
-    )
-
-
 @bp.route('/<id>/submit', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def submit(id):
     package = api.get(f'/package/{id}')
     api.post(f'/package/{id}/submit', {})
-    flash(f'Package <b>{package["title"]}</b> has been submitted.', category='success')
+    flash(f'Package <b>{package["key"]}</b> has been submitted.', category='success')
     return redirect(url_for('.detail', id=id))
 
 
@@ -356,7 +354,7 @@ def cancel(id):
 def delete(id):
     package = api.get(f'/package/{id}')
     api.delete(f'/package/admin/{id}')
-    flash(f'Package <b>{package["title"]}</b> has been deleted.', category='success')
+    flash(f'Package <b>{package["key"]}</b> has been deleted.', category='success')
     return redirect(url_for('.index'))
 
 
@@ -392,6 +390,32 @@ def untag_doi(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
     flash('DOI has been deleted.', category='success')
     return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/tag/title', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_title(id):
+    form = TitleTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='overview')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.TITLE,
+                data={
+                    'title': form.title.data,
+                },
+            ))
+            flash('Title has been saved.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-title')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
 
 
 @bp.route('/<id>/tag/abstract', methods=('POST',))

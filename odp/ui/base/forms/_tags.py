@@ -14,6 +14,13 @@ class DOITagForm(BaseForm):
     )
 
 
+class TitleTagForm(BaseForm):
+    title = StringField(
+        label='Package title',
+        validators=[data_required()],
+    )
+
+
 class SDGTagForm(BaseForm):
     goal = DynamicSelectField(
         label='Goal',

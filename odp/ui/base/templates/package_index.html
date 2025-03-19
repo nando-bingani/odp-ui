@@ -12,12 +12,15 @@
     {{ render_buttons(buttons) }}
 
     {% call(package) render_table(packages,
-            'Title', 'DOI', 'Resources', 'Provider', 'Status', 'Last modified',
+            'Package key', 'Title', 'DOI', 'Resources', 'Provider', 'Status', 'Last modified',
             hide_id=true
     ) %}
         <th scope="row">
-            {{ obj_link('package', package.id, package.title) }}
+            {{ obj_link('package', package.id, package.key) }}
         </th>
+        <td>{{ package.tags |
+               selectattr('tag_id', '==', 'Package.Title') |
+               map(attribute='data.title') | first }}</td>
         <td>{{ package.record_doi or '' }}</td>
         <td>{{ package.resource_ids | length }}</td>
         <td>{{ package.provider_key }}</td>
