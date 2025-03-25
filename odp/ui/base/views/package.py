@@ -681,25 +681,23 @@ def add_institution(id):
 @bp.route('/<id>/upload-file', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def upload_file(id):
-    """Add a file to a package and upload it to an archive."""
+    """Upload a single file and add it to the package."""
     form = FileUploadForm(request.form)
     redirect_args = dict(id=id, _anchor='resources')
 
     if form.validate():
         package = api.get(f'/package/{id}')
-        provider_id = package['provider_id']
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/',
+                f'/archive/{archive_id}/{package["key"]}/',
                 files={'file': file.stream},
-                title=form.title.data or None,
-                description=form.description.data or None,
                 filename=filename,
                 sha256=form.sha256.data,
-                package_id=id,
+                title=form.title.data or None,
+                description=form.description.data or None,
             )
             flash(f'File <b>{filename}</b> has been uploaded.', category='success')
             return redirect(url_for('.detail', **redirect_args))
@@ -722,18 +720,16 @@ def upload_zip(id):
 
     if form.validate():
         package = api.get(f'/package/{id}')
-        provider_id = package['provider_id']
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('zip_file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/',
+                f'/archive/{archive_id}/{package["key"]}/',
                 unpack=True,
                 files={'file': file.stream},
                 filename=filename,
                 sha256=form.zip_sha256.data,
-                package_id=id,
             )
             flash(f'Zip file <b>{filename}</b> has been uploaded and unpacked.', category='success')
             return redirect(url_for('.detail', **redirect_args))
