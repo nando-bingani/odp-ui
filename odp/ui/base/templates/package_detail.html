@@ -386,16 +386,17 @@
                     hide_id=true
             ) %}
                 <td>
-                    {% set resource_path = resource.package_paths[package.id] %}
                     {% call(prop) obj_info_popup(
-                        resource.id, resource_path, 'Resource: ' + resource_path,
-                        'Title', 'Description', 'File name', 'File size', 'Content type', 'Checksum',
-                        'Provider', 'Resource id', 'Last modified'
+                        resource.id, resource.package_path, 'Resource: ' + resource.package_path,
+                        'Title', 'Description', 'Folder', 'File name', 'File size',
+                        'Content type', 'Checksum', 'Resource id', 'Last modified'
                     ) %}
                         {% if prop == 'Title' %}
                             {{ resource.title if resource.title }}
                         {% elif prop == 'Description' %}
                             {{ resource.description if resource.description }}
+                        {% elif prop == 'Folder' %}
+                            {{ resource.folder }}
                         {% elif prop == 'File name' %}
                             {{ resource.filename }}
                         {% elif prop == 'File size' %}
@@ -403,11 +404,9 @@
                         {% elif prop == 'Content type' %}
                             {{ resource.mimetype }}
                         {% elif prop == 'Checksum' %}
-                            [{{ resource.hash_algorithm }}] {{ resource.hash }}
+                            {{ resource.hash_algorithm }}: {{ resource.hash }}
                         {% elif prop == 'Last modified' %}
                             {{ resource.timestamp | timestamp }}
-                        {% elif prop == 'Provider' %}
-                            {{ resource.provider_key }}
                         {% elif prop == 'Resource id' %}
                             {{ resource.id }}
                         {% endif %}
