@@ -683,7 +683,7 @@ def add_institution(id):
 def upload_file(id):
     """Upload a single file and add it to the package."""
     form = FileUploadForm(request.form)
-    redirect_args = dict(id=id, _anchor='resources')
+    redirect_args = dict(id=id, _anchor='files')
 
     if form.validate():
         archive_id = current_app.config['ARCHIVE_ID']
@@ -716,7 +716,7 @@ def upload_file(id):
 def upload_zip(id):
     """Upload a zip file, unpacking its contents into the package."""
     form = ZipUploadForm(request.form)
-    redirect_args = dict(id=id, _anchor='resources')
+    redirect_args = dict(id=id, _anchor='files')
 
     if form.validate():
         archive_id = current_app.config['ARCHIVE_ID']
@@ -743,7 +743,9 @@ def upload_zip(id):
     return redirect(url_for('.detail', **redirect_args), code=307)
 
 
-@bp.route('/<id>/resource/delete/<resource_id>', methods=('POST',))
+@bp.route('/<id>/delete-file/<resource_id>', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
-def delete_resource(id, resource_id):
-    return
+def delete_file(id, resource_id):
+    api.delete(f'/package/{id}/files/{resource_id}')
+    flash('File has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='files'))

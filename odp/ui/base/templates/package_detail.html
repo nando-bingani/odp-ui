@@ -16,7 +16,7 @@
         'overview',
         overview='Overview',
         contributors='Contributors',
-        resources='Resources',
+        files='Files',
         sdgs='SDGs',
         metadata='Metadata'
     ) %}
@@ -27,7 +27,7 @@
                     'Abstract',
                     'Methods (Lineage)',
                     'Contributors',
-                    'Resources',
+                    'Files',
                     'SDGs',
                     'Temporal extent',
                     'Geographic extent',
@@ -137,7 +137,7 @@
                 {% elif prop == 'Contributors' %}
                     {{ contrib_tags['items'] | length }}
 
-                {% elif prop == 'Resources' %}
+                {% elif prop == 'Files' %}
                     {{ package.resource_ids | length }}
 
                 {% elif prop == 'SDGs' %}
@@ -380,14 +380,14 @@
                 </div>
             {% endif %}
 
-        {% elif tab_id == 'resources' %}
+        {% elif tab_id == 'files' %}
             {% call(resource) render_table(resources,
-                    'Package path', 'File size', 'Content type', '',
+                    'File path', 'File size', 'Content type', '',
                     hide_id=true
             ) %}
                 <td>
                     {% call(prop) obj_info_popup(
-                        resource.id, resource.package_path, 'Resource: ' + resource.package_path,
+                        resource.id, resource.package_path, 'File: ' + resource.package_path,
                         'Title', 'Description', 'Folder', 'File name', 'File size',
                         'Content type', 'Checksum', 'Resource id', 'Last modified'
                     ) %}
@@ -422,7 +422,7 @@
                 {% if can_edit %}
                     <td class="text-end">
                         {{ render_delete_button_form(
-                            '.delete_resource', 'resource',
+                            '.delete_file', 'file',
                             id=package.id, resource_id=resource.id
                         ) }}
                     </td>

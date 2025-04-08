@@ -18,10 +18,10 @@ class PackageCreateForm(BaseForm):
 
 class FileUploadForm(BaseForm):
     title = StringField(
-        label='Resource title',
+        label='Title',
     )
     description = StringField(
-        label='Resource description',
+        label='Description',
     )
     file = FileField(
         label='File upload',
