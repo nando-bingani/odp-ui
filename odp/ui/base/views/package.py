@@ -686,13 +686,13 @@ def upload_file(id):
     redirect_args = dict(id=id, _anchor='resources')
 
     if form.validate():
-        package = api.get(f'/package/{id}')
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{package["key"]}/',
+                f'/package/{id}/files/',
+                archive_id=archive_id,
                 files={'file': file.stream},
                 filename=filename,
                 sha256=form.sha256.data,
@@ -719,13 +719,13 @@ def upload_zip(id):
     redirect_args = dict(id=id, _anchor='resources')
 
     if form.validate():
-        package = api.get(f'/package/{id}')
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('zip_file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{package["key"]}/',
+                f'/package/{id}/files/',
+                archive_id=archive_id,
                 unpack=True,
                 files={'file': file.stream},
                 filename=filename,
