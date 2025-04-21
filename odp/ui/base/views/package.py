@@ -2,6 +2,7 @@ from flask import Blueprint, current_app, flash, g, redirect, render_template, r
 from werkzeug.utils import secure_filename
 
 from odp.const import ODPPackageTag, ODPScope, ODPVocabulary
+from odp.const.db import ResourceStatus
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
 from odp.ui.base.forms import (
@@ -43,7 +44,8 @@ def index():
 @api.view(ODPScope.PACKAGE_READ)
 def detail(id):
     package = api.get(f'/package/{id}')
-    resources = utils.pagify(package['resources'])
+    resources = utils.pagify(list(filter(
+        lambda r: r['status'] == ResourceStatus.active, package['resources'])))
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
     title_tag = tags.get_tag_instance(package, ODPPackageTag.TITLE)
@@ -691,10 +693,9 @@ def upload_file(id):
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/package/{id}/files/',
+                f'/package/{id}/files/{filename}',
                 archive_id=archive_id,
                 files={'file': file.stream},
-                filename=filename,
                 sha256=form.sha256.data,
                 title=form.title.data or None,
                 description=form.description.data or None,
@@ -724,11 +725,10 @@ def upload_zip(id):
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/package/{id}/files/',
+                f'/package/{id}/files/{filename}',
                 archive_id=archive_id,
                 unpack=True,
                 files={'file': file.stream},
-                filename=filename,
                 sha256=form.zip_sha256.data,
             )
             flash(f'Zip file <b>{filename}</b> has been uploaded and unpacked.', category='success')
