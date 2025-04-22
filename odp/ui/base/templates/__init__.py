@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from functools import partial
+from pathlib import Path
 from random import randint
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -107,6 +108,16 @@ def init_app(app: Flask):
         cli.cache.jset('keyword', str(keyword_id), value=kw_obj, expiry=expiry)
 
         return kw_obj
+
+    @app.template_filter()
+    def folder(path: str) -> str:
+        """Return the folder part of a file path."""
+        return str(Path(path).parent)
+
+    @app.template_filter()
+    def filename(path: str) -> str:
+        """Return the filename part of a file path."""
+        return Path(path).name
 
 
 class ButtonTheme(str, Enum):

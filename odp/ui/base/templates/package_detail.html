@@ -396,9 +396,9 @@
                         {% elif prop == 'Description' %}
                             {{ resource.description if resource.description }}
                         {% elif prop == 'Folder' %}
-                            {{ resource.folder }}
+                            {{ resource.path | folder }}
                         {% elif prop == 'File name' %}
-                            {{ resource.filename }}
+                            {{ resource.path | filename }}
                         {% elif prop == 'File size' %}
                             {{ resource.size | bytes(verbose=true) }}
                         {% elif prop == 'Content type' %}
