@@ -1,4 +1,7 @@
-from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
+from io import BytesIO
+from pathlib import Path
+
+from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
 
 from odp.const import ODPPackageTag, ODPScope, ODPVocabulary
@@ -749,3 +752,22 @@ def delete_file(id, resource_id):
     api.delete(f'/package/{id}/files/{resource_id}')
     flash('File has been deleted.', category='success')
     return redirect(url_for('.detail', id=id, _anchor='files'))
+
+
+@bp.route('/<id>/download-file/<resource_id>')
+# no @api.view because this is opened in its own window
+def download_file(id, resource_id):
+    archive_id = current_app.config['ARCHIVE_ID']
+    try:
+        resource = api.get(f'/resource/{resource_id}')
+        data = api.get_bytes(
+            f'/package/{id}/files/{resource_id}',
+            archive_id=archive_id,
+        )
+    except ODPAPIError as e:
+        abort(e.status_code, e.error_detail)
+
+    return send_file(
+        BytesIO(data),
+        download_name=Path(resource['path']).name,
+    )

@@ -223,9 +223,11 @@
 {% endmacro %}
 
 
-{% macro obj_info_popup(obj_id, link_text, title_text) %}
+{% macro obj_info_popup(obj_id, link_text, title_text, footer_callback=false) %}
     {# Render object info in a modal dialog.
         Pass property names via varargs; callback rendering as for render_info.
+        Set footer_callback=true to insert content before the close button via
+        a 'footer' callback.
     #}
     <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#modal-{{ obj_id }}">
         {{ link_text }}
@@ -253,7 +255,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-info btn-action" data-bs-dismiss="modal">
+                    {% if footer_callback %}
+                        {{ caller('footer') }}
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-secondary btn-action" data-bs-dismiss="modal">
                         Close
                     </button>
                 </div>

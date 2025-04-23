@@ -409,6 +409,12 @@
                             {{ resource.timestamp | timestamp }}
                         {% elif prop == 'Resource id' %}
                             {{ resource.id }}
+
+                        {% elif prop == 'footer' %}
+                            <button onclick="window.open('{{ url_for('.download_file', id=package.id, resource_id=resource.id) }}')"
+                                    class="btn btn-outline-info btn-action">
+                                Download
+                            </button>
                         {% endif %}
                     {% endcall %}
                 </td>
