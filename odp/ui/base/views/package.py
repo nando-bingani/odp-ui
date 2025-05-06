@@ -23,7 +23,7 @@ from odp.ui.base.forms import (
     ZipUploadForm,
 )
 from odp.ui.base.lib import tags, utils
-from odp.ui.base.templates import Button, ButtonTheme, create_btn
+from odp.ui.base.templates import Button, ButtonTheme, create_btn, delete_btn
 
 bp = Blueprint('package', __name__)
 
@@ -271,6 +271,7 @@ def detail(id):
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
         submit_btn=submit_btn,
         cancel_btn=cancel_btn,
+        delete_btn=delete_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE, prompt_args=('the package',)),
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
@@ -358,7 +359,7 @@ def cancel(id):
 @api.view(ODPScope.PACKAGE_WRITE)
 def delete(id):
     package = api.get(f'/package/{id}')
-    api.delete(f'/package/admin/{id}')
+    api.delete(f'/package/{id}')
     flash(f'Package <b>{package["key"]}</b> has been deleted.', category='success')
     return redirect(url_for('.index'))
 

@@ -7,7 +7,7 @@
 {% block web_title %}
     {{ super() }} |
     {% block heading %}
-        Package: {{ package.title }}
+        Package: {{ package.key }}
     {% endblock %}
 {% endblock %}
 
@@ -241,9 +241,10 @@
                 {% endif %}
             {% endcall %}
 
-            <div class="mt-4 btn-toolbar">
-                {% if package.status == 'pending' %}
+            <div class="mt-4 btn-toolbar justify-content-between">
+                {% if package.status == 'editing' %}
                     {{ render_button(submit_btn) }}
+                    {{ render_button(delete_btn) }}
                 {% elif package.status == 'submitted' %}
                     {{ render_button(cancel_btn) }}
                 {% endif %}
