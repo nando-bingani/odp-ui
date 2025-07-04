@@ -29,8 +29,11 @@ function _initMap(n, e, s, w) {
     return map;
 }
 
-function createExtentMap(n, e, s, w) {
-    $('#map').height('300px');
+function createExtentMap(n, e, s, w, height = '300px', width) {
+    $('#map').height(height);
+    if (width) {
+        $('#map').width(width);
+    }
     const map = _initMap(n, e, s, w);
 
     if (n === s && e === w) {
@@ -173,13 +176,85 @@ function formatCitation(doi) {
 function copyCitation() {
     const text = $('#citation').text();
     navigator.clipboard.writeText(text).then(function () {
-        const tooltip = new bootstrap.Tooltip($('#copy-citation-btn'), {
-            title: 'Copied!',
-            trigger: 'manual'
-        });
-        tooltip.show();
-        setTimeout(function () {
-            tooltip.hide();
-        }, 3000);
+        flashTooltip('copy-citation-btn', 'Copied!');
     });
 }
+
+function getSelectedIds() {
+    const checkboxes = document.querySelectorAll('input[name="check_item"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function buildRedirectUrl(selectedIds) {
+//    const baseUrl = 'http://odp.localhost:2022/catalog/subset';
+    const currentUrl = new URL(window.location.href);
+    // Replace the path with '/subset'
+    const baseUrl = `${currentUrl.origin}/catalog/subset`
+    page = 1
+    size = 50
+    const queryParams = selectedIds.map(id => `record_id_or_doi_list=${id}`).join('&');
+    return `${baseUrl}?${queryParams}&page=${page}&size=${size}`;
+}
+
+function goToSelectedRecordList(event) {
+    event.preventDefault();
+    const selectedIds = getSelectedIds();
+    console.log("Selected IDs:", selectedIds);
+    const redirectUrl = buildRedirectUrl(selectedIds);
+    console.log("Redirect URL:", redirectUrl);
+    window.location.href = redirectUrl;
+}
+
+function selectedRecordListLink(event) {
+    event.preventDefault();
+    const selectedIds = getSelectedIds();
+    console.log("Selected IDs:", selectedIds);
+    const redirectUrl = buildRedirectUrl(selectedIds);
+    console.log("Redirect URL:", redirectUrl);
+    document.getElementById('record-subsetilink').innerText = redirectUrl;
+}
+
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('input[name="check_item"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
+
+function downloadAll(event, button) {
+    event.preventDefault();
+
+    let downloadUrls = JSON.parse(button.dataset.downloadUrls);
+
+    console.log("Download URLs:", downloadUrls);
+
+    // Example: trigger downloads
+    // downloadUrls.forEach(url => {
+    //     const a = document.createElement('a');
+    //     a.href = url;
+    //     a.download = '';  // browser will auto-handle filename
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     document.body.removeChild(a);
+    // });
+}
+
+
+function toggleUnSelectAll() {
+    const checkboxes = document.querySelectorAll('input[name="check_item"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+
+//  function copyToClipboard() {
+//    const copyText = document.getElementById('record-subsetilink').innerText;
+//    const textarea = document.createElement('textarea');
+//    textarea.value = copyText;
+//    document.body.appendChild(textarea);
+//    textarea.select();
+//    document.execCommand('copy');
+//    document.body.removeChild(textarea);
+//    alert("Copied the text: " + copyText);
+//}

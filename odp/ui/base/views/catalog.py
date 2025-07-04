@@ -152,14 +152,10 @@ def view(id):
     catalog_id = current_app.config['CATALOG_ID']
 
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')
-    sdg_vocab = {
-        keyword_obj['id']: keyword_obj['data']
-        for keyword_obj in cli.get(f'/vocabulary/SDG')['terms']
-    }
 
     return render_template(
         'catalog_record.html',
-        record=record, sdg_vocab=sdg_vocab,
+        record=record,
     )
 
 
@@ -177,3 +173,28 @@ def sitemap():
     response = make_response(sitemap_xml)
     response.headers['Content-Type'] = 'application/xml'
     return response
+
+
+@bp.route('/subset')
+@cli.view()
+def subset_record_list():
+    catalog_id = current_app.config['CATALOG_ID']
+    record_ids = request.args.getlist('record_id_or_doi_list')
+    record_ids_query = '&record_id_or_doi_list='.join(record_ids)
+    # Prepend the first parameter
+    record_ids_query = f"record_id_or_doi_list={record_ids_query}"
+    # Pass the record IDs as query parameters
+
+    #Add page and size on the query paramenters &page=1&size=50
+    page = request.args.getlist('page')[0]
+
+    size = request.args.getlist('size')[0]
+    catalog_record_list = cli.get(f'/catalog/{catalog_id}/subset?{record_ids_query}&page={page}&size={size}')
+    print("XXXXXXXXX",)
+    print(json.dumps(catalog_record_list))
+    print("sDS")
+    return render_template(
+        'catalog_subset.html',
+        catalog_record_list=catalog_record_list,
+    )
+
