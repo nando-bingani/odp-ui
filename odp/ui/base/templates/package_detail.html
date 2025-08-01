@@ -7,7 +7,7 @@
 {% block web_title %}
     {{ super() }} |
     {% block heading %}
-        Package: {{ package.title }}
+        Package: {{ package.key }}
     {% endblock %}
 {% endblock %}
 
@@ -16,8 +16,9 @@
         'overview',
         overview='Overview',
         contributors='Contributors',
-        resources='Resources',
-        sdgs='SDGs'
+        files='Files',
+        sdgs='SDGs',
+        metadata='Metadata'
     ) %}
         {% if tab_id == 'overview' %}
             {% call(prop) render_info(package,
@@ -26,11 +27,12 @@
                     'Abstract',
                     'Methods (Lineage)',
                     'Contributors',
-                    'Resources',
+                    'Files',
                     'SDGs',
-                    'Geographic location',
                     'Temporal extent',
+                    'Geographic extent',
                     'Data provider',
+                    'Package key',
                     'Package status',
                     'Last modified',
                     hide_id=true
@@ -39,10 +41,18 @@
                 {% if prop == 'Title' %}
                     <div class="d-flex justify-content-between">
                         <div>
-                            {{ package.title }}
+                            {{ title_tag.data.title if title_tag }}
                         </div>
-                        <div>
-                            {{ render_button(edit_btn, edit_icon=true) }}
+                        <div class="row gx-1">
+                            {% set title_enabled = title_btn.scope in g.user_permissions %}
+                            {% if title_enabled %}
+                                <div class="col">
+                                    {{ render_button_dialog_form(
+                                        title_btn, title_form, 'tag-title', edit_icon=true,
+                                        reload_on_cancel=(title_tag is not none)
+                                    ) }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -125,12 +135,9 @@
                     </div>
 
                 {% elif prop == 'Contributors' %}
-                    {% for contrib_tag in contrib_tags['items'] %}
-                        {{ contrib_tag.data.role | uncamel }}: {{ contrib_tag.data.name }}
-                        {% if not loop.last %}<br/>{% endif %}
-                    {% endfor %}
+                    {{ contrib_tags['items'] | length }}
 
-                {% elif prop == 'Resources' %}
+                {% elif prop == 'Files' %}
                     {{ package.resource_ids | length }}
 
                 {% elif prop == 'SDGs' %}
@@ -139,7 +146,7 @@
                         {%- if not loop.last %}, {% endif %}
                     {% endfor %}
 
-                {% elif prop == 'Geographic location' %}
+                {% elif prop == 'Geographic extent' %}
                     <div class="d-flex justify-content-between">
                         <div class="pe-4">
                             {% if geoloc_tag %}
@@ -172,7 +179,7 @@
                                         reload_on_cancel=(geoloc_tag is not none)
                                     ) %}
                                         {{ render_field(geoloc_form.place) }}
-                                        {{ render_field(geoloc_form.shape, onchange='toggleGeoPointRegion();') }}
+                                        {{ render_field(geoloc_form.shape, onchange='selectGeoShape();') }}
                                         {{ render_field(geoloc_form.north) }}
                                         <div id="geo_region_grp" class="visually-hidden">
                                             {{ render_field(geoloc_form.south) }}
@@ -220,14 +227,10 @@
                     </div>
 
                 {% elif prop == 'Data provider' %}
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {{ package.provider_key }}
-                        </div>
-                        <div>
-                            {{ render_button(edit_btn, edit_icon=true) }}
-                        </div>
-                    </div>
+                    {{ package.provider_key }}
+
+                {% elif prop == 'Package key' %}
+                    {{ package.key }}
 
                 {% elif prop == 'Package status' %}
                     {{ package.status }}
@@ -238,17 +241,33 @@
                 {% endif %}
             {% endcall %}
 
+            <div class="mt-4 btn-toolbar justify-content-between">
+                {% if package.status == 'editing' %}
+                    {{ render_button(submit_btn) }}
+                    {{ render_button(delete_btn) }}
+                {% elif package.status == 'submitted' %}
+                    {{ render_button(cancel_btn) }}
+                {% endif %}
+            </div>
+
         {% elif tab_id == 'contributors' %}
             {% set contrib_enabled = contrib_btn.scope in g.user_permissions %}
             {% set institution_enabled = institution_btn.scope in g.user_permissions %}
 
             {% call(contrib_tag) render_table(contrib_tags,
-                    'Name', 'Is Author', 'Role', 'ORCID', 'Affiliation(s)', hide_id=true
+                    'Name', 'Author', 'Role', 'ORCID', 'Contact Information', 'Affiliation(s)', hide_id=true
             ) %}
                 <td>{{ contrib_tag.data.name }}</td>
                 <td>{{ '&#9989;' | safe if contrib_tag.data.is_author }}</td>
                 <td>{{ contrib_tag.data.role | uncamel }}</td>
-                <td>{{ contrib_tag.data.orcid }}</td>
+                <td>
+                    {% if contrib_tag.data.orcid %}
+                        <a href="{{ contrib_tag.data.orcid }}" target="_blank" class="text-decoration-none">
+                            {{ contrib_tag.data.orcid }}
+                        </a>
+                    {% endif %}
+                </td>
+                <td>{{ contrib_tag.data.contact_info }}</td>
                 <td>
                     {% for keyword_id in contrib_tag.data.affiliations %}
                         {% set keyword_obj = keyword_id | keyword %}
@@ -277,21 +296,28 @@
                             contrib_btn, contrib_form, 'tag-contributor'
                         ) %}
                             {{ render_field(contrib_form.name) }}
-                            {{ render_field(contrib_form.is_author, onchange='toggleContributorAuthor();') }}
+                            {{ render_field(contrib_form.is_author, onchange='toggleContribAuthor();') }}
                             <div id="author_role_grp" class="visually-hidden">
-                                {{ render_field(contrib_form.author_role) }}
+                                {{ render_field(contrib_form.author_role, onchange='selectContribRole();') }}
                             </div>
                             <div id="contributor_role_grp">
-                                {{ render_field(contrib_form.contributor_role) }}
+                                {{ render_field(contrib_form.contributor_role, onchange='selectContribRole();') }}
                             </div>
-                            {{ render_field(contrib_form.orcid) }}
+                            <div id="contact_info_grp" class="visually-hidden">
+                                {{ render_field(contrib_form.contact_info) }}
+                            </div>
+                            {{ render_field(contrib_form.orcid, oninput='updateORCID();') }}
                             {{ render_field(contrib_form.affiliations, style="height: 200px") }}
                         {% endcall %}
                     </div>
                     <div>
-                        {{ render_button_dialog_form(
+                        {% call render_button_dialog_form(
                             institution_btn, institution_form, 'add-institution'
-                        ) }}
+                        ) %}
+                            {{ render_field(institution_form.key) }}
+                            {{ render_field(institution_form.abbr) }}
+                            {{ render_field(institution_form.ror, oninput='updateROR();') }}
+                        {% endcall %}
                     </div>
                 </div>
             {% endif %}
@@ -355,36 +381,41 @@
                 </div>
             {% endif %}
 
-        {% elif tab_id == 'resources' %}
+        {% elif tab_id == 'files' %}
             {% call(resource) render_table(resources,
-                    'Package path', 'File size', 'Content type', '',
+                    'File path', 'File size', 'Content type', '',
                     hide_id=true
             ) %}
                 <td>
-                    {% set resource_path = resource.package_paths[package.id] %}
                     {% call(prop) obj_info_popup(
-                        resource.id, resource_path, 'Resource: ' + resource_path,
-                        'Title', 'Description', 'File name', 'File size', 'Content type', 'Checksum',
-                        'Provider', 'Resource id', 'Last modified'
+                        resource.id, resource.path, 'File: ' + resource.path,
+                        'Title', 'Description', 'Folder', 'File name', 'File size',
+                        'Content type', 'Checksum', 'Resource id', 'Last modified'
                     ) %}
                         {% if prop == 'Title' %}
                             {{ resource.title if resource.title }}
                         {% elif prop == 'Description' %}
                             {{ resource.description if resource.description }}
+                        {% elif prop == 'Folder' %}
+                            {{ resource.path | folder }}
                         {% elif prop == 'File name' %}
-                            {{ resource.filename }}
+                            {{ resource.path | filename }}
                         {% elif prop == 'File size' %}
                             {{ resource.size | bytes(verbose=true) }}
                         {% elif prop == 'Content type' %}
                             {{ resource.mimetype }}
                         {% elif prop == 'Checksum' %}
-                            [{{ resource.hash_algorithm }}] {{ resource.hash }}
+                            {{ resource.hash_algorithm }}: {{ resource.hash }}
                         {% elif prop == 'Last modified' %}
                             {{ resource.timestamp | timestamp }}
-                        {% elif prop == 'Provider' %}
-                            {{ resource.provider_key }}
                         {% elif prop == 'Resource id' %}
                             {{ resource.id }}
+
+                        {% elif prop == 'footer' %}
+                            <button onclick="window.open('{{ url_for('.download_file', id=package.id, resource_id=resource.id) }}')"
+                                    class="btn btn-outline-info btn-action">
+                                Download
+                            </button>
                         {% endif %}
                     {% endcall %}
                 </td>
@@ -398,7 +429,7 @@
                 {% if can_edit %}
                     <td class="text-end">
                         {{ render_delete_button_form(
-                            '.delete_resource', 'resource',
+                            '.delete_file', 'file',
                             id=package.id, resource_id=resource.id
                         ) }}
                     </td>
@@ -431,6 +462,12 @@
                     </div>
                 </div>
             {% endif %}
+
+        {% elif tab_id == 'metadata' %}
+            <pre class="m-3">
+                {{- package.metadata | format_json -}}
+            </pre>
+
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -455,8 +492,10 @@
         {% endif %}
 
         initHashTabs();
-        toggleContributorAuthor();
-        toggleGeoPointRegion();
+        toggleContribAuthor();
+        updateORCID();
+        updateROR();
+        selectGeoShape();
         loadSDGVocabulary();
     </script>
 

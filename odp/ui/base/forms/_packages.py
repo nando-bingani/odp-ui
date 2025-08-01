@@ -5,7 +5,7 @@ from odp.ui.base.forms import BaseForm
 from odp.ui.base.forms.validators import file_required
 
 
-class PackageForm(BaseForm):
+class PackageCreateForm(BaseForm):
     provider_id = SelectField(
         label='Package provider',
         validators=[input_required()],
@@ -18,10 +18,10 @@ class PackageForm(BaseForm):
 
 class FileUploadForm(BaseForm):
     title = StringField(
-        label='Resource title',
+        label='Title',
     )
     description = StringField(
-        label='Resource description',
+        label='Description',
     )
     file = FileField(
         label='File upload',

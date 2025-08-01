@@ -71,19 +71,51 @@ function addResources() {
     }
 }
 
-function toggleContributorAuthor() {
+function toggleContribAuthor() {
     const isAuthor = $('#is_author').is(':checked');
     if (isAuthor) {
         $('#author_role_grp').removeClass('visually-hidden');
+        $('#author_role').prop('required', true);
+        $('#author_role').prop('disabled', false);
         $('#contributor_role_grp').addClass('visually-hidden');
+        $('#contributor_role').prop('required', false);
+        $('#contributor_role').prop('disabled', true);
     } else {
         $('#author_role_grp').addClass('visually-hidden');
+        $('#author_role').prop('required', false);
+        $('#author_role').prop('disabled', true);
         $('#contributor_role_grp').removeClass('visually-hidden');
+        $('#contributor_role').prop('required', true);
+        $('#contributor_role').prop('disabled', false);
+    }
+    selectContribRole();
+}
+
+function selectContribRole() {
+    const isAuthor = $('#is_author').is(':checked');
+    const isContactPerson = $('#contributor_role option:selected').val() == 'pointOfContact';
+    if (!isAuthor && isContactPerson) {
+        $('#contact_info_grp').removeClass('visually-hidden');
+        $('#contact_info').prop('required', true);
+        $('#contact_info').prop('disabled', false);
+    } else {
+        $('#contact_info_grp').addClass('visually-hidden');
+        $('#contact_info').prop('required', false);
+        $('#contact_info').prop('disabled', true);
     }
 }
 
+function updateORCID() {
+    const orcid_url = 'https://orcid.org/' + $('#orcid').val();
+    $('#orcid-description').text(orcid_url);
+}
 
-function toggleGeoPointRegion() {
+function updateROR() {
+    const ror_url = 'https://ror.org/' + $('#ror').val();
+    $('#ror-description').text(ror_url);
+}
+
+function selectGeoShape() {
     const isPoint = $('input[type="radio"][value="point"]').is(':checked');
     const isRegion = $('input[type="radio"][value="box"]').is(':checked');
     if (!isPoint && !isRegion) {

@@ -1,7 +1,7 @@
 from wtforms import BooleanField, FloatField, HiddenField, RadioField, SelectField, StringField, ValidationError
 from wtforms.validators import data_required, input_required, number_range, optional, regexp
 
-from odp.const import DOI_REGEX
+from odp.const import DOI_REGEX, ORCID_PATH
 from odp.ui.base.forms import BaseForm
 from odp.ui.base.forms.fields import DateStringField, DynamicSelectField, MultiCheckboxField
 from odp.ui.base.forms.validators import pseudo_required
@@ -11,6 +11,13 @@ class DOITagForm(BaseForm):
     doi = StringField(
         label='DOI',
         validators=[data_required(), regexp(DOI_REGEX)],
+    )
+
+
+class TitleTagForm(BaseForm):
+    title = StringField(
+        label='Package title',
+        validators=[data_required()],
     )
 
 
@@ -51,6 +58,8 @@ class ContributorTagForm(BaseForm):
     )
     orcid = StringField(
         label='ORCID',
+        validators=[regexp(f'^(|{ORCID_PATH})$', message='Expecting 16-digit ORCID. Example: 0000-0001-2345-678X')],
+        description='https://orcid.org/',
     )
     is_author = BooleanField(
         label='Author',
@@ -59,26 +68,34 @@ class ContributorTagForm(BaseForm):
     author_role = SelectField(
         label='Role',
         choices=[
-            'originator',
-            'principalInvestigator',
+            ('', 'Please select...'),
+            ('originator', 'Originator'),
+            ('principalInvestigator', 'Principal Investigator'),
         ],
-        validators=[input_required()],
+        validate_choice=False,
+        validators=[pseudo_required()],
     )
     contributor_role = SelectField(
         label='Role',
         choices=[
-            "resourceProvider",
-            "custodian",
-            "owner",
-            "distributor",
-            "pointOfContact",
-            "processor"
+            ('', 'Please select...'),
+            ('custodian', 'Custodian'),
+            ('distributor', 'Distributor'),
+            ('owner', 'Owner'),
+            ('pointOfContact', 'Point Of Contact'),
+            ('processor', 'Processor'),
+            ('resourceProvider', 'Resource Provider'),
         ],
-        validators=[input_required()],
+        validate_choice=False,
+        validators=[pseudo_required()],
     )
     affiliations = MultiCheckboxField(
         label='Affiliation(s)',
         description='Click the Add Institution button if your institution is not listed here.',
+    )
+    contact_info = StringField(
+        label='Contact information',
+        validators=[pseudo_required()],
     )
 
 

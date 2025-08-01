@@ -2,7 +2,7 @@ from flask import Flask
 
 from odp.ui.base.forms._base import BaseForm
 from odp.ui.base.forms._keywords import InstitutionKeywordForm
-from odp.ui.base.forms._packages import FileUploadForm, PackageForm, ZipUploadForm
+from odp.ui.base.forms._packages import FileUploadForm, PackageCreateForm, ZipUploadForm
 from odp.ui.base.forms._search import CatalogSearchForm, ResourceSearchForm
 from odp.ui.base.forms._tags import (
     AbstractTagForm,
@@ -13,6 +13,7 @@ from odp.ui.base.forms._tags import (
     KeywordTagForm,
     LineageTagForm,
     SDGTagForm,
+    TitleTagForm,
 )
 
 

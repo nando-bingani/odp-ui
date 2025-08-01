@@ -1,7 +1,11 @@
-from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
+from io import BytesIO
+from pathlib import Path
+
+from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, send_file, url_for
 from werkzeug.utils import secure_filename
 
 from odp.const import ODPPackageTag, ODPScope, ODPVocabulary
+from odp.const.db import ResourceStatus
 from odp.lib.client import ODPAPIError
 from odp.ui.base import api
 from odp.ui.base.forms import (
@@ -13,12 +17,13 @@ from odp.ui.base.forms import (
     GeoLocationTagForm,
     InstitutionKeywordForm,
     LineageTagForm,
-    PackageForm,
+    PackageCreateForm,
     SDGTagForm,
+    TitleTagForm,
     ZipUploadForm,
 )
 from odp.ui.base.lib import tags, utils
-from odp.ui.base.templates import Button, ButtonTheme, create_btn, edit_btn
+from odp.ui.base.templates import Button, ButtonTheme, create_btn, delete_btn
 
 bp = Blueprint('package', __name__)
 
@@ -42,9 +47,11 @@ def index():
 @api.view(ODPScope.PACKAGE_READ)
 def detail(id):
     package = api.get(f'/package/{id}')
-    resources = utils.pagify(package['resources'])
+    resources = utils.pagify(list(filter(
+        lambda r: r['status'] == ResourceStatus.active, package['resources'])))
 
     doi_tag = tags.get_tag_instance(package, ODPPackageTag.DOI)
+    title_tag = tags.get_tag_instance(package, ODPPackageTag.TITLE)
     geoloc_tag = tags.get_tag_instance(package, ODPPackageTag.GEOLOCATION)
     daterange_tag = tags.get_tag_instance(package, ODPPackageTag.DATERANGE)
     contrib_tags = tags.get_tag_instances(package, ODPPackageTag.CONTRIBUTOR)
@@ -53,6 +60,7 @@ def detail(id):
     lineage_tag = tags.get_tag_instance(package, ODPPackageTag.LINEAGE)
 
     doi_form = None
+    title_form = None
     geoloc_form = None
     daterange_form = None
     contrib_form = None
@@ -71,6 +79,10 @@ def detail(id):
                     doi_form = DOITagForm(request.form)
                     doi_form.validate()
                     active_modal_reload_on_cancel = doi_tag is not None
+                case 'tag-title':
+                    title_form = TitleTagForm(request.form)
+                    title_form.validate()
+                    active_modal_reload_on_cancel = title_tag is not None
                 case 'tag-geoloc':
                     geoloc_form = GeoLocationTagForm(request.form)
                     geoloc_form.validate()
@@ -108,6 +120,9 @@ def detail(id):
     if not doi_form:
         doi_form = DOITagForm(data=doi_tag['data'] if doi_tag else None)
 
+    if not title_form:
+        title_form = TitleTagForm(data=title_tag['data'] if title_tag else None)
+
     if not geoloc_form:
         geoloc_form = GeoLocationTagForm(data=geoloc_tag['data'] if geoloc_tag else None)
 
@@ -137,6 +152,26 @@ def detail(id):
 
     utils.populate_keyword_choices(contrib_form.affiliations, ODPVocabulary.INSTITUTION, include_proposed=True)
 
+    submit_btn = Button(
+        label='Submit',
+        endpoint='.submit',
+        theme=ButtonTheme.success,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+        prompt='Are you sure you want to submit the package?',
+        description='Submit package for publication'
+    )
+
+    cancel_btn = Button(
+        label='Cancel',
+        endpoint='.cancel',
+        theme=ButtonTheme.warning,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+        prompt='Are you sure you want to cancel the package submission?',
+        description='Cancel package submission',
+    )
+
     doi_btn = Button(
         label='Edit DOI' if doi_tag else 'Add DOI',
         endpoint='.tag_doi',
@@ -145,8 +180,16 @@ def detail(id):
         scope=ODPScope.PACKAGE_DOI,
     )
 
+    title_btn = Button(
+        label='Edit Title' if title_tag else 'Add Title',
+        endpoint='.tag_title',
+        theme=ButtonTheme.primary,
+        object_id=id,
+        scope=ODPScope.PACKAGE_WRITE,
+    )
+
     geoloc_btn = Button(
-        label='Edit Geographic Location' if geoloc_tag else 'Add Geographic Location',
+        label='Edit Geographic Extent' if geoloc_tag else 'Add Geographic Extent',
         endpoint='.tag_geolocation',
         theme=ButtonTheme.primary,
         object_id=id,
@@ -226,10 +269,15 @@ def detail(id):
         active_modal_id=active_modal_id,
         active_modal_reload_on_cancel=active_modal_reload_on_cancel,
         can_edit=ODPScope.PACKAGE_WRITE in g.user_permissions,
-        edit_btn=edit_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE),
+        submit_btn=submit_btn,
+        cancel_btn=cancel_btn,
+        delete_btn=delete_btn(object_id=id, scope=ODPScope.PACKAGE_WRITE, prompt_args=('the package',)),
         doi_tag=doi_tag,
         doi_btn=doi_btn,
         doi_form=doi_form,
+        title_tag=title_tag,
+        title_btn=title_btn,
+        title_form=title_form,
         geoloc_tag=geoloc_tag,
         geoloc_btn=geoloc_btn,
         geoloc_form=geoloc_form,
@@ -260,15 +308,23 @@ def detail(id):
 @bp.route('/new', methods=('GET', 'POST'))
 @api.view(ODPScope.PACKAGE_WRITE)
 def create():
-    form = PackageForm(request.form)
+    form = PackageCreateForm(request.form)
     utils.populate_provider_choices(form.provider_id)
 
     if request.method == 'POST' and form.validate():
         try:
             package = api.post('/package/', dict(
                 provider_id=form.provider_id.data,
-                title=(title := form.title.data),
+                schema_id=current_app.config['SCHEMA_ID'],
             ))
+            try:
+                api.post(f"/package/{package['id']}/tag", dict(
+                    tag_id=ODPPackageTag.TITLE,
+                    data={'title': (title := form.title.data)},
+                ))
+            except ODPAPIError as e:
+                api.handle_error(e)
+
             flash(f'Package <b>{title}</b> has been created.', category='success')
             return redirect(url_for('.detail', id=package['id']))
 
@@ -282,32 +338,30 @@ def create():
     )
 
 
-@bp.route('/<id>/edit', methods=('GET', 'POST'))
+@bp.route('/<id>/submit', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
-def edit(id):
+def submit(id):
     package = api.get(f'/package/{id}')
+    api.post(f'/package/{id}/submit', {})
+    flash(f'Package <b>{package["key"]}</b> has been submitted.', category='success')
+    return redirect(url_for('.detail', id=id))
 
-    form = PackageForm(request.form, data=package)
-    utils.populate_provider_choices(form.provider_id)
 
-    if request.method == 'POST' and form.validate():
-        try:
-            package = api.put(f'/package/{id}', dict(
-                provider_id=form.provider_id.data,
-                title=(title := form.title.data),
-            ))
-            flash(f'Package <b>{title}</b> has been updated.', category='success')
-            return redirect(url_for('.detail', id=id))
+@bp.route('/<id>/cancel', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def cancel(id):
+    api.post(f'/package/{id}/cancel', {})
+    flash('Package submission has been cancelled.', category='success')
+    return redirect(url_for('.detail', id=id))
 
-        except ODPAPIError as e:
-            if response := api.handle_error(e):
-                return response
 
-    return render_template(
-        'package_edit.html',
-        package=package,
-        form=form,
-    )
+@bp.route('/<id>/delete', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def delete(id):
+    package = api.get(f'/package/{id}')
+    api.delete(f'/package/{id}')
+    flash(f'Package <b>{package["key"]}</b> has been deleted.', category='success')
+    return redirect(url_for('.index'))
 
 
 @bp.route('/<id>/tag/doi', methods=('POST',))
@@ -342,6 +396,32 @@ def untag_doi(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
     flash('DOI has been deleted.', category='success')
     return redirect(url_for('.detail', id=id))
+
+
+@bp.route('/<id>/tag/title', methods=('POST',))
+@api.view(ODPScope.PACKAGE_WRITE)
+def tag_title(id):
+    form = TitleTagForm(request.form)
+    redirect_args = dict(id=id, _anchor='overview')
+
+    if form.validate():
+        try:
+            api.post(f'/package/{id}/tag', dict(
+                tag_id=ODPPackageTag.TITLE,
+                data={
+                    'title': form.title.data,
+                },
+            ))
+            flash('Title has been saved.', category='success')
+            return redirect(url_for('.detail', **redirect_args))
+
+        except ODPAPIError as e:
+            if response := api.handle_error(e):
+                return response
+    else:
+        redirect_args |= dict(modal='tag-title')
+
+    return redirect(url_for('.detail', **redirect_args), code=307)
 
 
 @bp.route('/<id>/tag/abstract', methods=('POST',))
@@ -435,7 +515,7 @@ def tag_geolocation(id):
                 tag_id=ODPPackageTag.GEOLOCATION,
                 data=tag_data,
             ))
-            flash('Geographic location has been saved.', category='success')
+            flash('Geographic extent has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
 
         except ODPAPIError as e:
@@ -451,7 +531,7 @@ def tag_geolocation(id):
 @api.view(ODPScope.PACKAGE_WRITE)
 def untag_geolocation(id, tag_instance_id):
     api.delete(f'/package/{id}/tag/{tag_instance_id}')
-    flash('Geographic location has been deleted.', category='success')
+    flash('Geographic extent has been deleted.', category='success')
     return redirect(url_for('.detail', id=id))
 
 
@@ -499,15 +579,24 @@ def tag_contributor(id):
 
     if form.validate():
         try:
+            tag_data = {
+                'name': form.name.data,
+                'is_author': form.is_author.data,
+                'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
+                'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
+            }
+            if form.orcid.data:
+                tag_data |= {
+                    'orcid': 'https://orcid.org/' + form.orcid.data,
+                }
+            if tag_data['role'] == 'pointOfContact':
+                tag_data |= {
+                    'contact_info': form.contact_info.data,
+                }
+
             api.post(f'/package/{id}/tag', dict(
                 tag_id=ODPPackageTag.CONTRIBUTOR,
-                data={
-                    'name': form.name.data,
-                    'orcid': form.orcid.data,
-                    'is_author': form.is_author.data,
-                    'role': form.author_role.data if form.is_author.data else form.contributor_role.data,
-                    'affiliations': [int(kw_id) for kw_id in form.affiliations.data],
-                },
+                data=tag_data,
             ))
             flash('Contributor has been saved.', category='success')
             return redirect(url_for('.detail', **redirect_args))
@@ -582,7 +671,7 @@ def add_institution(id):
             if form.abbr.data:
                 api_args['data']['abbr'] = form.abbr.data
             if form.ror.data:
-                api_args['data']['ror'] = form.ror.data
+                api_args['data']['ror'] = 'https://ror.org/' + form.ror.data
 
             api.post('/keyword/Institution/', api_args)
 
@@ -598,25 +687,22 @@ def add_institution(id):
 @bp.route('/<id>/upload-file', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
 def upload_file(id):
-    """Add a file to a package and upload it to an archive."""
+    """Upload a single file and add it to the package."""
     form = FileUploadForm(request.form)
-    redirect_args = dict(id=id, _anchor='resources')
+    redirect_args = dict(id=id, _anchor='files')
 
     if form.validate():
-        package = api.get(f'/package/{id}')
-        provider_id = package['provider_id']
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/',
+                f'/package/{id}/files/{filename}',
+                archive_id=archive_id,
                 files={'file': file.stream},
+                sha256=form.sha256.data,
                 title=form.title.data or None,
                 description=form.description.data or None,
-                filename=filename,
-                sha256=form.sha256.data,
-                package_id=id,
             )
             flash(f'File <b>{filename}</b> has been uploaded.', category='success')
             return redirect(url_for('.detail', **redirect_args))
@@ -635,22 +721,19 @@ def upload_file(id):
 def upload_zip(id):
     """Upload a zip file, unpacking its contents into the package."""
     form = ZipUploadForm(request.form)
-    redirect_args = dict(id=id, _anchor='resources')
+    redirect_args = dict(id=id, _anchor='files')
 
     if form.validate():
-        package = api.get(f'/package/{id}')
-        provider_id = package['provider_id']
         archive_id = current_app.config['ARCHIVE_ID']
         file = request.files.get('zip_file')
         filename = secure_filename(file.filename)
         try:
             api.put_files(
-                f'/archive/{archive_id}/{provider_id}/{id}/',
+                f'/package/{id}/files/{filename}',
+                archive_id=archive_id,
                 unpack=True,
                 files={'file': file.stream},
-                filename=filename,
                 sha256=form.zip_sha256.data,
-                package_id=id,
             )
             flash(f'Zip file <b>{filename}</b> has been uploaded and unpacked.', category='success')
             return redirect(url_for('.detail', **redirect_args))
@@ -664,7 +747,28 @@ def upload_zip(id):
     return redirect(url_for('.detail', **redirect_args), code=307)
 
 
-@bp.route('/<id>/resource/delete/<resource_id>', methods=('POST',))
+@bp.route('/<id>/delete-file/<resource_id>', methods=('POST',))
 @api.view(ODPScope.PACKAGE_WRITE)
-def delete_resource(id, resource_id):
-    return
+def delete_file(id, resource_id):
+    api.delete(f'/package/{id}/files/{resource_id}')
+    flash('File has been deleted.', category='success')
+    return redirect(url_for('.detail', id=id, _anchor='files'))
+
+
+@bp.route('/<id>/download-file/<resource_id>')
+# no @api.view because this is opened in its own window
+def download_file(id, resource_id):
+    archive_id = current_app.config['ARCHIVE_ID']
+    try:
+        resource = api.get(f'/resource/{resource_id}')
+        data = api.get_bytes(
+            f'/package/{id}/files/{resource_id}',
+            archive_id=archive_id,
+        )
+    except ODPAPIError as e:
+        abort(e.status_code, e.error_detail)
+
+    return send_file(
+        BytesIO(data),
+        download_name=Path(resource['path']).name,
+    )

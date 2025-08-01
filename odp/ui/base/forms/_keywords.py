@@ -1,7 +1,7 @@
 from wtforms import StringField
 from wtforms.validators import data_required, length, regexp
 
-from odp.const import ROR_REGEX
+from odp.const import ROR_PATH
 from odp.ui.base.forms import BaseForm
 
 
@@ -16,6 +16,6 @@ class InstitutionKeywordForm(BaseForm):
     )
     ror = StringField(
         label='Research Organization Registry (ROR) identifier',
-        validators=[regexp('^$|' + ROR_REGEX)],
-        description='An ROR URL (https://ror.org/...)'
+        validators=[regexp(f'^(|{ROR_PATH})$', message='Expecting 9-character ROR.')],
+        description='https://ror.org/',
     )
