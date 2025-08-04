@@ -107,6 +107,7 @@ def index():
     facet_api_query = {}
     facet_ui_query = {}
     facet_fields = {}
+
     for facet_title in facets:
         facet_field = CatalogSearchForm.facet_fieldname(facet_title)
         facet_fields[facet_title] = facet_field
@@ -136,6 +137,7 @@ def index():
         form=CatalogSearchForm(request.args),
         result=result,
         facet_fields=facet_fields,
+        current_app = 'mims'
     )
 
 
@@ -168,8 +170,8 @@ def view(id):
     return render_template(
         'catalog_record.html',
         record=record,
+        current_app='mims',
     )
-
 
 @bp.route('/sitemap.xml')
 @cli.view()
@@ -202,12 +204,12 @@ def subset_record_list():
 
     size = request.args.getlist('size')[0]
     catalog_record_list = cli.get(f'/catalog/{catalog_id}/subset?{record_ids_query}&page={page}&size={size}')
-    print("XXXXXXXXX",)
-    print(json.dumps(catalog_record_list))
-    print("sDS")
+
     return render_template(
         'catalog_subset.html',
         catalog_record_list=catalog_record_list,
+        # app_name = current_app.config['SESSION_COOKIE_NAME'].split('.')[0]
+        app_name = 'mims'
     )
 
 @bp.route('/proxy-download')
