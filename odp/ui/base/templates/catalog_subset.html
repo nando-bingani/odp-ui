@@ -16,14 +16,11 @@
     </div>
 {% endset %}
 
-
-
 {% block main %}
     <main class="flex-grow-1 m-5">
         <div class="container-xxl">
             <div class="d-flex justify-content-center align-items-start">
                 <div class="flex-grow-evenly">
-
                 </div>
 
                 <div class="mx-5 w-50">
@@ -35,12 +32,9 @@
 {#
 {#                    </div>#}
                     <div class="mb-5">
-                         {{ result_list(catalog_record_list['items']) }}
+                         {{ result_list(catalog_record_list['items'],app_name) }}
                     </div>
-
                         {{ pagination }}
-
-
                 </div>
                 <div class="flex-grow-evenly">
 

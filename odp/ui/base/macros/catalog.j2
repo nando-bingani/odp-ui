@@ -189,26 +189,30 @@
     </div>
 {% endmacro %}
 
-{% macro result_list(records) %}
+{% macro result_list(records,app_name=None) %}
 
     <form id="recordForm">
+    {% if app_name == 'mims' %}
         <div class="card mb-4">
             <div class="card-header d-flex">
                 <div class="row">
-                    <div class="col-auto">
 
+
+                         <div class="col-auto">
                         <input type="checkbox" id="select_all" onclick="toggleSelectAll(this)"> Select All
                     </div>
                     <div class="col-auto">
                         <input type="checkbox" id="unselect_all" onclick="toggleUnSelectAll(this)"> Unselect All
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-outline-info" onclick="console.log('Download All!')"> Download All </button>
+{#                        <button class="btn btn-outline-info" onclick="console.log('Download All!')"> Download All </button>#}
                     </div>
+
                 </div>
             </div>
 
         </div>
+    {% endif %}
         {% for record in records %}
             {% set metadata = record | select_datacite_metadata %}
             {% set abstract = metadata.descriptions | selectattr('descriptionType', '==', 'Abstract') | map(attribute='description') | first %}
@@ -227,7 +231,7 @@
                                 <span>(No DOI)</span>
                             {% endif %}
                         </div>
-
+                     {% if app_name == 'mims' %}
                         <!-- Right side: Checkbox + Share + Download -->
                         <div class="col-md-4 d-flex justify-content-end align-items-center gap-2">
                             <input type="checkbox" name="check_item" value="{{ record.id }}">
@@ -242,19 +246,25 @@
 
                             </button>
 
-                            {% if immutable_resource
+
+                        {% if immutable_resource
                               and immutable_resource.resourceDownload
                               and immutable_resource.resourceDownload.downloadURL
                               and immutable_resource.resourceDownload.downloadURL.startswith('https://repository.ocean.gov.za') %}
 
                                 {% set download_url = immutable_resource.resourceDownload.downloadURL %}
-{#                                <a href="{{ download_url }}/download" target="_blank"#}
-{#                                   class="">#}
-{#                                     <img src="{{ url_for('static', filename='images/download-icon.png') }}" height="15px"></a>#}
+                                <button
+                                 class="btn btn-link p-0 no-outline"
+                                >
                                 <a onclick="downloadSelectedRecords(event,this,'{{ record.id }}')"
                                         data-records='{{ records | tojson | safe }}'
                                    class="">
-                                     <img src="{{ url_for('static', filename='images/download-icon.png') }}" height="15px"></a>
+                                     <img src="{{ url_for('static', filename='images/download-icon.png') }}" height="15px">
+                                     <span class="download-loader" style="display:none;">
+                                        <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                                     </span>
+                                </a>
+                                </button>
 
                             {% else %}
                                 <span class="text-muted small">No Download</span>
@@ -262,6 +272,7 @@
 
 
                         </div>
+                    {% endif %}
                     </div>
                 </div>
 
@@ -328,6 +339,9 @@
                                         data-records='{{ records | tojson | safe }}'
                                 >
                                      <img src="{{ url_for('static', filename='images/download-icon.png') }}" height="15px">
+                                    <span class="download-loader" style="display:none;">
+                                        <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                                    </span>
                                     Download Selected Records
 
                                 </button>
@@ -672,3 +686,4 @@
         </div>
     </div>
 {% endmacro %}
+
