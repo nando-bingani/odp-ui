@@ -132,12 +132,16 @@ def index():
         size=25,
     )
 
+
+    app_name = current_app.config['SESSION_COOKIE_NAME'].split('.')[0]
+
+
     return render_template(
         'catalog_index.html',
         form=CatalogSearchForm(request.args),
         result=result,
         facet_fields=facet_fields,
-        app_name = 'mims'
+        app_name = app_name,
     )
 
 
@@ -167,10 +171,12 @@ def view(id):
 
     record = cli.get(f'/catalog/{catalog_id}/records/{id}')
 
+    app_name = current_app.config['SESSION_COOKIE_NAME'].split('.')[0]
+
     return render_template(
         'catalog_record.html',
         record=record,
-        app_name = 'mims'
+        app_name = app_name,
     )
 
 @bp.route('/sitemap.xml')
@@ -205,11 +211,13 @@ def subset_record_list():
     size = 5 #request.args.getlist('size')[0]
     catalog_record_list = cli.get(f'/catalog/{catalog_id}/subset?{record_ids_query}&page={page}&size={size}')
     print(catalog_record_list)
+
+    app_name = current_app.config['SESSION_COOKIE_NAME'].split('.')[0]
+
     return render_template(
         'catalog_subset.html',
         catalog_record_list=catalog_record_list,
-        # app_name = current_app.config['SESSION_COOKIE_NAME'].split('.')[0]
-        app_name = 'mims'
+        app_name = app_name
     )
 
 @bp.route('/proxy-download')
